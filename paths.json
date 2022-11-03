@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "paths": {
+            "@components/*": ["src/components/*"],
+            "@components": ["src/components/"],
+            "@assets/*": ["src/assets/*"],
+            "@assets": ["src/assets/"],
+            "@utils/*": ["src/utils/*"],
+            "@utils": ["src/utils/"],
+            "@workers/*": ["src/workers/*"],
+            "@workers": ["src/workers"],
+            "@redux/*": ["src/redux/*"],
+            "@redux": ["src/redux"],
+            "@shared-types/*": ["src/shared-types/*"],
+            "@shared-types": ["src/shared-types"],
+            "@services/*": ["src/services/*"],
+            "@services": ["src/services"],
+            "@stores/*": ["src/stores/*"],
+            "@stores": ["src/stores"],
+            "@hooks/*": ["src/hooks/*"],
+            "@hooks": ["src/hooks"],
+            "@src/*": ["src/*"],
+            "@src": ["src/"],
+            "@root/*": ["./*"],
+            "@root": ["./"]
+        }
+    }
+}

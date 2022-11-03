@@ -1,0 +1,13 @@
+.Preferences {
+    padding: 16px;
+    width: 100%;
+}
+
+.Preferences__Category {
+    margin-bottom: 16px;
+    font-size: 1.5rem;
+}
+
+.Preferences__CategoryContent {
+    margin-bottom: 32px;
+}

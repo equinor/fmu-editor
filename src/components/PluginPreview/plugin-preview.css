@@ -1,0 +1,29 @@
+.Plugin {
+    border-color: #ccc;
+    border-radius: 4px;
+    border-style: solid;
+    border-width: 1px;
+    padding: 16px;
+    margin: 8px;
+    display: block;
+    cursor: pointer;
+}
+
+.PluginDescription {
+    font-size: 0.9rem;
+    font-weight: lighter;
+    display: block;
+    margin-bottom: 16px;
+}
+
+.Plugin:hover {
+    outline-style: solid;
+    outline-width: 2px;
+    outline-color: rgba(255, 208, 54, 0.616);
+}
+
+.Plugin--selected {
+    outline-style: solid;
+    outline-width: 2px;
+    outline-color: rgb(255, 208, 54);
+}

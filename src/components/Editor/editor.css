@@ -1,0 +1,89 @@
+.EditorWrapper {
+    position: relative;
+    height: 100%;
+}
+
+.Editor {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    height: 100%;
+}
+
+.EditorInput {
+    flex-grow: 4;
+}
+
+.EditorSettings {
+    max-height: 40px;
+    padding: 8px;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.EditorInfo {
+    text-align: right;
+    flex-grow: 4;
+}
+
+.Editor__NoModels {
+    margin: auto;
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 48px;
+}
+
+.Editor__CurrentObjectDecoration {
+    background: rgb(255, 208, 54);
+    width: 5px !important;
+    margin-left: 4px;
+}
+
+.YamlEditor {
+    height: auto;
+    margin-top: 16px;
+    box-sizing: border-box;
+}
+
+.Issues {
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.IssuesTitle {
+    padding: 12px;
+    font-size: 0.8em;
+    display: flex;
+    align-items: center;
+}
+
+.IssuesTitle > strong {
+    margin-left: 8px;
+}
+
+.IssuesContent {
+    overflow: auto;
+}
+
+.Issue {
+    padding: 8px;
+    font-size: 0.8em;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.Issue svg {
+    margin-right: 8px;
+}
+
+.IssuePosition {
+    margin-left: 8px;
+}

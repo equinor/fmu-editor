@@ -1,0 +1,61 @@
+.MainWindow {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    height: 100vh;
+    width: 100vw;
+    border-top: 1px #ccc solid;
+    box-sizing: border-box;
+}
+
+.MenuBar {
+    z-index: 11;
+    display: block;
+    position: relative;
+}
+
+.ContentWrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    height: 100vh;
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100vh;
+}
+
+.TabMenu {
+    width: 80px;
+    left: 0;
+    top: 64px;
+    z-index: 10;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    border-radius: 0px;
+}
+
+.TabMenu .MuiTabs-indicator {
+    left: 0;
+    width: 3px;
+}
+
+.TabMenu .MuiTab-root {
+    min-width: 80px;
+}
+
+.Content {
+    display: flex;
+    flex-grow: 4;
+    flex-direction: row;
+    width: calc(100vw - 80px);
+}
+
+.GlobalSettings {
+    flex-grow: 4;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}

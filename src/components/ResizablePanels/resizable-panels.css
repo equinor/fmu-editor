@@ -1,0 +1,64 @@
+.ResizablePanelsWrapperHorizontal {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+    position: relative;
+}
+
+.ResizablePanelsWrapperVertical {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+.ResizablePanelsOverlayHorizontal {
+    background-color: transparent;
+    z-index: 1100;
+    position: absolute;
+    cursor: ew-resize;
+}
+
+.ResizablePanelsOverlayVertical {
+    background-color: transparent;
+    z-index: 1100;
+    position: absolute;
+    cursor: ns-resize;
+}
+
+.ResizeDragBar {
+    background-color: transparent;
+    transition: background-color 0.5s ease-out 100ms,
+        border-color 0.5s ease-out 100ms;
+    z-index: 100;
+}
+
+.ResizeDragBar__horizontal {
+    cursor: ew-resize;
+    width: 3px;
+    border-left: 1px #cccccc solid;
+}
+
+.ResizeDragBar__vertical {
+    cursor: ns-resize;
+    height: 3px;
+    border-top: 1px #cccccc solid;
+}
+
+.ResizeDragBar:hover {
+    border-color: 1px rgb(56, 132, 255);
+    background-color: rgb(56, 132, 255);
+}
+
+.ResizeDragBar--active {
+    border-color: 1px rgb(56, 132, 255);
+    background-color: rgb(56, 132, 255);
+}
+
+.ResizablePanel {
+    flex-grow: 4;
+    overflow: hidden;
+}

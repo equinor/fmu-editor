@@ -1,0 +1,2432 @@
+{
+    "$id": "https://github.com/equinor/webviz-config",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Webviz",
+    "type": "object",
+    "properties": {
+        "title": {
+            "description": "Title of your Webviz application.",
+            "type": "string"
+        },
+        "shared_settings": {
+            "type": "object"
+        },
+        "options": {
+            "type": "object",
+            "menu": {
+                "description": "Define the menu options.",
+                "type": "object",
+                "properties": {
+                    "show_logo": {
+                        "description": "State if a logo shall be shown in the menu.",
+                        "type": "boolean"
+                    },
+                    "bar_position": {
+                        "description": "Define where the menu bar shall be positioned: left, top, right, bottom.",
+                        "type": "string"
+                    },
+                    "drawer_position": {
+                        "description": "Define where the menu drawer shall be positioned: left or right.",
+                        "type": "string"
+                    },
+                    "initially_pinned": {
+                        "description": "State if the menu shall be pinned when initially showing.",
+                        "type": "boolean"
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "layout": {
+            "description": "Define the pages (and potential sections and groups) in your Webviz application.",
+            "type": "array",
+            "minLength": 1,
+            "items": {
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "section": {
+                                "description": "Title of the section.",
+                                "type": "string"
+                            },
+                            "icon": {
+                                "description": "Optionally set an icon for the section.",
+                                "type": "string"
+                            },
+                            "content": {
+                                "description": "Define the pages (and potential subgroups) of this section.",
+                                "type": "array",
+                                "minLength": 1,
+                                "items": {
+                                    "type": "object",
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/properties/layout/items/oneOf/1"
+                                        },
+                                        {
+                                            "$ref": "#/properties/layout/items/oneOf/2"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        "required": [
+                            "section",
+                            "content"
+                        ],
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "group": {
+                                "description": "Title of the group.",
+                                "type": "string"
+                            },
+                            "icon": {
+                                "description": "Optionally define an icon for the group.",
+                                "type": "string"
+                            },
+                            "content": {
+                                "description": "Content of the group.",
+                                "type": "array",
+                                "minLength": 1,
+                                "items": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/properties/layout/items/oneOf/1"
+                                        },
+                                        {
+                                            "$ref": "#/properties/layout/items/oneOf/2"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        "required": [
+                            "group",
+                            "content"
+                        ],
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "page": {
+                                "description": "Title of the page.",
+                                "type": "string"
+                            },
+                            "icon": {
+                                "description": "Optionally define an icon for the page.",
+                                "type": "string"
+                            },
+                            "content": {
+                                "description": "Content of the page.",
+                                "type": "array",
+                                "minLength": 1,
+                                "items": {
+                                    "oneOf": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "BannerImage": {
+                                                    "description": "Adds a full width banner image, with an optional overlayed title.\nUseful on e.g. the front page for introducing a field or project.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "image": {
+                                                            "type": "string"
+                                                        },
+                                                        "title": {
+                                                            "type": "string"
+                                                        },
+                                                        "color": {
+                                                            "type": "string"
+                                                        },
+                                                        "shadow": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "height": {
+                                                            "type": "integer"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "image"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "BannerImage"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "DataTable": {
+                                                    "description": "Adds a table to the webviz instance, using tabular data from a provided csv file.\nIf feature is requested, the data could also come from a database.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "csv_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "sorting": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "filtering": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "pagination": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "csv_file"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "DataTable"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "EmbedPdf": {
+                                                    "description": "Embeds a given PDF file into the page.\n\n!> Webviz does not scan your PDF for malicious code. Make sure it comes from a trusted source.",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "pdf_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "height": {
+                                                            "type": "integer"
+                                                        },
+                                                        "width": {
+                                                            "type": "integer"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "pdf_file"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "EmbedPdf"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "Markdown": {
+                                                    "description": "Renders and includes the content from a Markdown file.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "markdown_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "markdown_file"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "Markdown"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "PivotTable": {
+                                                    "description": "Adds a pivot table to the webviz instance, using tabular data from a         provided csv file.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "csv_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "options": {
+                                                            "type": "object"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "csv_file"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "PivotTable"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "SyntaxHighlighter": {
+                                                    "description": "Adds support for syntax highlighting of code. Language is automatically detected.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "filename": {
+                                                            "type": "string"
+                                                        },
+                                                        "dark_theme": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "filename"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "SyntaxHighlighter"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "TablePlotter": {
+                                                    "description": "Adds a plotter to the webviz instance, using tabular data from a provided csv file.\nIf feature is requested, the data could also come from a database.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "csv_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "plot_options": {
+                                                            "type": "object"
+                                                        },
+                                                        "filter_cols": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "filter_defaults": {
+                                                            "type": "object"
+                                                        },
+                                                        "column_color_discrete_maps": {
+                                                            "type": "object"
+                                                        },
+                                                        "lock": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "csv_file"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "TablePlotter"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "AssistedHistoryMatchingAnalysis": {
+                                                    "description": "Visualize parameter distribution change prior to posterior     per observation group in an assisted history matching process.\nThis is done by using a     [KS (Kolmogorov Smirnov) test](https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test)     matrix, and scatter plot/map for any given pair of parameter/observation.     KS values are between 0 and 1.     The closer to zero the KS value is, the smaller the change in parameter distribution     between prior/posterior and vice-versa.     The top 10 biggest parameters change are also shown in a table.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "input_dir": {
+                                                            "type": "string"
+                                                        },
+                                                        "ks_filter": {
+                                                            "type": "number"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "input_dir"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "AssistedHistoryMatchingAnalysis"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "BhpQc": {
+                                                    "description": "QC simulated bottom hole pressures (BHP) from reservoir simulations.\n\nCan be used to check if your simulated BHPs are in a realistic range.\nE.g. check if your simulated bottom hole pressures are very low in producers,\nor very high injectors.",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "wells": {},
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "ensembles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "BhpQc"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "DiskUsage": {
+                                                    "description": "Visualize disk usage in a FMU project. It adds a dashboard showing disk usage per user.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "scratch_dir": {
+                                                            "type": "string"
+                                                        },
+                                                        "date": {},
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "scratch_dir"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "DiskUsage"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "GroupTree": {
+                                                    "description": "This plugin vizualizes the network tree and displays pressures,\nrates and other network related information.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "gruptree_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "time_index": {
+                                                            "type": "string"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "ensembles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "GroupTree"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "HistoryMatch": {
+                                                    "description": "Visualizes the quality of the history match.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {},
+                                                        "observation_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "ensembles",
+                                                        "observation_file"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "HistoryMatch"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "HorizonUncertaintyViewer": {
+                                                    "description": "Visualizes depth uncertainty for surfaces in map view and cross section view.\n\nThe cross section is defined by wellfiles and surfacefiles or a polyline.\nPolylines are drawn interactivly in map view.\n\n!> The plugin reads information from a COHIBA model file.\n\n* **`basedir`:** Path to folder with model_file.xml.\n   Make sure that the folder has the same format as a COHIBA folder.\n* **`planned_wells_dir`:** Path to folder with planned well files.\n   Make sure that all planned wells have format 'ROXAR RMS well'.",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "basedir": {
+                                                            "type": "string"
+                                                        },
+                                                        "planned_wells_dir": {
+                                                            "type": "string"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "basedir"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "HorizonUncertaintyViewer"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "InplaceVolumes": {
+                                                    "description": "Visualizes inplace volumetric results from\nFMU ensembles.\n\nInput can be given either as aggregated `csv` files or as ensemble name(s)\ndefined in `shared_settings` (with volumetric `csv` files stored per realization).\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "csvfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "volfiles": {
+                                                            "type": "object"
+                                                        },
+                                                        "volfolder": {
+                                                            "type": "string"
+                                                        },
+                                                        "response": {
+                                                            "type": "string"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "InplaceVolumes"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "InplaceVolumesOneByOne": {
+                                                    "description": "Visualizes inplace volumetrics related to a FMU ensemble with a design matrix.\n\nInput can be given either as an aggregated `csv` file for volumes and sensitivity information,\nor as ensemble name(s) defined in `shared_settings` and volumetric `csv` files\nstored per realization.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "csvfile_vol": {
+                                                            "type": "string"
+                                                        },
+                                                        "csvfile_parameters": {
+                                                            "type": "string"
+                                                        },
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "volfiles": {
+                                                            "type": "object"
+                                                        },
+                                                        "volfolder": {
+                                                            "type": "string"
+                                                        },
+                                                        "response": {
+                                                            "type": "string"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "InplaceVolumesOneByOne"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "LinePlotterFMU": {
+                                                    "description": "General line plotter for FMU data\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "csvfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "aggregated_csvfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "aggregated_parameterfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "observation_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "observation_group": {
+                                                            "type": "string"
+                                                        },
+                                                        "remap_observation_keys": {},
+                                                        "remap_observation_values": {},
+                                                        "colors": {},
+                                                        "initial_data": {},
+                                                        "initial_layout": {},
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "LinePlotterFMU"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "MorrisPlot": {
+                                                    "description": "Renders a visualization of the Morris sampling method.\nThe Morris method can be used to screen parameters for how they\ninfluence model response, both individually and through interaction\neffect with other parameters.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "csv_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "csv_file"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "MorrisPlot"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "ParameterAnalysis": {
+                                                    "description": "This plugin visualizes parameter distributions and statistics. /\n    for FMU ensembles, and can be used to investigate parameter correlations /\n    on reservoir simulation time series data.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {},
+                                                        "csvfile_parameters": {
+                                                            "type": "string"
+                                                        },
+                                                        "csvfile_smry": {
+                                                            "type": "string"
+                                                        },
+                                                        "time_index": {
+                                                            "type": "string"
+                                                        },
+                                                        "column_keys": {},
+                                                        "drop_constants": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "ParameterAnalysis"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "ParameterCorrelation": {
+                                                    "description": "Shows parameter correlations using a correlation matrix,\nand scatter plot for any given pair of parameters.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "drop_constants": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "ensembles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "ParameterCorrelation"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "ParameterDistribution": {
+                                                    "description": "Visualizes parameter distributions for FMU ensembles.\n\nParameters are visualized either as histograms, showing parameter ranges\nand distributions for each ensemble.\n\nInput can be given either as an aggregated `csv` file with parameter information,\nor as ensemble name(s) defined in `shared_settings`.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "csvfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "ParameterDistribution"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "ParameterParallelCoordinates": {
+                                                    "description": "Visualizes parameters used in FMU ensembles side-by-side. Also supports response coloring.\n\nUseful to investigate:\n* Initial parameter distributions, and convergence of parameters over multiple iterations.\n* Trends in relations between parameters and responses.\n\n!> At least two parameters have to be selected to make the plot work.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "parameter_csv": {
+                                                            "type": "string"
+                                                        },
+                                                        "response_csv": {
+                                                            "type": "string"
+                                                        },
+                                                        "response_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "response_filters": {
+                                                            "type": "object"
+                                                        },
+                                                        "response_ignore": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "response_include": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "parameter_ignore": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "column_keys": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "sampling": {
+                                                            "type": "string"
+                                                        },
+                                                        "aggregation": {
+                                                            "type": "string"
+                                                        },
+                                                        "no_responses": {},
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "ParameterParallelCoordinates"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "ParameterResponseCorrelation": {
+                                                    "description": "Visualizes correlations between numerical input parameters and responses.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "parameter_csv": {
+                                                            "type": "string"
+                                                        },
+                                                        "response_csv": {
+                                                            "type": "string"
+                                                        },
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "response_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "response_filters": {
+                                                            "type": "object"
+                                                        },
+                                                        "response_ignore": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "response_include": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "column_keys": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "sampling": {
+                                                            "type": "string"
+                                                        },
+                                                        "aggregation": {
+                                                            "type": "string"
+                                                        },
+                                                        "corr_method": {
+                                                            "type": "string"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "ParameterResponseCorrelation"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "PropertyStatistics": {
+                                                    "description": "This plugin visualizes ensemble statistics calculated from grid properties.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {},
+                                                        "statistics_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "csvfile_statistics": {
+                                                            "type": "string"
+                                                        },
+                                                        "csvfile_smry": {
+                                                            "type": "string"
+                                                        },
+                                                        "surface_renaming": {},
+                                                        "time_index": {
+                                                            "type": "string"
+                                                        },
+                                                        "column_keys": {},
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "PropertyStatistics"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "PvtPlot": {
+                                                    "description": "Visualizes formation volume factor and viscosity data     for oil, gas and water from both **csv**, Eclipse **init** and **include** files.\n\n!> The plugin supports variations in PVT between ensembles, but not between     realizations in the same ensemble.",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {},
+                                                        "pvt_relative_file_path": {
+                                                            "type": "string"
+                                                        },
+                                                        "read_from_init_file": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "drop_ensemble_duplicates": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "ensembles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "PvtPlot"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "RelativePermeability": {
+                                                    "description": "Visualizes relative permeability and capillary pressure curves for FMU ensembles.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "relpermfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "scalfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "sheet_name": {},
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "ensembles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "RelativePermeability"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "ReservoirSimulationTimeSeries": {
+                                                    "description": "Visualizes reservoir simulation time series data for FMU ensembles.\n\n**Features**\n* Visualization of realization time series as line charts.\n* Visualization of ensemble time series statistics as line or fan charts.\n* Visualization of single date ensemble statistics as histograms.\n* Calculation and visualization of delta ensembles.\n* Calculation and visualization of average rates and cumulatives over a specified time interval.\n* Download of visualized data to csv files (except histogram data).\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "csvfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "obsfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "column_keys": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "sampling": {
+                                                            "type": "string"
+                                                        },
+                                                        "options": {
+                                                            "type": "object"
+                                                        },
+                                                        "predefined_expressions": {
+                                                            "type": "string"
+                                                        },
+                                                        "line_shape_fallback": {
+                                                            "type": "string"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "ReservoirSimulationTimeSeries"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "ReservoirSimulationTimeSeriesOneByOne": {
+                                                    "description": "Visualizes reservoir simulation time series data for sensitivity studies based on a design matrix.\n\nA tornado plot can be calculated interactively for each date/vector by selecting a date.\nAfter selecting a date individual sensitivities can be selected to highlight the realizations\nrun with that sensitivity.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "csvfile_smry": {
+                                                            "type": "string"
+                                                        },
+                                                        "csvfile_parameters": {
+                                                            "type": "string"
+                                                        },
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "column_keys": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "initial_vector": {
+                                                            "type": "string"
+                                                        },
+                                                        "sampling": {
+                                                            "type": "string"
+                                                        },
+                                                        "line_shape_fallback": {
+                                                            "type": "string"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "ReservoirSimulationTimeSeriesOneByOne"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "ReservoirSimulationTimeSeriesRegional": {
+                                                    "description": "Aggregates and visualizes regional time series data from simulation ensembles. That\nis: cumulatives, rates and inplace volumes. Allows human friendly filter names, e.g. regions,\nzones and etc based on user input.\n\nIn addition recovery is calculated based on the changes in aggregated inplace volumes,\nas long as all historical data is present in the data.\n\nExample of aggregation of ROIP over regions in filter:\n\n$$\\sf Agg(\\sf ROIP)_{\\sf date} = \\sum_{N\\in \\sf filter}\\sf ROIP_{N,\\sf date}$$\n\nExample of recovery calculation for ROIP (where ROIP is already aggregated over the filtered\nregions):\n\n$$\\sf Rec(\\sf ROIP)_{\\sf date} = \\frac{\\sf ROIP_{\\sf init} - \\sf ROIP_{\\sf date}}{\\sf ROIP_{\\sf init}}$$\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "fipfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "initial_vector": {
+                                                            "type": "string"
+                                                        },
+                                                        "column_keys": {},
+                                                        "sampling": {
+                                                            "type": "string"
+                                                        },
+                                                        "line_shape_fallback": {
+                                                            "type": "string"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "ensembles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "ReservoirSimulationTimeSeriesRegional"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "RftPlotter": {
+                                                    "description": "This plugin visualizes simulated RFT results from\nFMU ensembles combined with ERT observation data.\n\nSeveral visualizations are available:\n\n* Map view of RFT observations.\n\n* Depth vs pressure plot showing simulated RFT data along wells together with observation points.\n\n* Barchart showing sum of mean misfit for ERT observations per realization. One plot per ensemble.\n\n* Crossplot of simulated RFT vs observed value per ERT observation. One plot per ensemble.\n\n* Boxplot showing misfit per ERT observation for each ensemble.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "csvfile_rft": {
+                                                            "type": "string"
+                                                        },
+                                                        "csvfile_rft_ert": {
+                                                            "type": "string"
+                                                        },
+                                                        "ensembles": {},
+                                                        "formations": {
+                                                            "type": "string"
+                                                        },
+                                                        "obsdata": {
+                                                            "type": "string"
+                                                        },
+                                                        "faultlines": {
+                                                            "type": "string"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "RftPlotter"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "RunningTimeAnalysisFMU": {
+                                                    "description": "Can e.g. be used to investigate which jobs that are important for the running\ntime of realizations, and if specific parameter combinations increase running time or chance of\nrealization failure. Systematic realization failure could introduce bias to assisted history\nmatching.\n\nVisualizations:\n* Running time matrix, a heatmap of job running times relative to:\n    * Same job in ensemble\n    * Slowest job in ensemble\n    * Slowest job in realization\n* Parameter parallel coordinates plot:\n    * Analyze running time and successful/failed run together with input parameters.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "filter_shorter": {},
+                                                        "status_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "visual_parameters": {},
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "ensembles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "RunningTimeAnalysisFMU"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "SegyViewer": {
+                                                    "description": "Inspired by [SegyViewer for Python](https://github.com/equinor/segyviewer) this plugin\nvisualizes seismic 3D cubes with 3 plots (inline, crossline and zslice).\nThe plots are linked and updates are done by clicking in the plots.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "segyfiles": {},
+                                                        "zunit": {
+                                                            "type": "string"
+                                                        },
+                                                        "colors": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "segyfiles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "SegyViewer"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "StructuralUncertainty": {
+                                                    "description": "Dashboard to analyze structural uncertainty results from FMU runs.\n\nA cross-section along a well or from a polyline drawn interactively on a map.\nMap views to compare two surfaces from e.g. two iterations.\n\nBoth individual realization surfaces and statistical surfaces can be plotted.\n\nWells are required. If a zonelog is provided formation tops are extracted\nand plotted as markers along the well trajectory.\n\nCustomization of colors and initialization of plugin with predefined selections\nis possible. See the `Arguments` sections for details.\n\n!> This plugin follows the FMU standards for storing and naming surface files.\nSurface files must be stored at `share/results/maps` for each ensemble,\nand be named as `surfacename--surfaceattribute.gri`\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "surface_attributes": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "surface_name_filter": {},
+                                                        "wellfolder": {
+                                                            "type": "string"
+                                                        },
+                                                        "wellsuffix": {
+                                                            "type": "string"
+                                                        },
+                                                        "zonelog": {
+                                                            "type": "string"
+                                                        },
+                                                        "mdlog": {
+                                                            "type": "string"
+                                                        },
+                                                        "well_tvdmin": {},
+                                                        "well_tvdmax": {},
+                                                        "well_downsample_interval": {
+                                                            "type": "integer"
+                                                        },
+                                                        "calculate_percentiles": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "initial_settings": {},
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "ensembles",
+                                                        "surface_attributes"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "StructuralUncertainty"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "SubsurfaceMap": {
+                                                    "description": "Visualizes reservoir grids in a map view, additionally it can\nvisualize the flow pattern in the simulation output using streamlines.\nInput can be either a premade json object or data can be extracted from\na FMU ensemble.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "jsonfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "ensemble": {
+                                                            "type": "string"
+                                                        },
+                                                        "map_value": {
+                                                            "type": "string"
+                                                        },
+                                                        "flow_value": {
+                                                            "type": "string"
+                                                        },
+                                                        "time_step": {
+                                                            "type": "integer"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "SubsurfaceMap"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "SurfaceViewerFMU": {
+                                                    "description": "Covisualize surfaces from an ensemble.\n\nThere are 3 separate map views. 2 views can be set independently, while\nthe 3rd view displays the resulting map by combining the other maps, e.g.\nby taking the difference or summing the values.\n\nThere is flexibility in which combinations of surfaces that are displayed\nand calculated, such that surfaces can be compared across ensembles and realizations.\n\nStatistical calculations across the ensemble(s) are\ndone on the fly. If the ensemble(s) or surfaces have a large size, it is recommended\nto run webviz in `portable` mode so that the statistical surfaces are pre-calculated,\nand available for instant viewing.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "attributes": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "attribute_settings": {
+                                                            "type": "object"
+                                                        },
+                                                        "wellfolder": {
+                                                            "type": "string"
+                                                        },
+                                                        "wellsuffix": {
+                                                            "type": "string"
+                                                        },
+                                                        "map_height": {
+                                                            "type": "integer"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "ensembles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "SurfaceViewerFMU"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "SurfaceWithGridCrossSection": {
+                                                    "description": "Visualizes surfaces in a map view and grid parameters in a cross section view. The cross section is defined by a polyline interactively edited in the map view.\n\n!> This is an experimental plugin exploring how we can visualize 3D grid data in Webviz. The performance is currently slow for large grids.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "gridfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "gridparameterfiles": {},
+                                                        "surfacefiles": {},
+                                                        "gridparameternames": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "surfacenames": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "zunit": {},
+                                                        "colors": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "gridfile",
+                                                        "gridparameterfiles",
+                                                        "surfacefiles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "SurfaceWithGridCrossSection"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "SurfaceWithSeismicCrossSection": {
+                                                    "description": "Visualizes surfaces in a map view and seismic in a cross section view.\nThe cross section is defined by a polyline interactively edited in the map view.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "segyfiles": {},
+                                                        "surfacefiles": {},
+                                                        "surfacenames": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "segynames": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "zunit": {},
+                                                        "colors": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "segyfiles",
+                                                        "surfacefiles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "SurfaceWithSeismicCrossSection"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "TornadoPlotterFMU": {
+                                                    "description": "General tornado plotter for FMU data from a csv file of responses.",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "csvfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "ensemble": {
+                                                            "type": "string"
+                                                        },
+                                                        "aggregated_csvfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "aggregated_parameterfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "initial_response": {
+                                                            "type": "string"
+                                                        },
+                                                        "single_value_selectors": {},
+                                                        "multi_value_selectors": {},
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "TornadoPlotterFMU"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "VolumetricAnalysis": {
+                                                    "description": "Dashboard to analyze volumetrics results from FMU ensembles, both monte carlo\nand sensitivity runs are supported.\n\nThis dashboard is built with static volumetric data in mind. However both static and dynamic\nvolumefiles are supported as input, and the type is determined by an automatic check. To be\ndefined as a static source the standard FMU-format of such files must be followed.\n[see FMU wiki for decription of volumetric standards](https://wiki.equinor.com/wiki/index.php/FMU_standards/Volumetrics)\n\nThe dashboard can be used as a tool to compare dynamic and static volumes.\nThis is done by creating sets of FIPNUM's and REGION\u2215ZONE's that are comparable\nin volumes, and combining volumes per set. To trigger this behaviour a\nfipfile with FIPNUM to REGION\u2215ZONE mapping information must be provided. Different formats\nof this fipfile are supported [examples can be seen here](https://fmu-docs.equinor.com/docs/subscript/scripts/rmsecl_volumetrics.html#example).\n\nThe plugin behavoiur is dependent on the input files and their type (static/dynamic):\n* If the input file(s) are static, different input preparations are triggered to enhance the\n  analysis:\n    * The fluid type is determined by the column name suffixes, either (_OIL or _GAS). This suffix\n      is removed and a `FLUID_ZONE` column is added to be used as a filter or selector.\n    * If total geometric volumes are included (suffix _TOTAL) they will be used to compute volumes\n      from the water zone and \"water\" will be added to the `FLUID_ZONE` column.\n    * Property columns (e.g. PORO, SW) are automatically computed from the data as long as\n      relevant volumetric columns are present. NET volume and NTG can be computed from a FACIES\n      column by defining which facies are non-net.\n* If the input file(s) are dynamic these operations are skipped.\n\n!> Be aware that if more than one source is given as input, only common columns between the sources\n   are kept. Hence it is often preferrable to initialize the plugin multiple times dependent on the\n   analysis task in question. E.g. a pure static input will allow for a detailed analysis of\n   volumetric data due to the input preparations mentioned above. While a mix of both static and\n   dynamic data will limit the available columns but enable comparison of these data on a\n   comparable level.\n\nInput can be given either as aggregated `csv` files or as ensemble name(s)\ndefined in `shared_settings` (with volumetric `csv` files stored per realization).\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "csvfile_vol": {
+                                                            "type": "string"
+                                                        },
+                                                        "csvfile_parameters": {
+                                                            "type": "string"
+                                                        },
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "volfiles": {
+                                                            "type": "object"
+                                                        },
+                                                        "volfolder": {
+                                                            "type": "string"
+                                                        },
+                                                        "non_net_facies": {},
+                                                        "fipfile": {
+                                                            "type": "string"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "VolumetricAnalysis"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "WellCompletions": {
+                                                    "description": "Visualizes well completions data per well coming from export of the Eclipse COMPDAT output.     Data is grouped per well and zone and can be filtered accoring to flexible well categories.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "compdat_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "well_connection_status_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "zone_layer_mapping_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "stratigraphy_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "well_attributes_file": {
+                                                            "type": "string"
+                                                        },
+                                                        "kh_unit": {
+                                                            "type": "string"
+                                                        },
+                                                        "kh_decimal_places": {
+                                                            "type": "integer"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "ensembles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "WellCompletions"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "WellCrossSection": {
+                                                    "description": "Displays a cross section along a well with intersected surfaces,\nand optionally seismic cubes.\n\n!> See also WellCrossSectionFMU for additional functionality with FMU ensembles.",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "surfacefiles": {},
+                                                        "wellfiles": {},
+                                                        "segyfiles": {},
+                                                        "surfacenames": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "zonelog": {
+                                                            "type": "string"
+                                                        },
+                                                        "zunit": {
+                                                            "type": "string"
+                                                        },
+                                                        "zmin": {
+                                                            "type": "number"
+                                                        },
+                                                        "zmax": {
+                                                            "type": "number"
+                                                        },
+                                                        "zonemin": {
+                                                            "type": "integer"
+                                                        },
+                                                        "nextend": {
+                                                            "type": "integer"
+                                                        },
+                                                        "sampling": {
+                                                            "type": "integer"
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "surfacefiles",
+                                                        "wellfiles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "WellCrossSection"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "WellCrossSectionFMU": {
+                                                    "description": "Well cross-section displaying statistical surfaces from a FMU ensemble.\n\nStatistical surfaces are calculated automatically from surfaces stored\nper realization.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "ensembles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "surfacefiles": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "surfacenames": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "surfacefolder": {
+                                                            "type": "string"
+                                                        },
+                                                        "wellfiles": {},
+                                                        "wellfolder": {
+                                                            "type": "string"
+                                                        },
+                                                        "wellsuffix": {
+                                                            "type": "string"
+                                                        },
+                                                        "segyfiles": {},
+                                                        "zonelog": {
+                                                            "type": "string"
+                                                        },
+                                                        "marginal_logs": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "zunit": {
+                                                            "type": "string"
+                                                        },
+                                                        "zmin": {
+                                                            "type": "number"
+                                                        },
+                                                        "zmax": {
+                                                            "type": "number"
+                                                        },
+                                                        "zonemin": {
+                                                            "type": "integer"
+                                                        },
+                                                        "nextend": {
+                                                            "type": "integer"
+                                                        },
+                                                        "sampling": {
+                                                            "type": "integer"
+                                                        },
+                                                        "colors": {
+                                                            "type": "array",
+                                                            "items": {}
+                                                        },
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "ensembles",
+                                                        "surfacefiles"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "WellCrossSectionFMU"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "WellLogViewer": {
+                                                    "description": "Uses [videx-welllog](https://github.com/equinor/videx-wellog) to visualize well logs\n    from files stored in RMS well format.\n\n?> Currently tracks for visualizing discrete logs are not included. This will\nbe added in later releases.\n",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "wellfolder": {
+                                                            "type": "string"
+                                                        },
+                                                        "logtemplates": {},
+                                                        "wellsuffix": {
+                                                            "type": "string"
+                                                        },
+                                                        "mdlog": {
+                                                            "type": "string"
+                                                        },
+                                                        "well_tvdmin": {},
+                                                        "well_tvdmax": {},
+                                                        "well_downsample_interval": {
+                                                            "type": "integer"
+                                                        },
+                                                        "initial_settings": {},
+                                                        "contact_person": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "email": {
+                                                                    "type": "string"
+                                                                },
+                                                                "phone": {
+                                                                    "type": [
+                                                                        "integer",
+                                                                        "string"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "additionalProperties": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "wellfolder",
+                                                        "logtemplates"
+                                                    ],
+                                                    "additionalProperties": false
+                                                }
+                                            },
+                                            "required": [
+                                                "WellLogViewer"
+                                            ],
+                                            "additionalProperties": false,
+                                            "minProperties": 1,
+                                            "maxProperties": 1
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        "required": [
+                            "page",
+                            "content"
+                        ],
+                        "additionalProperties": false
+                    }
+                ]
+            }
+        }
+    },
+    "required": [
+        "title",
+        "layout"
+    ],
+    "additionalProperties": false
+}

@@ -1,0 +1,36 @@
+.Menu {
+    padding: 16px;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.Menu__SelectedItem {
+    outline-style: solid;
+    outline-width: 2px;
+    outline-color: rgba(255, 208, 54, 0.616);
+}
+
+.Menu__Item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.Menu__Item > span {
+    display: inline-block;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.Menu__Item > span.Icon {
+    max-width: calc(100% - 40px);
+}
+
+.Menu__Item > span.IconPlaceholder {
+    padding-left: 40px;
+}
+
+.Menu__Icon {
+    margin-right: 16px;
+    vertical-align: middle;
+}

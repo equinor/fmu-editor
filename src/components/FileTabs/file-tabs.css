@@ -1,0 +1,23 @@
+.FileTabs {
+    display: flex;
+    flex-direction: row;
+    min-height: 38px;
+    overflow: auto;
+    box-shadow: 0px 2px 1px -1px rgb(0 0 0 / 20%),
+        0px 1px 1px 0px rgb(0 0 0 / 14%), 0px 1px 3px 0px rgb(0 0 0 / 12%);
+    z-index: 20;
+}
+
+.FileTabs::-webkit-scrollbar {
+    height: 6px;
+}
+
+.FileTabs::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+.FileTabs::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}

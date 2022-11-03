@@ -1,0 +1,37 @@
+.FileTab {
+    display: flex;
+    flex-direction: row;
+    background-color: transparent;
+    padding: 12px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.FileTab__CloseButton {
+    display: block;
+    margin-left: 8px;
+    padding: 1px;
+    min-width: 16px;
+}
+
+.FileTab .FileTab__CloseButton * {
+    visibility: hidden;
+}
+
+.FileTab:hover .FileTab__CloseButton * {
+    visibility: visible;
+}
+
+.FileTab--active .FileTab__CloseButton * {
+    visibility: visible;
+}
+
+.FileTab:hover .FileTab__CloseButton:hover,
+.FileTab--active .FileTab__CloseButton:hover {
+    border-radius: 4px;
+}
+
+.FileTab--modified {
+    font-style: italic;
+}

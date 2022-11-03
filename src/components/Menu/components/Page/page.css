@@ -1,0 +1,15 @@
+.Menu__Page {
+    padding: 16px;
+    padding-left: 40px;
+    text-decoration: none;
+}
+
+.Menu__Page:hover {
+    background-color: rgb(0, 0, 0, 0.1);
+}
+
+.Menu__CurrentPage,
+.Menu__CurrentPage:hover {
+    background-color: rgb(0, 0, 0, 0.2);
+    font-weight: bold;
+}

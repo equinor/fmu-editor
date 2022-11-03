@@ -1,0 +1,22 @@
+.Play {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+
+.Console {
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.ConsoleLine {
+    padding: 4px;
+}
+
+.ConsoleContent {
+    overflow: auto;
+    height: 100%;
+}
