@@ -15,6 +15,7 @@ import {SelectionDirection} from "monaco-editor";
 import path from "path";
 
 const paneConfiguration = electronStore.get("ui.paneConfiguration");
+const fileTreeState = electronStore.get("ui.fileTreeState");
 
 const initialUiState: UiState = {
     currentPage: Pages.Editor,
@@ -26,19 +27,17 @@ const initialUiState: UiState = {
         name: key,
         sizes: paneConfiguration[key],
     })),
+    fileTreeState,
 };
 
 const initialPreferencesState: PreferencesState = {
-    pathToPythonInterpreter:
-        electronStore.get("preferences.pathToPythonInterpreter") || "",
-    pathToYamlSchemaFile:
-        electronStore.get("preferences.pathToYamlSchemaFile") || "",
+    pathToPythonInterpreter: electronStore.get("preferences.pathToPythonInterpreter") || "",
+    pathToYamlSchemaFile: electronStore.get("preferences.pathToYamlSchemaFile") || "",
     webvizTheme: electronStore.get("preferences.webvizTheme") || "",
 };
 
 const initialUiCoachState: UiCoachState = {
-    initialConfigurationDone:
-        electronStore.get("uiCoach.initialConfigurationDone") || false,
+    initialConfigurationDone: electronStore.get("uiCoach.initialConfigurationDone") || false,
 };
 
 const initialFilesState: FilesState = {
@@ -70,10 +69,7 @@ const initialFilesState: FilesState = {
     }),
 };
 
-ipcRenderer.send(
-    "set-recent-files",
-    electronStore.get("files.recentFiles") || []
-);
+ipcRenderer.send("set-recent-files", electronStore.get("files.recentFiles") || []);
 
 if (initialFilesState.files.length === 0) {
     initialFilesState.activeFile = path.join(__dirname, `Untitled-1.yaml`);

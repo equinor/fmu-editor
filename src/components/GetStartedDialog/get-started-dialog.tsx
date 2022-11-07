@@ -20,7 +20,7 @@ import {WebvizTheme} from "@components/Preferences/components/webviz-theme";
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setInitialConfigurationDone} from "@redux/reducers/uiCoach";
 
-import WCELogo from "@assets/wce-logo.svg";
+import FmuLogo from "@assets/fmu-logo.svg";
 
 import "./get-started-dialog.css";
 
@@ -28,9 +28,7 @@ export const GetStartedDialog: React.FC = () => {
     const [activeStep, setActiveStep] = React.useState(0);
     const theme = useTheme();
 
-    const isInitialized = useAppSelector(
-        state => state.uiCoach.initialConfigurationDone
-    );
+    const isInitialized = useAppSelector(state => state.uiCoach.initialConfigurationDone);
     const preferences = useAppSelector(state => state.preferences);
 
     const [open, setOpen] = React.useState(false);
@@ -74,19 +72,15 @@ export const GetStartedDialog: React.FC = () => {
         if (step === 0) {
             return (
                 <div style={{textAlign: "center"}}>
-                    <img
-                        src={WCELogo}
-                        alt=""
-                        style={{height: 100, marginBottom: 16}}
-                    />
+                    <img src={FmuLogo} alt="" style={{height: 100, marginBottom: 16}} />
                     <Typography gutterBottom variant="h6">
                         Welcome to
                     </Typography>
                     <Typography gutterBottom variant="h4">
-                        Webviz Config Editor
+                        FMU Editor
                     </Typography>
                     <Typography gutterBottom variant="body2">
-                        Get quickly started by setting some preferences.
+                        Get quickly started by selecting some preferences.
                     </Typography>
                 </div>
             );
@@ -104,23 +98,9 @@ export const GetStartedDialog: React.FC = () => {
             return (
                 <div style={{textAlign: "center"}}>
                     <div className="wrapper">
-                        <svg
-                            className="checkmark"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 52 52"
-                        >
-                            <circle
-                                className="checkmark__circle"
-                                cx="26"
-                                cy="26"
-                                r="25"
-                                fill="none"
-                            />
-                            <path
-                                className="checkmark__check"
-                                fill="none"
-                                d="M14.1 27.2l7.1 7.2 16.7-16.8"
-                            />
+                        <svg className="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                            <circle className="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+                            <path className="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
                         </svg>
                     </div>
                     <Typography gutterBottom variant="body2">
@@ -162,11 +142,7 @@ export const GetStartedDialog: React.FC = () => {
                             </Button>
                             <Button size="small" onClick={handleNext}>
                                 Set preferences now
-                                {theme.direction === "rtl" ? (
-                                    <KeyboardArrowLeft />
-                                ) : (
-                                    <KeyboardArrowRight />
-                                )}
+                                {theme.direction === "rtl" ? <KeyboardArrowLeft /> : <KeyboardArrowRight />}
                             </Button>
                         </>
                     )}
@@ -188,30 +164,15 @@ export const GetStartedDialog: React.FC = () => {
                                 <Button
                                     size="small"
                                     onClick={handleNext}
-                                    disabled={
-                                        activeStep === 5 ||
-                                        !isCurrentSettingValid()
-                                    }
+                                    disabled={activeStep === 5 || !isCurrentSettingValid()}
                                 >
                                     Next
-                                    {theme.direction === "rtl" ? (
-                                        <KeyboardArrowLeft />
-                                    ) : (
-                                        <KeyboardArrowRight />
-                                    )}
+                                    {theme.direction === "rtl" ? <KeyboardArrowLeft /> : <KeyboardArrowRight />}
                                 </Button>
                             }
                             backButton={
-                                <Button
-                                    size="small"
-                                    onClick={handleBack}
-                                    disabled={activeStep === 0}
-                                >
-                                    {theme.direction === "rtl" ? (
-                                        <KeyboardArrowRight />
-                                    ) : (
-                                        <KeyboardArrowLeft />
-                                    )}
+                                <Button size="small" onClick={handleBack} disabled={activeStep === 0}>
+                                    {theme.direction === "rtl" ? <KeyboardArrowRight /> : <KeyboardArrowLeft />}
                                     Back
                                 </Button>
                             }

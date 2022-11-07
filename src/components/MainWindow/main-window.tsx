@@ -29,13 +29,13 @@ export const MainWindow: React.FC = () => {
     return (
         <div className="MainWindow" ref={mainWindowRef} style={{backgroundColor: theme.palette.background.default}}>
             <div className="ContentWrapper">
+                <Paper elevation={6} className="TabMenu" sx={{borderRadius: 0}}>
+                    <div className="GlobalSettings">
+                        <ThemeSwitch />
+                    </div>
+                </Paper>
                 <ResizablePanels direction="horizontal" id="file-explorer">
-                    <Paper elevation={2} className="TabMenu" sx={{borderRadius: 0}}>
-                        <Explorer />
-                        <div className="GlobalSettings">
-                            <ThemeSwitch />
-                        </div>
-                    </Paper>
+                    <Explorer />
                     <div className="Content" />
                 </ResizablePanels>
             </div>

@@ -39,7 +39,6 @@
 .ResizeDragBar__horizontal {
     cursor: ew-resize;
     width: 3px;
-    border-left: 1px #cccccc solid;
 }
 
 .ResizeDragBar__vertical {

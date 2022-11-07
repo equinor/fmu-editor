@@ -1,6 +1,12 @@
 .Explorer {
     overflow-y: scroll;
     flex-grow: 4;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-content: center;
+    margin-right: 1px;
 }
 
 .ExplorerTitle {
@@ -9,6 +15,10 @@
     text-transform: uppercase;
     height: 20px;
     padding: 4px 16px 4px 16px;
+}
+
+.ExplorerNoDirectory {
+    padding: 16px;
 }
 
 .Directory {

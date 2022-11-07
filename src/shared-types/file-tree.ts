@@ -4,3 +4,10 @@ export type FileTree = {
     type: "file" | "directory";
     children?: FileTree;
 }[];
+
+export type FileTreeWithState = {
+    name: string;
+    type: "file" | "directory";
+    state: "expanded" | "collapsed";
+    children?: FileTreeWithState;
+}[];

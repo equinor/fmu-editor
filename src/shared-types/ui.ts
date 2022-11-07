@@ -1,3 +1,5 @@
+import {FileTreeWithState} from "./file-tree";
+
 export enum Themes {
     Dark = "dark",
     Light = "light",
@@ -21,4 +23,5 @@ export type UiState = {
         editorFontSize: number;
     };
     paneConfiguration: PaneConfiguration[];
+    fileTreeState: FileTreeWithState;
 };
