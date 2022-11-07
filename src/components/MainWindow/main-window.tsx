@@ -1,8 +1,9 @@
-
 import {Paper, useTheme} from "@mui/material";
 
 import React from "react";
 
+import {Explorer} from "@components/Explorer/explorer";
+import {ResizablePanels} from "@components/ResizablePanels";
 import {ThemeSwitch} from "@components/ThemeSwitch";
 
 import {useAppSelector} from "@redux/hooks";
@@ -10,7 +11,6 @@ import {useAppSelector} from "@redux/hooks";
 import path from "path";
 
 import "./main-window.css";
-import { Explorer } from "@components/Explorer/explorer";
 
 export const MainWindow: React.FC = () => {
     const theme = useTheme();
@@ -23,25 +23,21 @@ export const MainWindow: React.FC = () => {
             document.title = "FMU Editor";
             return;
         }
-        document.title = `${path.basename(
-            files.activeFile
-        )} - FMU Editor`;
+        document.title = `${path.basename(files.activeFile)} - FMU Editor`;
     }, [files]);
 
     return (
-        <div
-            className="MainWindow"
-            ref={mainWindowRef}
-            style={{backgroundColor: theme.palette.background.default}}
-        >
+        <div className="MainWindow" ref={mainWindowRef} style={{backgroundColor: theme.palette.background.default}}>
             <div className="ContentWrapper">
-                <Paper elevation={2} className="TabMenu" sx={{borderRadius: 0}}>
-                <Explorer />
-                    <div className="GlobalSettings">
-                        <ThemeSwitch />
-                    </div>
-                </Paper>
-                <div className="Content" />
+                <ResizablePanels direction="horizontal" id="file-explorer">
+                    <Paper elevation={2} className="TabMenu" sx={{borderRadius: 0}}>
+                        <Explorer />
+                        <div className="GlobalSettings">
+                            <ThemeSwitch />
+                        </div>
+                    </Paper>
+                    <div className="Content" />
+                </ResizablePanels>
             </div>
             <div className="Toolbar" />
         </div>

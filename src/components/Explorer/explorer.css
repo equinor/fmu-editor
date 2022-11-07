@@ -1,0 +1,32 @@
+.Explorer {
+    overflow-y: scroll;
+    flex-grow: 4;
+}
+
+.ExplorerTitle {
+    font-size: 0.95em;
+    font-weight: bold;
+    text-transform: uppercase;
+    height: 20px;
+    padding: 4px 16px 4px 16px;
+}
+
+.Directory {
+    font-size: 0.95em;
+}
+
+.DirectoryTitle {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+    height: 20px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    padding: 4px 16px 4px 16px;
+}
+.DirectoryTitle:hover, .File:hover {
+    background-color: #37373D;
+    cursor: pointer;
+}
