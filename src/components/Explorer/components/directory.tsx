@@ -5,6 +5,8 @@ import {useAppSelector} from "@redux/hooks";
 
 import {FileTree, FileTreeStates} from "@shared-types/file-tree";
 
+import {v4} from "uuid";
+
 export type DirectoryProps = {
     name: string;
     level: number;
@@ -32,7 +34,7 @@ export const Directory: React.VFC<DirectoryProps> = props => {
         props.indices.forEach((index, i) => {
             if (i < props.indices.length - 1 && current[index].children !== undefined) {
                 current = fileTreeStates[index].children as FileTreeStates;
-            } else {
+            } else if (current.at(index)) {
                 setExpanded(current[index].expanded);
             }
         });
@@ -45,9 +47,15 @@ export const Directory: React.VFC<DirectoryProps> = props => {
 
     return (
         <div className="Directory">
-            <div className="DirectoryTitle" style={{paddingLeft: props.level * 16}} onClick={handleDirStateChange}>
-                {expanded ? <VscChevronDown fontSize="small" /> : <VscChevronRight fontSize="small" />}
-                {props.name}
+            <div className="DirectoryTitle" onClick={handleDirStateChange}>
+                {props.level > 1 &&
+                    Array(props.level - 1)
+                        .fill(0)
+                        .map((_, i) => <div className="ExplorerPath" key={`${props.name}-${v4()}}`} />)}
+                <div className="ExplorerItemText">
+                    {expanded ? <VscChevronDown fontSize="small" /> : <VscChevronRight fontSize="small" />}
+                    {props.name}
+                </div>
             </div>
             <div className="DirectoryContent">
                 {expanded &&
@@ -55,11 +63,16 @@ export const Directory: React.VFC<DirectoryProps> = props => {
                     props.content.map((item, index) => {
                         if (item.type === "file") {
                             return (
-                                <div className="File" key={item.name} style={{paddingLeft: (props.level + 1) * 16}}>
-                                    <>
+                                <div className="File" key={item.name}>
+                                    {Array(props.level)
+                                        .fill(0)
+                                        .map((_, i) => (
+                                            <div className="ExplorerPath" key={`${item.name}-${v4()}`} />
+                                        ))}
+                                    <div className="ExplorerItemText">
                                         <VscFile />
                                         {item.name}
-                                    </>
+                                    </div>
                                 </div>
                             );
                         }

@@ -16,6 +16,18 @@
     padding: 4px 4px 4px 16px;
 }
 
+.ExplorerPath {
+    border-left: 1px #ccc solid;
+    margin-left: 4px;
+    width: 12px;
+    height: 20px;
+    display: block;
+}
+
+.ExplorerItemText {
+    padding: 4px 16px 4px 0px;
+}
+
 .ExplorerNoDirectory {
     padding: 16px;
 }
@@ -37,7 +49,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    padding: 4px 16px 4px 16px;
+    padding-left: 16px;
 }
 .DirectoryTitle:hover, .File:hover {
     background-color: rgba(0, 0, 0, 0.15);
