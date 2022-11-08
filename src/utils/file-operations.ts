@@ -1,4 +1,5 @@
-import { FileTree } from "@shared-types/file-tree";
+import {FileTree} from "@shared-types/file-tree";
+
 import fs from "fs";
 
 export const getFileContent = (filePath: string): string => {

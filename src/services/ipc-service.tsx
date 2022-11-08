@@ -8,7 +8,7 @@ import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {addNewFile, clearRecentFiles} from "@redux/reducers/files";
 import {addNotification} from "@redux/reducers/notifications";
 import {setInitialConfigurationDone} from "@redux/reducers/uiCoach";
-import {openFile, saveFile} from "@redux/thunks";
+import {openFile} from "@redux/thunks";
 import {saveFileAs} from "@redux/thunks/save-file";
 
 import {FileExplorerOptions} from "@shared-types/file-explorer-options";
@@ -21,23 +21,16 @@ export const IpcService: React.FC = props => {
     const yamlParser = useYamlParser();
     const activeFilePath = useAppSelector(state => state.files.activeFile);
     const associatedWithFile = useAppSelector(
-        state =>
-            state.files.files.find(el => el.filePath === state.files.activeFile)
-                ?.associatedWithFile || false
+        state => state.files.files.find(el => el.filePath === state.files.activeFile)?.associatedWithFile || false
     );
     const currentEditorValue = useAppSelector(
-        state =>
-            state.files.files.find(el => el.filePath === state.files.activeFile)
-                ?.editorValue || ""
+        state => state.files.files.find(el => el.filePath === state.files.activeFile)?.editorValue || ""
     );
     const mainProcessData = useMainProcessDataProvider();
 
     React.useEffect(() => {
         const listeners: string[] = [];
-        const addListener = (
-            channelName: string,
-            func: (event?: Electron.IpcRendererEvent, args?: any) => void
-        ) => {
+        const addListener = (channelName: string, func: (event?: Electron.IpcRendererEvent, args?: any) => void) => {
             listeners.push(channelName);
             ipcRenderer.on(channelName, func);
         };
@@ -48,33 +41,7 @@ export const IpcService: React.FC = props => {
             dispatch(addNewFile());
         });
         addListener("save-file", () => {
-            if (associatedWithFile) {
-                saveFile(activeFilePath, currentEditorValue, dispatch);
-                return;
-            }
-            const options: FileExplorerOptions = {
-                filters: [
-                    {
-                        name: "Webviz Config Files",
-                        extensions: ["yml", "yaml"],
-                    },
-                ],
-                action: "save",
-                allowMultiple: false,
-                title: "Save file as...",
-                isDirectoryExplorer: false,
-                defaultPath: mainProcessData.userHomeDir,
-            };
-            ipcRenderer.invoke("save-file", options).then(arg => {
-                if (arg) {
-                    saveFileAs(
-                        activeFilePath,
-                        arg,
-                        currentEditorValue,
-                        dispatch
-                    );
-                }
-            });
+            document.dispatchEvent(new Event("save-file"));
         });
         addListener("save-file-as", () => {
             const options: FileExplorerOptions = {
@@ -88,18 +55,11 @@ export const IpcService: React.FC = props => {
                 allowMultiple: false,
                 title: "Save file as...",
                 isDirectoryExplorer: false,
-                defaultPath: associatedWithFile
-                    ? activeFilePath
-                    : mainProcessData.userHomeDir,
+                defaultPath: associatedWithFile ? activeFilePath : mainProcessData.userHomeDir,
             };
             ipcRenderer.invoke("save-file", options).then(arg => {
                 if (arg) {
-                    saveFileAs(
-                        activeFilePath,
-                        arg,
-                        currentEditorValue,
-                        dispatch
-                    );
+                    saveFileAs(activeFilePath, arg, currentEditorValue, dispatch);
                 }
             });
         });
@@ -148,14 +108,7 @@ export const IpcService: React.FC = props => {
                 ipcRenderer.removeAllListeners(channelName);
             });
         };
-    }, [
-        activeFilePath,
-        currentEditorValue,
-        dispatch,
-        mainProcessData,
-        associatedWithFile,
-        yamlParser,
-    ]);
+    }, [activeFilePath, currentEditorValue, dispatch, mainProcessData, associatedWithFile, yamlParser]);
 
     return <>{props.children}</>;
 };

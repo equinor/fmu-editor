@@ -1,7 +1,9 @@
 import React from "react";
 import {VscChevronDown, VscChevronRight, VscFile} from "react-icons/vsc";
 
-import {FileTree} from "@shared-types/file-tree";
+import {useAppSelector} from "@redux/hooks";
+
+import {FileTree, FileTreeStates} from "@shared-types/file-tree";
 
 export type DirectoryProps = {
     name: string;
@@ -13,6 +15,7 @@ export type DirectoryProps = {
 };
 
 export const Directory: React.VFC<DirectoryProps> = props => {
+    const fileTreeStates = useAppSelector(state => state.files.fileTreeStates[state.files.directory]);
     const [expanded, setExpanded] = React.useState<boolean>(true);
 
     React.useEffect(() => {
@@ -20,6 +23,20 @@ export const Directory: React.VFC<DirectoryProps> = props => {
             setExpanded(false);
         }
     }, [props.collapsed]);
+
+    React.useEffect(() => {
+        if (!fileTreeStates || fileTreeStates.length === 0) {
+            return;
+        }
+        let current = fileTreeStates;
+        props.indices.forEach((index, i) => {
+            if (i < props.indices.length - 1 && current[index].children !== undefined) {
+                current = fileTreeStates[index].children as FileTreeStates;
+            } else {
+                setExpanded(current[index].expanded);
+            }
+        });
+    }, []);
 
     const handleDirStateChange = () => {
         setExpanded(prev => !prev);

@@ -2,10 +2,9 @@ import {LayoutObject, YamlMetaObject, YamlObject} from "@utils/yaml-parser";
 
 import {NavigationType} from "@shared-types/navigation";
 
-import {
-    SelectionDirection,
-    editor,
-} from "monaco-editor/esm/vs/editor/editor.api";
+import {SelectionDirection, editor} from "monaco-editor/esm/vs/editor/editor.api";
+
+import {FileTreeStates} from "./file-tree";
 
 export type CodeEditorViewState = {
     cursorState: editor.ICursorState[];
@@ -61,7 +60,9 @@ export type Selection = {
 };
 
 export type FilesState = {
+    fmuDirectory: string;
     directory: string;
+    fileTreeStates: {[key: string]: FileTreeStates};
     files: File[];
     activeFile: string;
     recentFiles: string[];

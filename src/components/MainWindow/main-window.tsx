@@ -2,9 +2,11 @@ import {Paper, useTheme} from "@mui/material";
 
 import React from "react";
 
+import {Editor} from "@components/Editor";
 import {Explorer} from "@components/Explorer/explorer";
 import {ResizablePanels} from "@components/ResizablePanels";
 import {ThemeSwitch} from "@components/ThemeSwitch";
+import {Toolbar} from "@components/Toolbar";
 
 import {useAppSelector} from "@redux/hooks";
 
@@ -36,10 +38,10 @@ export const MainWindow: React.FC = () => {
                 </Paper>
                 <ResizablePanels direction="horizontal" id="file-explorer">
                     <Explorer />
-                    <div className="Content" />
+                    <Editor />
                 </ResizablePanels>
             </div>
-            <div className="Toolbar" />
+            <Toolbar />
         </div>
     );
 };

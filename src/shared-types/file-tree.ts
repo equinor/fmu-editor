@@ -1,13 +1,13 @@
-export type FileTree = {
+export type FileTreeItem = {
     path: string;
     name: string;
     type: "file" | "directory";
     children?: FileTree;
-}[];
+};
 
-export type FileTreeWithState = {
-    name: string;
-    type: "file" | "directory";
-    state: "expanded" | "collapsed";
-    children?: FileTreeWithState;
+export type FileTree = FileTreeItem[];
+
+export type FileTreeStates = {
+    expanded: boolean;
+    children?: FileTreeStates;
 }[];

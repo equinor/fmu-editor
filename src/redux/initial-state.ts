@@ -15,7 +15,6 @@ import {SelectionDirection} from "monaco-editor";
 import path from "path";
 
 const paneConfiguration = electronStore.get("ui.paneConfiguration");
-const fileTreeState = electronStore.get("ui.fileTreeState");
 
 const initialUiState: UiState = {
     currentPage: Pages.Editor,
@@ -27,7 +26,6 @@ const initialUiState: UiState = {
         name: key,
         sizes: paneConfiguration[key],
     })),
-    fileTreeState,
 };
 
 const initialPreferencesState: PreferencesState = {
@@ -41,7 +39,9 @@ const initialUiCoachState: UiCoachState = {
 };
 
 const initialFilesState: FilesState = {
+    fmuDirectory: electronStore.get("files.fmuDirectory") || "",
     directory: electronStore.get("files.directory") || "",
+    fileTreeStates: electronStore.get("ui.fileTreeStates") || {},
     activeFile: electronStore.get("files.activeFile"),
     recentFiles: electronStore.get("files.recentFiles") || [],
     eventSource: EventSource.Editor,

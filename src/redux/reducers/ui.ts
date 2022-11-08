@@ -4,17 +4,12 @@ import electronStore from "@utils/electron-store";
 
 import initialState from "@redux/initial-state";
 
-import {FileTreeWithState} from "@shared-types/file-tree";
 import {Pages, PaneConfiguration, Themes, UiState} from "@shared-types/ui";
 
 export const uiSlice = createSlice({
     name: "ui",
     initialState: initialState.ui,
     reducers: {
-        setFileTreeState: (state: Draft<UiState>, action: PayloadAction<FileTreeWithState>) => {
-            electronStore.set(`ui.fileTreeState`, action.payload);
-            state.fileTreeState = action.payload;
-        },
         setCurrentPage: (state: Draft<UiState>, action: PayloadAction<Pages>) => {
             state.currentPage = action.payload;
         },
@@ -41,5 +36,5 @@ export const uiSlice = createSlice({
     },
 });
 
-export const {setFileTreeState, setCurrentPage, setTheme, setPaneConfiguration, setEditorFontSize} = uiSlice.actions;
+export const {setCurrentPage, setTheme, setPaneConfiguration, setEditorFontSize} = uiSlice.actions;
 export default uiSlice.reducer;

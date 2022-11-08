@@ -8,14 +8,11 @@ import {LayoutObject, YamlMetaObject, YamlObject} from "@utils/yaml-parser";
 
 import initialState from "@redux/initial-state";
 
-import {
-    CodeEditorViewState,
-    EventSource,
-    File,
-    FilesState,
-} from "@shared-types/files";
+import {FileTreeStates} from "@shared-types/file-tree";
+import {CodeEditorViewState, EventSource, File, FilesState} from "@shared-types/files";
 import {NavigationType} from "@shared-types/navigation";
 
+import fs from "fs";
 import {SelectionDirection} from "monaco-editor";
 import path from "path";
 
@@ -33,6 +30,21 @@ export const filesSlice = createSlice({
     name: "files",
     initialState: initialState.files,
     reducers: {
+        setFmuDirectory: (
+            state: Draft<FilesState>,
+            action: PayloadAction<{
+                path: string;
+            }>
+        ) => {
+            state.fmuDirectory = action.payload.path;
+            const directory =
+                fs
+                    .readdirSync(action.payload.path)
+                    .find(file => fs.statSync(`${action.payload.path}/${file}`).isDirectory()) || "";
+
+            state.directory = directory === "" ? directory : `${action.payload.path}/${directory}`;
+            electronStore.set("files.fmuDirectory", action.payload.path);
+        },
         setDirectory: (
             state: Draft<FilesState>,
             action: PayloadAction<{
@@ -40,7 +52,18 @@ export const filesSlice = createSlice({
             }>
         ) => {
             state.directory = action.payload.path;
+            state.fileTreeStates = {...state.fileTreeStates, [action.payload.path]: []};
             electronStore.set("files.directory", action.payload.path);
+        },
+        setFileTreeStates: (state: Draft<FilesState>, action: PayloadAction<FileTreeStates>) => {
+            const newState = {...state.fileTreeStates, [state.directory]: action.payload};
+            state.fileTreeStates = newState;
+            electronStore.set(`ui.fileTreeStates`, newState);
+        },
+        resetFileTreeStates: (state: Draft<FilesState>) => {
+            const newState = {...state.fileTreeStates, [state.directory]: []};
+            state.fileTreeStates = newState;
+            electronStore.set(`ui.fileTreeStates`, newState);
         },
         setActiveFile: (
             state: Draft<FilesState>,
@@ -49,9 +72,7 @@ export const filesSlice = createSlice({
                 viewState: CodeEditorViewState | null;
             }>
         ) => {
-            const currentlyActiveFile = state.files.find(
-                file => file.filePath === state.activeFile
-            );
+            const currentlyActiveFile = state.files.find(file => file.filePath === state.activeFile);
             if (currentlyActiveFile) {
                 currentlyActiveFile.editorViewState = action.payload.viewState;
             }
@@ -60,15 +81,10 @@ export const filesSlice = createSlice({
         },
         setValue: (state: Draft<FilesState>, action: PayloadAction<string>) => {
             state.files = state.files.map(el =>
-                el.filePath === state.activeFile
-                    ? {...el, editorValue: action.payload, unsavedChanges: true}
-                    : el
+                el.filePath === state.activeFile ? {...el, editorValue: action.payload, unsavedChanges: true} : el
             );
         },
-        setEditorViewState: (
-            state: Draft<FilesState>,
-            action: PayloadAction<CodeEditorViewState | null>
-        ) => {
+        setEditorViewState: (state: Draft<FilesState>, action: PayloadAction<CodeEditorViewState | null>) => {
             state.files = state.files.map(el =>
                 el.filePath === state.activeFile
                     ? {
@@ -78,14 +94,9 @@ export const filesSlice = createSlice({
                     : el
             );
         },
-        addFile: (
-            state: Draft<FilesState>,
-            action: PayloadAction<{filePath: string; fileContent: string}>
-        ) => {
+        addFile: (state: Draft<FilesState>, action: PayloadAction<{filePath: string; fileContent: string}>) => {
             // Do not open file when already opened, but make it active
-            const openedFile = state.files.find(
-                el => el.filePath === action.payload.filePath
-            );
+            const openedFile = state.files.find(el => el.filePath === action.payload.filePath);
             state.activeFile = action.payload.filePath;
             electronStore.set("files.activeFile", action.payload.filePath);
 
@@ -123,11 +134,7 @@ export const filesSlice = createSlice({
         addNewFile: (state: Draft<FilesState>) => {
             const filePath = path.join(
                 __dirname,
-                `Untitled-${
-                    state.files.filter(file =>
-                        file.filePath.includes("Untitled-")
-                    ).length + 1
-                }.yaml`
+                `Untitled-${state.files.filter(file => file.filePath.includes("Untitled-")).length + 1}.yaml`
             );
             state.files.push({
                 currentPage: undefined,
@@ -152,29 +159,18 @@ export const filesSlice = createSlice({
                 state.activeFile = filePath;
             }
         },
-        closeFile: (
-            state: Draft<FilesState>,
-            action: PayloadAction<string>
-        ) => {
-            const fileToClose = state.files.find(
-                file => file.filePath === action.payload
-            );
+        closeFile: (state: Draft<FilesState>, action: PayloadAction<string>) => {
+            const fileToClose = state.files.find(file => file.filePath === action.payload);
             if (fileToClose) {
                 let newActiveFile = state.activeFile;
                 if (action.payload === state.activeFile) {
                     if (state.files.length >= 2) {
-                        newActiveFile = state.files.filter(
-                            el => el.filePath !== action.payload
-                        )[
+                        newActiveFile = state.files.filter(el => el.filePath !== action.payload)[
                             Math.max(
                                 0,
                                 (state.files
-                                    .filter(
-                                        el => el.filePath !== action.payload
-                                    )
-                                    .findIndex(
-                                        file => file.filePath === action.payload
-                                    ) || 0) - 1
+                                    .filter(el => el.filePath !== action.payload)
+                                    .findIndex(file => file.filePath === action.payload) || 0) - 1
                             )
                         ].filePath;
                     } else {
@@ -182,15 +178,10 @@ export const filesSlice = createSlice({
                     }
                     state.activeFile = newActiveFile;
                 }
-                state.files = state.files.filter(
-                    file => file.filePath !== action.payload
-                );
+                state.files = state.files.filter(file => file.filePath !== action.payload);
             }
         },
-        markAsSaved: (
-            state: Draft<FilesState>,
-            action: PayloadAction<string>
-        ) => {
+        markAsSaved: (state: Draft<FilesState>, action: PayloadAction<string>) => {
             if (!state.recentFiles.includes(action.payload)) {
                 state.recentFiles.push(action.payload);
                 electronStore.set("files.recentFiles", state.recentFiles);
@@ -210,9 +201,7 @@ export const filesSlice = createSlice({
             state: Draft<FilesState>,
             action: PayloadAction<{oldFilePath: string; newFilePath: string}>
         ) => {
-            const file = state.files.find(
-                f => f.filePath === action.payload.oldFilePath
-            );
+            const file = state.files.find(f => f.filePath === action.payload.oldFilePath);
             if (file) {
                 state.files = state.files.map(f =>
                     f.filePath === action.payload.oldFilePath
@@ -286,10 +275,7 @@ export const filesSlice = createSlice({
                     : file
             );
         },
-        setRecentFiles: (
-            state: Draft<FilesState>,
-            action: PayloadAction<string[]>
-        ) => {
+        setRecentFiles: (state: Draft<FilesState>, action: PayloadAction<string[]>) => {
             state.recentFiles = action.payload;
             ipcRenderer.send("set-recent-files", state.recentFiles);
             electronStore.set("files.recentFiles", state.recentFiles);
@@ -303,7 +289,10 @@ export const filesSlice = createSlice({
 });
 
 export const {
+    setFmuDirectory,
     setDirectory,
+    setFileTreeStates,
+    resetFileTreeStates,
     setActiveFile,
     addFile,
     addNewFile,
