@@ -1,9 +1,13 @@
-import {AppBar, Button, CssBaseline, Paper} from "@mui/material";
+import {Button} from "@mui/material";
 
 import React from "react";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {selectFmuDirectory} from "@redux/thunks";
+
+import FmuLogo from "@assets/fmu-logo.svg";
+
+import "./toolbar.css";
 
 export const Toolbar: React.FC = () => {
     const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
@@ -14,13 +18,11 @@ export const Toolbar: React.FC = () => {
     };
 
     return (
-        <Paper elevation={6}>
-            <CssBaseline />
-            <AppBar className="" position="static" color="primary" sx={{top: "auto", bottom: 0}} style={{padding: 4}}>
-                <Button size="small" onClick={handleOpenDirectoryClick}>
-                    {fmuDirectory}
-                </Button>
-            </AppBar>
-        </Paper>
+        <div className="Toolbar">
+            <Button size="small" onClick={handleOpenDirectoryClick}>
+                <img src={FmuLogo} alt="FMU Logo" className="ToolbarFmuLogo" />
+                {fmuDirectory}
+            </Button>
+        </div>
     );
 };

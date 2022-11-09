@@ -1,5 +1,3 @@
-import {ipcRenderer} from "electron";
-
 import {Draft, PayloadAction, createSlice} from "@reduxjs/toolkit";
 
 import electronStore from "@utils/electron-store";
@@ -106,11 +104,6 @@ export const filesSlice = createSlice({
 
             disposeUnusedDefaultModel(state.files);
 
-            if (!state.recentFiles.includes(action.payload.filePath)) {
-                state.recentFiles.push(action.payload.filePath);
-                electronStore.set("files.recentFiles", state.recentFiles);
-                ipcRenderer.send("set-recent-files", [...state.recentFiles]);
-            }
             state.files.push({
                 currentPage: undefined,
                 associatedWithFile: true,
@@ -130,34 +123,6 @@ export const filesSlice = createSlice({
                 selectedYamlObject: undefined,
                 title: "",
             });
-        },
-        addNewFile: (state: Draft<FilesState>) => {
-            const filePath = path.join(
-                __dirname,
-                `Untitled-${state.files.filter(file => file.filePath.includes("Untitled-")).length + 1}.yaml`
-            );
-            state.files.push({
-                currentPage: undefined,
-                associatedWithFile: false,
-                selection: {
-                    startLineNumber: 0,
-                    startColumn: 0,
-                    endLineNumber: 0,
-                    endColumn: 0,
-                    direction: SelectionDirection.LTR,
-                },
-                editorValue: "",
-                editorViewState: null,
-                hash: generateHashCode(""),
-                filePath,
-                navigationItems: [],
-                yamlObjects: [],
-                selectedYamlObject: undefined,
-                title: "",
-            });
-            if (state.files.length === 1) {
-                state.activeFile = filePath;
-            }
         },
         closeFile: (state: Draft<FilesState>, action: PayloadAction<string>) => {
             const fileToClose = state.files.find(file => file.filePath === action.payload);
@@ -182,11 +147,6 @@ export const filesSlice = createSlice({
             }
         },
         markAsSaved: (state: Draft<FilesState>, action: PayloadAction<string>) => {
-            if (!state.recentFiles.includes(action.payload)) {
-                state.recentFiles.push(action.payload);
-                electronStore.set("files.recentFiles", state.recentFiles);
-                ipcRenderer.send("set-recent-files", state.recentFiles);
-            }
             state.files = state.files.map(f =>
                 f.filePath === action.payload
                     ? {
@@ -275,16 +235,6 @@ export const filesSlice = createSlice({
                     : file
             );
         },
-        setRecentFiles: (state: Draft<FilesState>, action: PayloadAction<string[]>) => {
-            state.recentFiles = action.payload;
-            ipcRenderer.send("set-recent-files", state.recentFiles);
-            electronStore.set("files.recentFiles", state.recentFiles);
-        },
-        clearRecentFiles: (state: Draft<FilesState>) => {
-            state.recentFiles = [];
-            ipcRenderer.send("clear-recent-files", state.recentFiles);
-            electronStore.set("files.recentFiles", []);
-        },
     },
 });
 
@@ -295,7 +245,6 @@ export const {
     resetFileTreeStates,
     setActiveFile,
     addFile,
-    addNewFile,
     closeFile,
     markAsSaved,
     changeFilePath,
@@ -304,7 +253,5 @@ export const {
     setSelectedObject,
     setValue,
     setEditorViewState,
-    setRecentFiles,
-    clearRecentFiles,
 } = filesSlice.actions;
 export default filesSlice.reducer;

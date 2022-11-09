@@ -10,8 +10,7 @@ export type PaneConfiguration = {
 
 export enum Pages {
     Editor = "editor",
-    Play = "play",
-    Preferences = "preferences",
+    DiffEditor = "diff-editor",
 }
 
 export type UiState = {

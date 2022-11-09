@@ -1,0 +1,21 @@
+.TabMenu {
+    position: static;
+    z-index: 10;
+    width: 52px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    border-radius: 0px;
+}
+
+.TabMenu .MuiTabs-indicator {
+    left: 0;
+    width: 3px;
+}
+
+.TabMenu .MuiButtonBase-root {
+    min-width: 52px;
+    max-width: 52px;
+}

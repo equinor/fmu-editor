@@ -1,12 +1,12 @@
-import {Paper, useTheme} from "@mui/material";
+import {useTheme} from "@mui/material";
 
 import React from "react";
 
 import {Editor} from "@components/Editor";
 import {Explorer} from "@components/Explorer/explorer";
 import {ResizablePanels} from "@components/ResizablePanels";
-import {ThemeSwitch} from "@components/ThemeSwitch";
 import {Toolbar} from "@components/Toolbar";
+import {Views} from "@components/Views";
 
 import {useAppSelector} from "@redux/hooks";
 
@@ -31,11 +31,7 @@ export const MainWindow: React.FC = () => {
     return (
         <div className="MainWindow" ref={mainWindowRef} style={{backgroundColor: theme.palette.background.default}}>
             <div className="ContentWrapper">
-                <Paper elevation={6} className="TabMenu" sx={{borderRadius: 0}}>
-                    <div className="GlobalSettings">
-                        <ThemeSwitch />
-                    </div>
-                </Paper>
+                <Views />
                 <ResizablePanels direction="horizontal" id="file-explorer">
                     <Explorer />
                     <Editor />

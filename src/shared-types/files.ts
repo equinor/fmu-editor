@@ -65,6 +65,5 @@ export type FilesState = {
     fileTreeStates: {[key: string]: FileTreeStates};
     files: File[];
     activeFile: string;
-    recentFiles: string[];
     eventSource: EventSource;
 };

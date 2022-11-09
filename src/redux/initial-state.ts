@@ -12,7 +12,6 @@ import {UiCoachState} from "@shared-types/ui-coach";
 
 import fs from "fs";
 import {SelectionDirection} from "monaco-editor";
-import path from "path";
 
 const paneConfiguration = electronStore.get("ui.paneConfiguration");
 
@@ -43,55 +42,36 @@ const initialFilesState: FilesState = {
     directory: electronStore.get("files.directory") || "",
     fileTreeStates: electronStore.get("ui.fileTreeStates") || {},
     activeFile: electronStore.get("files.activeFile"),
-    recentFiles: electronStore.get("files.recentFiles") || [],
     eventSource: EventSource.Editor,
-    files: electronStore.get("files.files").map((file: any): File => {
-        const fileContent = getFileContent(file.filePath);
-        return {
-            filePath: file.filePath,
-            associatedWithFile: fs.existsSync(file.filePath),
-            editorValue: fileContent,
-            editorViewState: file.editorViewState,
-            navigationItems: [],
-            yamlObjects: [],
-            currentPage: undefined,
-            hash: generateHashCode(fileContent),
-            selection: {
-                startLineNumber: 0,
-                startColumn: 0,
-                endLineNumber: 0,
-                endColumn: 0,
-                direction: SelectionDirection.LTR,
-            },
-            selectedYamlObject: undefined,
-            title: "",
-        };
-    }),
+    files:
+        electronStore.get("files.files")?.map((file: any): File => {
+            const fileContent = getFileContent(file.filePath);
+            return {
+                filePath: file.filePath,
+                associatedWithFile: fs.existsSync(file.filePath),
+                editorValue: fileContent,
+                editorViewState: file.editorViewState,
+                navigationItems: [],
+                yamlObjects: [],
+                currentPage: undefined,
+                hash: generateHashCode(fileContent),
+                selection: {
+                    startLineNumber: 0,
+                    startColumn: 0,
+                    endLineNumber: 0,
+                    endColumn: 0,
+                    direction: SelectionDirection.LTR,
+                },
+                selectedYamlObject: undefined,
+                title: "",
+            };
+        }) || [],
 };
 
 ipcRenderer.send("set-recent-files", electronStore.get("files.recentFiles") || []);
 
 if (initialFilesState.files.length === 0) {
-    initialFilesState.activeFile = path.join(__dirname, `Untitled-1.yaml`);
-    initialFilesState.files.push({
-        filePath: path.join(__dirname, `Untitled-1.yaml`),
-        associatedWithFile: false,
-        editorValue: "",
-        editorViewState: null,
-        navigationItems: [],
-        yamlObjects: [],
-        currentPage: undefined,
-        hash: generateHashCode(""),
-        selection: {
-            startLineNumber: 0,
-            startColumn: 0,
-            endLineNumber: 0,
-            endColumn: 0,
-            direction: SelectionDirection.LTR,
-        },
-        selectedYamlObject: undefined,
-        title: "",
-    });
+    initialFilesState.activeFile = "";
 }
 
 const notificationsState: NotificationsState = {

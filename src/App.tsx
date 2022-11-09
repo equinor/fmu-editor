@@ -7,7 +7,6 @@
 import {ThemeProvider, createTheme} from "@mui/material";
 import {IpcService} from "@services/ipc-service";
 import {PluginParserService} from "@services/plugin-parser";
-import {WebvizBuildService} from "@services/webviz-build-service";
 import {YamlParserService} from "@services/yaml-parser";
 
 import React from "react";
@@ -30,9 +29,7 @@ export const ColorModeContext = React.createContext({
 
 function App(): JSX.Element {
     const dispatch = useAppDispatch();
-    const [mode, setMode] = React.useState<"light" | "dark">(
-        useAppSelector(state => state.ui.settings.theme)
-    );
+    const [mode, setMode] = React.useState<"light" | "dark">(useAppSelector(state => state.ui.settings.theme));
     const colorMode = React.useMemo(
         () => ({
             toggleColorMode: () => {
@@ -65,10 +62,8 @@ function App(): JSX.Element {
                             <YamlParserService>
                                 <PluginParserService>
                                     <IpcService>
-                                        <WebvizBuildService>
-                                            <GetStartedDialog />
-                                            <MainWindow />
-                                        </WebvizBuildService>
+                                        <GetStartedDialog />
+                                        <MainWindow />
                                     </IpcService>
                                 </PluginParserService>
                             </YamlParserService>

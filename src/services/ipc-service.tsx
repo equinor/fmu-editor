@@ -5,13 +5,9 @@ import React from "react";
 import {useMainProcessDataProvider} from "@components/MainProcessDataProvider/main-process-data-provider";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {addNewFile, clearRecentFiles} from "@redux/reducers/files";
 import {addNotification} from "@redux/reducers/notifications";
 import {setInitialConfigurationDone} from "@redux/reducers/uiCoach";
-import {openFile} from "@redux/thunks";
-import {saveFileAs} from "@redux/thunks/save-file";
 
-import {FileExplorerOptions} from "@shared-types/file-explorer-options";
 import {NotificationType} from "@shared-types/notifications";
 
 import {useYamlParser} from "./yaml-parser";
@@ -34,54 +30,8 @@ export const IpcService: React.FC = props => {
             listeners.push(channelName);
             ipcRenderer.on(channelName, func);
         };
-        addListener("file-opened", (_, args) => {
-            openFile(args[0], dispatch, yamlParser);
-        });
-        addListener("new-file", () => {
-            dispatch(addNewFile());
-        });
         addListener("save-file", () => {
             document.dispatchEvent(new Event("save-file"));
-        });
-        addListener("save-file-as", () => {
-            const options: FileExplorerOptions = {
-                filters: [
-                    {
-                        name: "Webviz Config Files",
-                        extensions: ["yml", "yaml"],
-                    },
-                ],
-                action: "save",
-                allowMultiple: false,
-                title: "Save file as...",
-                isDirectoryExplorer: false,
-                defaultPath: associatedWithFile ? activeFilePath : mainProcessData.userHomeDir,
-            };
-            ipcRenderer.invoke("save-file", options).then(arg => {
-                if (arg) {
-                    saveFileAs(activeFilePath, arg, currentEditorValue, dispatch);
-                }
-            });
-        });
-        addListener("clear-recent-files", () => {
-            dispatch(clearRecentFiles());
-        });
-        addListener("recent-files-updated", () => {
-            dispatch(
-                addNotification({
-                    type: NotificationType.SUCCESS,
-                    message: "Recent files successfully updated.",
-                })
-            );
-        });
-
-        addListener("recent-files-cleared", () => {
-            dispatch(
-                addNotification({
-                    type: NotificationType.SUCCESS,
-                    message: "Recent files successfully cleared.",
-                })
-            );
         });
 
         addListener("error", (_, errorMessage) => {

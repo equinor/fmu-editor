@@ -36,6 +36,19 @@
     width: 100%;
     box-sizing: border-box;
     padding: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+}
+
+.Editor__NoModels > img {
+    min-width: 100px;
+    max-width: 300px;
+    width: 40%;
+    filter: grayscale(100%);
+    opacity: 0.3;
 }
 
 .Editor__CurrentObjectDecoration {

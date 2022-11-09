@@ -9,23 +9,36 @@
 }
 
 .ExplorerTitle {
-    font-size: 0.95em;
+    font-size: 0.85em;
     font-weight: bold;
     text-transform: uppercase;
     height: 20px;
     padding: 4px 4px 4px 16px;
 }
 
+.ExplorerTitle > div {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    gap: 8px;
+    align-items: center;
+    flex-grow: 4;
+}
+
 .ExplorerPath {
-    border-left: 1px #ccc solid;
+    border-left: 1px rgb(151, 151, 151) solid;
     margin-left: 4px;
     width: 12px;
-    height: 20px;
+    height: 100%;
     display: block;
 }
 
 .ExplorerItemText {
     padding: 4px 16px 4px 0px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    font-size: 0.85em;
 }
 
 .ExplorerNoDirectory {
@@ -36,22 +49,31 @@
     overflow-y: auto;
 }
 
-.Directory {
-    font-size: 0.95em;
-}
-
-.DirectoryTitle {
+.ExplorerItem {
     display: flex;
     flex-direction: row;
     justify-content: start;
     align-items: center;
-    height: 20px;
+    height: 24px;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
     padding-left: 16px;
+    user-select: none;
+    text-decoration: none;
 }
-.DirectoryTitle:hover, .File:hover {
+
+.ExplorerItem:hover {
     background-color: rgba(0, 0, 0, 0.15);
     cursor: pointer;
+}
+
+.ExplorerItem:focus {
+    background-color: rgb(33, 74, 150);
+    outline: 1px rgb(88, 91, 255) solid;
+    color: white !important;
+}
+
+.ExplorerItem--active{
+    background-color: rgba(0, 0, 0, 0.2);
 }

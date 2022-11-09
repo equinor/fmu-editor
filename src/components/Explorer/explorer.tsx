@@ -10,18 +10,21 @@ import {
     Paper,
     Stack,
     Typography,
+    useTheme,
 } from "@mui/material";
 
 import React from "react";
-import {VscCheck, VscCollapseAll, VscFolderActive} from "react-icons/vsc";
+import {VscCheck, VscCollapseAll, VscFolderActive, VscLock} from "react-icons/vsc";
 
-import {readFileTree} from "@utils/file-operations";
+import {checkIfWritable, readFileTree} from "@utils/file-operations";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {resetFileTreeStates, setDirectory, setFileTreeStates} from "@redux/reducers/files";
+import {addNotification} from "@redux/reducers/notifications";
 import {selectFmuDirectory} from "@redux/thunks";
 
 import {FileTree, FileTreeItem, FileTreeStates} from "@shared-types/file-tree";
+import {Notification, NotificationType} from "@shared-types/notifications";
 
 import fs from "fs";
 
@@ -31,6 +34,7 @@ import "./explorer.css";
 export const Explorer: React.FC = () => {
     const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
     const directory = useAppSelector(state => state.files.directory);
+    const [writeable, setWriteable] = React.useState<boolean>(false);
     const fileTreeStates = useAppSelector(state => state.files.fileTreeStates[state.files.directory]);
     const [fileTree, setFileTree] = React.useState<FileTree>([]);
     const [allCollapsed, setAllCollapsed] = React.useState<number>(0);
@@ -38,12 +42,22 @@ export const Explorer: React.FC = () => {
     const [directories, setDirectories] = React.useState<string[]>([]);
 
     const dispatch = useAppDispatch();
+    const theme = useTheme();
 
     React.useEffect(() => {
         if (directory !== undefined && directory !== "") {
-            setFileTree(readFileTree(directory));
+            try {
+                setFileTree(readFileTree(directory));
+                setWriteable(checkIfWritable(directory));
+            } catch (e) {
+                const notification: Notification = {
+                    type: NotificationType.ERROR,
+                    message: `Could not read content of '${directory}'. ${e}`,
+                };
+                dispatch(addNotification(notification));
+            }
         }
-    }, [directory]);
+    }, [directory, dispatch]);
 
     React.useEffect(() => {
         if (fmuDirectory !== undefined && fmuDirectory !== "") {
@@ -168,7 +182,15 @@ export const Explorer: React.FC = () => {
                 <>
                     <Paper elevation={3}>
                         <Stack direction="row" alignItems="center" className="ExplorerTitle">
-                            <div style={{flexGrow: 4}}>{directory.split("/")[directory.split("/").length - 1]}</div>
+                            <div>
+                                {directory.split("/")[directory.split("/").length - 1]}
+                                {!writeable && (
+                                    <VscLock
+                                        color={theme.palette.warning.main}
+                                        title="You don't have write access for this folder."
+                                    />
+                                )}
+                            </div>
                             <IconButton size="small" title="Change directory" onClick={toggleDrawer(true)}>
                                 <VscFolderActive />
                             </IconButton>
@@ -181,7 +203,7 @@ export const Explorer: React.FC = () => {
                         {fileTree.map((item, index) => {
                             if (item.type === "file") {
                                 return (
-                                    <div className="File" key={item.name} style={{paddingLeft: 16}}>
+                                    <div className="ExplorerItem" key={item.name} style={{paddingLeft: 16}}>
                                         {item.name}
                                     </div>
                                 );
