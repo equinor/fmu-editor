@@ -12,17 +12,15 @@ import {
     Typography,
 } from "@mui/material";
 
-import {ipcRenderer} from "electron";
-
 import React from "react";
 import {VscCheck, VscCollapseAll, VscFolderActive} from "react-icons/vsc";
 
 import {readFileTree} from "@utils/file-operations";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {resetFileTreeStates, setDirectory, setFileTreeStates, setFmuDirectory} from "@redux/reducers/files";
+import {resetFileTreeStates, setDirectory, setFileTreeStates} from "@redux/reducers/files";
+import {selectFmuDirectory} from "@redux/thunks";
 
-import {FileExplorerOptions} from "@shared-types/file-explorer-options";
 import {FileTree, FileTreeItem, FileTreeStates} from "@shared-types/file-tree";
 
 import fs from "fs";
@@ -59,16 +57,7 @@ export const Explorer: React.FC = () => {
     }, [fmuDirectory]);
 
     const handleOpenDirectoryClick = () => {
-        const opts: FileExplorerOptions = {
-            isDirectoryExplorer: true,
-            title: "Open FMU Directory",
-            defaultPath: directory,
-        };
-        ipcRenderer.invoke("select-file", opts).then(result => {
-            if (result) {
-                dispatch(setFmuDirectory({path: result[0]}));
-            }
-        });
+        selectFmuDirectory(fmuDirectory, dispatch);
     };
 
     const handleCollapseAll = () => {
