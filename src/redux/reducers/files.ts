@@ -6,8 +6,9 @@ import {LayoutObject, YamlMetaObject, YamlObject} from "@utils/yaml-parser";
 
 import initialState from "@redux/initial-state";
 
+import { monaco } from "react-monaco-editor";
 import {FileTreeStates} from "@shared-types/file-tree";
-import {CodeEditorViewState, EventSource, File, FilesState} from "@shared-types/files";
+import {CodeEditorViewState, DiffEditorViewState, EventSource, File, FilesState} from "@shared-types/files";
 import {NavigationType} from "@shared-types/navigation";
 
 import fs from "fs";
@@ -92,6 +93,16 @@ export const filesSlice = createSlice({
                     : el
             );
         },
+        setDiffEditorViewState: (state: Draft<FilesState>, action: PayloadAction<DiffEditorViewState | null>) => {
+            state.files = state.files.map(el =>
+                el.filePath === state.activeFile
+                    ? {
+                          ...el,
+                          diffEditorViewState: action.payload,
+                      }
+                    : el
+            );
+        },
         addFile: (state: Draft<FilesState>, action: PayloadAction<{filePath: string; fileContent: string}>) => {
             // Do not open file when already opened, but make it active
             const openedFile = state.files.find(el => el.filePath === action.payload.filePath);
@@ -103,6 +114,9 @@ export const filesSlice = createSlice({
             }
 
             disposeUnusedDefaultModel(state.files);
+
+
+            monaco.editor.createModel(action.payload.fileContent, "yaml", monaco.Uri.file(action.payload.filePath));
 
             state.files.push({
                 currentPage: undefined,
@@ -143,7 +157,13 @@ export const filesSlice = createSlice({
                     }
                     state.activeFile = newActiveFile;
                 }
-                state.files = state.files.filter(file => file.filePath !== action.payload);
+                state.files = state.files.filter(file => 
+                    file.filePath !== action.payload
+                );
+                const model = monaco.editor.getModel(monaco.Uri.file(fileToClose.filePath));
+                if (model) {
+                    window.setTimeout(() => model.dispose(), 100); // Dispose model after 1 second - this is a workaround for an error that occurs in the DiffEditor when disposing the model immediately
+                }
             }
         },
         markAsSaved: (state: Draft<FilesState>, action: PayloadAction<string>) => {
@@ -253,5 +273,6 @@ export const {
     setSelectedObject,
     setValue,
     setEditorViewState,
+    setDiffEditorViewState
 } = filesSlice.actions;
 export default filesSlice.reducer;

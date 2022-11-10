@@ -4,14 +4,14 @@ import electronStore from "@utils/electron-store";
 
 import initialState from "@redux/initial-state";
 
-import {Pages, PaneConfiguration, Themes, UiState} from "@shared-types/ui";
+import {EditorMode, PaneConfiguration, Themes, UiState} from "@shared-types/ui";
 
 export const uiSlice = createSlice({
     name: "ui",
     initialState: initialState.ui,
     reducers: {
-        setCurrentPage: (state: Draft<UiState>, action: PayloadAction<Pages>) => {
-            state.currentPage = action.payload;
+        setEditorMode: (state: Draft<UiState>, action: PayloadAction<EditorMode>) => {
+            state.editorMode = action.payload;
         },
         setTheme: (state: Draft<UiState>, action: PayloadAction<Themes>) => {
             electronStore.set("ui.settings.theme", action.payload);
@@ -36,5 +36,5 @@ export const uiSlice = createSlice({
     },
 });
 
-export const {setCurrentPage, setTheme, setPaneConfiguration, setEditorFontSize} = uiSlice.actions;
+export const {setEditorMode, setTheme, setPaneConfiguration, setEditorFontSize} = uiSlice.actions;
 export default uiSlice.reducer;

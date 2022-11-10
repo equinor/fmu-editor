@@ -24,9 +24,7 @@ export const FileTab: React.FC<FileTabProps> = props => {
 
     const theme = useTheme();
     const dispatch = useAppDispatch();
-    const file = useAppSelector(state =>
-        state.files.files.find(el => el.filePath === props.filePath)
-    );
+    const file = useAppSelector(state => state.files.files.find(el => el.filePath === props.filePath));
     const activeFilePath = useAppSelector(state => state.files.activeFile);
 
     React.useEffect(() => {
@@ -34,10 +32,7 @@ export const FileTab: React.FC<FileTabProps> = props => {
             return;
         }
         setFilename(path.basename(file.filePath));
-        setModified(
-            generateHashCode(file.editorValue) !== file.hash ||
-                !file.associatedWithFile
-        );
+        setModified(generateHashCode(file.editorValue) !== file.hash || !file.associatedWithFile);
     }, [file]);
 
     React.useEffect(() => {
@@ -57,22 +52,15 @@ export const FileTab: React.FC<FileTabProps> = props => {
     return (
         <Tooltip title={props.filePath}>
             <div
-                className={`FileTab${active ? " FileTab--active" : ""}${
-                    modified ? " FileTab--modified" : ""
-                }`}
+                className={`FileTab${active ? " FileTab--active" : ""}${modified ? " FileTab--modified" : ""}`}
                 onClick={() => handleClickEvent()}
                 style={{
-                    backgroundColor: active
-                        ? theme.palette.action.disabledBackground
-                        : theme.palette.background.paper,
+                    backgroundColor: active ? theme.palette.action.disabledBackground : theme.palette.background.paper,
                     color: theme.palette.text.primary,
                 }}
             >
                 {filename}
-                <div
-                    className="FileTab__CloseButton"
-                    onClick={e => handleCloseEvent(e)}
-                >
+                <div className="FileTab__CloseButton" onClick={e => handleCloseEvent(e)}>
                     <Close fontSize="inherit" />
                 </div>
             </div>

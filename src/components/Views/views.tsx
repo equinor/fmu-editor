@@ -6,14 +6,14 @@ import {VscDiff, VscEdit} from "react-icons/vsc";
 import {ThemeSwitch} from "@components/ThemeSwitch";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setCurrentPage} from "@redux/reducers/ui";
+import {setEditorMode} from "@redux/reducers/ui";
 
-import {Pages} from "@shared-types/ui";
+import {EditorMode} from "@shared-types/ui";
 
 import "./views.css";
 
 export const Views: React.VFC = () => {
-    const currentPage = useAppSelector(state => state.ui.currentPage);
+    const editorMode = useAppSelector(state => state.ui.editorMode);
 
     const dispatch = useAppDispatch();
 
@@ -21,10 +21,10 @@ export const Views: React.VFC = () => {
         <Paper elevation={6} className="TabMenu" sx={{borderRadius: 0}}>
             <Tabs
                 orientation="vertical"
-                value={currentPage}
+                value={editorMode}
                 color="inherit"
                 onChange={(event: React.SyntheticEvent<Element, Event>, newValue: string) =>
-                    dispatch(setCurrentPage(newValue as Pages))
+                    dispatch(setEditorMode(newValue as EditorMode))
                 }
             >
                 <Tab
@@ -33,7 +33,7 @@ export const Views: React.VFC = () => {
                             <VscEdit color="inherit" size={24} />
                         </Tooltip>
                     }
-                    value={Pages.Editor}
+                    value={EditorMode.Editor}
                     className="MenuTab"
                 />
                 <Tab
@@ -42,7 +42,7 @@ export const Views: React.VFC = () => {
                             <VscDiff color="inherit" size={24} />
                         </Tooltip>
                     }
-                    value={Pages.DiffEditor}
+                    value={EditorMode.DiffEditor}
                     className="MenuTab"
                 />
             </Tabs>

@@ -3,7 +3,6 @@ import {LayoutObject, YamlMetaObject, YamlObject} from "@utils/yaml-parser";
 import {NavigationType} from "@shared-types/navigation";
 
 import {SelectionDirection, editor} from "monaco-editor/esm/vs/editor/editor.api";
-
 import {FileTreeStates} from "./file-tree";
 
 export type CodeEditorViewState = {
@@ -29,6 +28,11 @@ export type CodeEditorViewState = {
     contributionsState: {
         [id: string]: any;
     };
+};
+
+export type DiffEditorViewState = {
+    original: CodeEditorViewState | null;
+    modified: CodeEditorViewState | null;
 };
 
 export type File = {

@@ -7,20 +7,22 @@ import {useYamlParser} from "@services/yaml-parser";
 import {ipcRenderer} from "electron";
 
 import React from "react";
-import MonacoEditor, {EditorDidMount, monaco} from "react-monaco-editor";
+import MonacoEditor, {DiffEditorDidMount, EditorDidMount, MonacoDiffEditor, monaco} from "react-monaco-editor";
 
+// import {CommitBrowser} from "@components/CommitBrowser";
 import {FileTabs} from "@components/FileTabs";
 import {ResizablePanels} from "@components/ResizablePanels";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setActiveFile, setEditorViewState, setValue} from "@redux/reducers/files";
+import {setActiveFile} from "@redux/reducers/files";
 
-import {CodeEditorViewState, EventSource} from "@shared-types/files";
+import {CodeEditorViewState} from "@shared-types/files";
+import {EditorMode} from "@shared-types/ui";
 
 import FmuLogo from "@assets/fmu-logo.svg";
 
 // @ts-ignore
-import {Environment, Uri, languages} from "monaco-editor";
+import {Environment, languages} from "monaco-editor";
 // @ts-ignore
 import "monaco-yaml/lib/esm/monaco.contribution";
 // @ts-ignore
@@ -80,12 +82,15 @@ export const Editor: React.FC<EditorProps> = () => {
     const [lineDecorations, setLineDecorations] = React.useState<string[]>([]);
     const [markers, setMarkers] = React.useState<monaco.editor.IMarker[]>([]);
     const parserTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [models, setModels] = React.useState<monaco.editor.ITextModel[]>([]);
 
     const yamlParser = useYamlParser();
 
     const monacoEditorRef = React.useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+    const monacoDiffEditorRef = React.useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
     const editorRef = React.useRef<HTMLDivElement | null>(null);
     const monacoRef = React.useRef<typeof monaco | null>(null);
+    const monacoDiffRef = React.useRef<typeof monaco | null>(null);
 
     const [totalWidth, totalHeight] = useSize(editorRef);
 
@@ -98,6 +103,7 @@ export const Editor: React.FC<EditorProps> = () => {
     const activeFile = useAppSelector(state => state.files.activeFile);
     const eventSource = useAppSelector(state => state.files.eventSource);
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
+    const editorMode = useAppSelector(state => state.ui.editorMode);
 
     useYamlSchema(yaml);
 
@@ -109,6 +115,8 @@ export const Editor: React.FC<EditorProps> = () => {
             }
         };
     }, [timeout]);
+
+    /*
 
     const handleCursorPositionChange = (e: monaco.editor.ICursorPositionChangedEvent): void => {
         if (
@@ -168,17 +176,24 @@ export const Editor: React.FC<EditorProps> = () => {
         [lineDecorations]
     );
 
+    */
+
     const handleFileChange = (filePath: string) => {
         if (monacoEditorRef.current) {
             dispatch(
                 setActiveFile({
                     filePath,
-                    viewState: convertFromViewState(monacoEditorRef.current.saveViewState()),
+                    viewState:
+                        editorMode === EditorMode.Editor
+                            ? convertFromViewState(monacoEditorRef.current.saveViewState())
+                            : null,
                 })
             );
         }
-        setTimeout(handleMarkersChange, 2000);
+        // setTimeout(handleMarkersChange, 2000);
     };
+
+    /*
 
     const handleEditorValueChange = (e: monaco.editor.IModelContentChangedEvent) => {
         if (e.isFlush) {
@@ -212,16 +227,24 @@ export const Editor: React.FC<EditorProps> = () => {
             dispatch(setEditorViewState(convertFromViewState(monacoEditorRef.current.saveViewState())));
         }
     };
+    */
 
     const handleEditorDidMount: EditorDidMount = (editor, monacoInstance) => {
         monacoEditorRef.current = editor;
         monacoRef.current = monacoInstance;
+        /*
         monacoEditorRef.current.onDidChangeModelContent(handleEditorValueChange);
         monacoEditorRef.current.onDidChangeCursorPosition(handleCursorPositionChange);
         monacoEditorRef.current.onDidChangeCursorSelection(handleCursorSelectionChange);
         monacoRef.current.editor.onDidChangeMarkers(handleMarkersChange);
         monacoEditorRef.current.onDidLayoutChange(handleEditorViewStateChanged);
         monacoEditorRef.current.onDidScrollChange(handleEditorViewStateChanged);
+        */
+    };
+
+    const handleDiffEditorDidMount: DiffEditorDidMount = (editor, monacoInstance) => {
+        monacoDiffEditorRef.current = editor;
+        monacoDiffRef.current = monacoInstance;
     };
 
     React.useEffect(() => {
@@ -233,28 +256,40 @@ export const Editor: React.FC<EditorProps> = () => {
 
     React.useEffect(() => {
         const file = files.find(el => el.filePath === activeFile);
-        if (files.length === 0) {
+        if (files.length === 0 || file === undefined) {
             setNoModels(true);
+            if (editorMode === EditorMode.DiffEditor) {
+                monacoDiffEditorRef.current?.setModel({
+                    original: monaco.editor.createModel("", "yaml"),
+                    modified: monaco.editor.createModel("", "yaml"),
+                });
+            }
             return;
         }
-        if (file && monacoEditorRef.current && monacoRef.current) {
-            const currentModel = monacoEditorRef.current.getModel();
-            if (currentModel?.uri.path !== file.filePath) {
-                if (currentModel) {
-                    currentModel.dispose();
+
+        if (file) {
+            const model = monaco.editor.getModel(monaco.Uri.file(file.filePath));
+            if (model) {
+                if (monacoEditorRef.current && monacoRef.current && editorMode === EditorMode.Editor) {
+                    monacoEditorRef.current.setModel(model);
+                    if (file.editorViewState) {
+                        monacoEditorRef.current.restoreViewState(file.editorViewState);
+                    }
+                    monacoEditorRef.current.focus();
                 }
-                monacoEditorRef.current.setModel(
-                    monacoRef.current.editor.createModel(file.editorValue, undefined, Uri.parse(file.filePath))
-                );
-                if (file.editorViewState) {
-                    monacoEditorRef.current.restoreViewState(file.editorViewState);
+
+                if (monacoDiffEditorRef.current && monacoDiffRef.current && editorMode === EditorMode.DiffEditor) {
+                    monacoDiffEditorRef.current.setModel({
+                        original: model,
+                        modified: model,
+                    });
+                    monacoDiffEditorRef.current.focus();
                 }
-                monacoEditorRef.current.focus();
-                yamlParser.parse(file.editorValue);
             }
         }
+
         setNoModels(false);
-    }, [activeFile, files]);
+    }, [activeFile, files, editorMode]);
 
     const selectMarker = (marker: monaco.editor.IMarker) => {
         if (monacoEditorRef.current) {
@@ -277,15 +312,6 @@ export const Editor: React.FC<EditorProps> = () => {
             ipcRenderer.send("enable-save-actions");
         }
     });
-
-    React.useEffect(() => {
-        return () => {
-            if (monacoEditorRef.current && monacoRef.current) {
-                monacoRef.current.editor.getModels().forEach(model => model.dispose());
-                monacoEditorRef.current.dispose();
-            }
-        };
-    }, []);
 
     return (
         <div
@@ -315,25 +341,41 @@ export const Editor: React.FC<EditorProps> = () => {
                     }}
                 >
                     <FileTabs onFileChange={handleFileChange} />
-                    <MonacoEditor
-                        language="yaml"
-                        defaultValue=""
-                        className="YamlEditor"
-                        editorDidMount={handleEditorDidMount}
-                        theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
-                        options={{
-                            tabSize: 2,
-                            insertSpaces: true,
-                            quickSuggestions: {other: true, strings: true},
-                        }}
-                        width={totalWidth}
-                        height={totalHeight - 56}
-                    />
+                    {editorMode === EditorMode.Editor ? (
+                        <MonacoEditor
+                            language="yaml"
+                            defaultValue=""
+                            className="YamlEditor"
+                            editorDidMount={handleEditorDidMount}
+                            theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
+                            options={{
+                                tabSize: 2,
+                                insertSpaces: true,
+                                quickSuggestions: {other: true, strings: true},
+                            }}
+                            width={totalWidth}
+                            height={totalHeight - 56}
+                        />
+                    ) : (
+                        <MonacoDiffEditor
+                            language="yaml"
+                            defaultValue=""
+                            className="YamlEditor"
+                            editorDidMount={handleDiffEditorDidMount}
+                            theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
+                            options={{
+                                readOnly: true,
+                            }}
+                            width={totalWidth}
+                            height={totalHeight - 56}
+                        />
+                    )}
                 </div>
                 <div
                     className="Issues"
                     style={{
                         color: theme.palette.text.primary,
+                        display: editorMode === EditorMode.Editor ? "block" : "none",
                     }}
                 >
                     <Paper elevation={1} style={{padding: 16}} sx={{borderRadius: 0}}>
