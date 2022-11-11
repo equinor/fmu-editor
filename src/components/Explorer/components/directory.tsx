@@ -1,4 +1,5 @@
 import {useTheme} from "@mui/material";
+import {useFileManager} from "@services/file-manager";
 
 import React from "react";
 import {VscChevronDown, VscChevronRight, VscFile} from "react-icons/vsc";
@@ -26,6 +27,7 @@ export const Directory: React.VFC<DirectoryProps> = props => {
 
     const dispatch = useAppDispatch();
     const theme = useTheme();
+    const {fileManager} = useFileManager();
 
     React.useEffect(() => {
         if (props.collapsed !== undefined) {
@@ -54,7 +56,7 @@ export const Directory: React.VFC<DirectoryProps> = props => {
     };
 
     const handleFileClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, path: string) => {
-        openFile(path, dispatch);
+        openFile(path, fileManager, dispatch);
         e.preventDefault();
     };
 

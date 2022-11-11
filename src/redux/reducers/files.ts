@@ -103,7 +103,7 @@ export const filesSlice = createSlice({
                     : el
             );
         },
-        addFile: (state: Draft<FilesState>, action: PayloadAction<{filePath: string; fileContent: string}>) => {
+        addFile: (state: Draft<FilesState>, action: PayloadAction<{filePath: string; userFilePath: string; fileContent: string}>) => {
             // Do not open file when already opened, but make it active
             const openedFile = state.files.find(el => el.filePath === action.payload.filePath);
             state.activeFile = action.payload.filePath;
@@ -132,6 +132,7 @@ export const filesSlice = createSlice({
                 editorViewState: null,
                 hash: generateHashCode(action.payload.fileContent),
                 filePath: action.payload.filePath,
+                userFilePath: action.payload.userFilePath,
                 navigationItems: [],
                 yamlObjects: [],
                 selectedYamlObject: undefined,
@@ -166,12 +167,13 @@ export const filesSlice = createSlice({
                 }
             }
         },
-        markAsSaved: (state: Draft<FilesState>, action: PayloadAction<string>) => {
+        markAsSaved: (state: Draft<FilesState>, action: PayloadAction<{userFilePath: string; filePath: string}>) => {
             state.files = state.files.map(f =>
-                f.filePath === action.payload
+                f.filePath === action.payload.filePath
                     ? {
                           ...f,
                           hash: generateHashCode(f.editorValue),
+                          userFilePath: action.payload.userFilePath,
                           associatedWithFile: true,
                       }
                     : f

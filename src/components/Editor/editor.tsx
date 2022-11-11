@@ -2,13 +2,13 @@ import {useYamlSchema} from "@hooks/useYamlSchema";
 import {AssistantPhoto, Error as ErrorIcon, Info, Warning} from "@mui/icons-material";
 import {Badge, Grid, Paper, Typography, useTheme} from "@mui/material";
 import useSize from "@react-hook/size";
-import {useYamlParser} from "@services/yaml-parser";
 
 import {ipcRenderer} from "electron";
 
 import React from "react";
 import MonacoEditor, {DiffEditorDidMount, EditorDidMount, MonacoDiffEditor, monaco} from "react-monaco-editor";
 
+import {CommitBrowser} from "@components/CommitBrowser";
 // import {CommitBrowser} from "@components/CommitBrowser";
 import {FileTabs} from "@components/FileTabs";
 import {ResizablePanels} from "@components/ResizablePanels";
@@ -83,8 +83,6 @@ export const Editor: React.FC<EditorProps> = () => {
     const [markers, setMarkers] = React.useState<monaco.editor.IMarker[]>([]);
     const parserTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const [models, setModels] = React.useState<monaco.editor.ITextModel[]>([]);
-
-    const yamlParser = useYamlParser();
 
     const monacoEditorRef = React.useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const monacoDiffEditorRef = React.useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
@@ -353,22 +351,25 @@ export const Editor: React.FC<EditorProps> = () => {
                                 insertSpaces: true,
                                 quickSuggestions: {other: true, strings: true},
                             }}
-                            width={totalWidth}
+                            width="100%"
                             height={totalHeight - 56}
                         />
                     ) : (
-                        <MonacoDiffEditor
-                            language="yaml"
-                            defaultValue=""
-                            className="YamlEditor"
-                            editorDidMount={handleDiffEditorDidMount}
-                            theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
-                            options={{
-                                readOnly: true,
-                            }}
-                            width={totalWidth}
-                            height={totalHeight - 56}
-                        />
+                        <ResizablePanels direction="horizontal" id="DiffEditor-Commits">
+                            <MonacoDiffEditor
+                                language="yaml"
+                                defaultValue=""
+                                className="YamlEditor"
+                                editorDidMount={handleDiffEditorDidMount}
+                                theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
+                                options={{
+                                    readOnly: true,
+                                }}
+                                width="100%"
+                                height={totalHeight - 56}
+                            />
+                            <CommitBrowser />
+                        </ResizablePanels>
                     )}
                 </div>
                 <div

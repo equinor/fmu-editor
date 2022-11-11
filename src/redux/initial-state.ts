@@ -48,6 +48,7 @@ const initialFilesState: FilesState = {
             const fileContent = getFileContent(file.filePath);
             return {
                 filePath: file.filePath,
+                userFilePath: file.userFilePath,
                 associatedWithFile: fs.existsSync(file.filePath),
                 editorValue: fileContent,
                 editorViewState: file.editorViewState,

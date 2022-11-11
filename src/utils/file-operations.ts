@@ -11,7 +11,7 @@ export const getFileContent = (filePath: string): string => {
 };
 
 export const readFileTree = (dir: string): FileTree => {
-    const files = fs.readdirSync(dir);
+    const files = fs.readdirSync(dir).filter(item => !(/(^|\/)\.[^\/\.]/g).test(item));
     const fileTree: FileTree = [];
 
     files.forEach(file => {

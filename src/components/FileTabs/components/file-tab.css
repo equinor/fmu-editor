@@ -1,16 +1,18 @@
 .FileTab {
     display: flex;
     flex-direction: row;
+    justify-content: center;
+    align-items: center;
     background-color: transparent;
     padding: 12px;
     font-size: 0.75rem;
     cursor: pointer;
     white-space: nowrap;
+    gap: 8px;
 }
 
 .FileTab__CloseButton {
     display: block;
-    margin-left: 8px;
     padding: 1px;
     min-width: 16px;
 }

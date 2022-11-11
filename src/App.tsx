@@ -5,9 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 import {ThemeProvider, createTheme} from "@mui/material";
+import {EnvironmentService} from "@services/environment-service";
+import {FileManagerService} from "@services/file-manager";
 import {IpcService} from "@services/ipc-service";
-import {PluginParserService} from "@services/plugin-parser";
-import {YamlParserService} from "@services/yaml-parser";
 
 import React from "react";
 
@@ -59,14 +59,14 @@ function App(): JSX.Element {
                 <ColorModeContext.Provider value={colorMode}>
                     <ThemeProvider theme={theme}>
                         <NotificationsProvider>
-                            <YamlParserService>
-                                <PluginParserService>
+                            <EnvironmentService>
+                                <FileManagerService>
                                     <IpcService>
                                         <GetStartedDialog />
                                         <MainWindow />
                                     </IpcService>
-                                </PluginParserService>
-                            </YamlParserService>
+                                </FileManagerService>
+                            </EnvironmentService>
                         </NotificationsProvider>
                     </ThemeProvider>
                 </ColorModeContext.Provider>

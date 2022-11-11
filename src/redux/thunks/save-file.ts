@@ -3,14 +3,26 @@ import {addNotification} from "@redux/reducers/notifications";
 import {AppDispatch} from "@redux/store";
 
 import {Notification, NotificationType} from "@shared-types/notifications";
+import { FileManager } from "@utils/file-manager";
 
 import fs from "fs";
 
 export function saveFile(
     filePath: string,
     value: string,
+    fileManager: FileManager,
     dispatch: AppDispatch
 ) {
+    const result = fileManager.saveFile(filePath, value);
+    if (result.success) {
+        dispatch(markAsSaved({filePath, userFilePath: result.filePath}));
+        const notification: Notification = {
+            type: NotificationType.SUCCESS,
+            message: `${result.filePath} successfully saved.`,
+        };
+        dispatch(addNotification(notification));
+    }
+    /*
     try {
         fs.writeFileSync(filePath, value, {
             encoding: "utf-8",
@@ -29,6 +41,7 @@ export function saveFile(
         };
         dispatch(addNotification(notification));
     }
+    */
 }
 
 export function saveFileAs(

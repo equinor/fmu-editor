@@ -1,4 +1,4 @@
-import {Close} from "@mui/icons-material";
+import {Circle, Close} from "@mui/icons-material";
 import {Tooltip, useTheme} from "@mui/material";
 
 import React from "react";
@@ -21,6 +21,7 @@ export const FileTab: React.FC<FileTabProps> = props => {
     const [filename, setFilename] = React.useState<string>("");
     const [active, setActive] = React.useState<boolean>(false);
     const [modified, setModified] = React.useState<boolean>(false);
+    const [uncommitted, setUncommitted] = React.useState<boolean>(false);
 
     const theme = useTheme();
     const dispatch = useAppDispatch();
@@ -33,6 +34,7 @@ export const FileTab: React.FC<FileTabProps> = props => {
         }
         setFilename(path.basename(file.filePath));
         setModified(generateHashCode(file.editorValue) !== file.hash || !file.associatedWithFile);
+        setUncommitted(file.userFilePath !== file.filePath);
     }, [file]);
 
     React.useEffect(() => {
@@ -60,6 +62,11 @@ export const FileTab: React.FC<FileTabProps> = props => {
                 }}
             >
                 {filename}
+                {uncommitted && (
+                    <Tooltip title="Uncommitted changes">
+                        <Circle fontSize="inherit" style={{color: theme.palette.info.light}} />
+                    </Tooltip>
+                )}
                 <div className="FileTab__CloseButton" onClick={e => handleCloseEvent(e)}>
                     <Close fontSize="inherit" />
                 </div>

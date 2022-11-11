@@ -7,14 +7,15 @@ import {useMainProcessDataProvider} from "@components/MainProcessDataProvider/ma
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {addNotification} from "@redux/reducers/notifications";
 import {setInitialConfigurationDone} from "@redux/reducers/uiCoach";
+import {saveFile} from "@redux/thunks";
 
 import {NotificationType} from "@shared-types/notifications";
 
-import {useYamlParser} from "./yaml-parser";
+import {useFileManager} from "./file-manager";
 
 export const IpcService: React.FC = props => {
     const dispatch = useAppDispatch();
-    const yamlParser = useYamlParser();
+    const {fileManager} = useFileManager();
     const activeFilePath = useAppSelector(state => state.files.activeFile);
     const associatedWithFile = useAppSelector(
         state => state.files.files.find(el => el.filePath === state.files.activeFile)?.associatedWithFile || false
@@ -31,7 +32,8 @@ export const IpcService: React.FC = props => {
             ipcRenderer.on(channelName, func);
         };
         addListener("save-file", () => {
-            document.dispatchEvent(new Event("save-file"));
+            saveFile(activeFilePath, currentEditorValue, fileManager, dispatch);
+            // document.dispatchEvent(new Event("save-file"));
         });
 
         addListener("error", (_, errorMessage) => {
@@ -58,7 +60,7 @@ export const IpcService: React.FC = props => {
                 ipcRenderer.removeAllListeners(channelName);
             });
         };
-    }, [activeFilePath, currentEditorValue, dispatch, mainProcessData, associatedWithFile, yamlParser]);
+    }, [activeFilePath, currentEditorValue, dispatch, mainProcessData, associatedWithFile, fileManager]);
 
     return <>{props.children}</>;
 };
