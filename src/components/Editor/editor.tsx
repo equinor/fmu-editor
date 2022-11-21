@@ -8,6 +8,7 @@ import {ipcRenderer} from "electron";
 import React from "react";
 import MonacoEditor, {DiffEditorDidMount, EditorDidMount, MonacoDiffEditor, monaco} from "react-monaco-editor";
 
+import {ChangesBrowser} from "@components/ChangesBrowser";
 import {CommitBrowser} from "@components/CommitBrowser";
 // import {CommitBrowser} from "@components/CommitBrowser";
 import {FileTabs} from "@components/FileTabs";
@@ -87,10 +88,12 @@ export const Editor: React.FC<EditorProps> = () => {
     const monacoEditorRef = React.useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const monacoDiffEditorRef = React.useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
     const editorRef = React.useRef<HTMLDivElement | null>(null);
+    const diffEditorRef = React.useRef<HTMLDivElement | null>(null);
     const monacoRef = React.useRef<typeof monaco | null>(null);
     const monacoDiffRef = React.useRef<typeof monaco | null>(null);
 
-    const [totalWidth, totalHeight] = useSize(editorRef);
+    const [editorTotalWidth, editorTotalHeight] = useSize(editorRef);
+    const [diffEditorTotalWidth, diffEditorTotalHeight] = useSize(diffEditorRef);
 
     const timeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -322,94 +325,113 @@ export const Editor: React.FC<EditorProps> = () => {
                 className="Editor__NoModels"
                 style={{
                     visibility: noModels ? "visible" : "hidden",
-                    height: totalHeight,
                     color: theme.palette.mode === "dark" ? "#fff" : "#000",
+                    backgroundColor: theme.palette.background.paper,
                 }}
             >
                 <img src={FmuLogo} alt="FMU Logo" />
                 <Typography variant="h6">FMU Editor</Typography>
                 <Typography variant="body1">Please select a file...</Typography>
             </div>
-            <ResizablePanels direction="vertical" id="Editor-Issues">
-                <div
-                    className="Editor"
-                    ref={editorRef}
-                    style={{
-                        visibility: noModels ? "hidden" : "visible",
-                    }}
-                >
-                    <FileTabs onFileChange={handleFileChange} />
-                    {editorMode === EditorMode.Editor ? (
-                        <MonacoEditor
+            <div
+                style={{
+                    visibility: editorMode === EditorMode.Editor && !noModels ? "visible" : "hidden",
+                    position: "absolute",
+                    inset: "0, 0",
+                    height: "100%",
+                    width: "100%",
+                }}
+            >
+                <ResizablePanels direction="horizontal" id="Editor-Changes">
+                    <div className="EditorContainer">
+                        <ResizablePanels direction="vertical" id="Editor-Issues">
+                            <div ref={editorRef} className="Editor">
+                                <FileTabs onFileChange={handleFileChange} />
+                                <MonacoEditor
+                                    language="yaml"
+                                    defaultValue=""
+                                    className="YamlEditor"
+                                    editorDidMount={handleEditorDidMount}
+                                    theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
+                                    options={{
+                                        tabSize: 2,
+                                        insertSpaces: true,
+                                        quickSuggestions: {other: true, strings: true},
+                                    }}
+                                    width={editorTotalWidth}
+                                    height={editorTotalHeight - 56}
+                                />
+                            </div>
+                            <div
+                                className="Issues"
+                                style={{
+                                    color: theme.palette.text.primary,
+                                    display: editorMode === EditorMode.Editor ? "block" : "none",
+                                }}
+                            >
+                                <Paper elevation={1} style={{padding: 16}} sx={{borderRadius: 0}}>
+                                    <Grid container columnSpacing={2} spacing={5} direction="row" alignItems="center">
+                                        <Grid item>
+                                            <Badge badgeContent={noModels ? 0 : markers.length} color="warning">
+                                                <ErrorIcon color="action" />
+                                            </Badge>
+                                        </Grid>
+                                        <Grid item>Issues</Grid>
+                                    </Grid>
+                                </Paper>
+                                <div className="IssuesContent" style={{display: noModels ? "none" : "block"}}>
+                                    {markers.map(marker => (
+                                        <div className="Issue" onClick={() => selectMarker(marker)} key={v4()}>
+                                            {marker.severity === monaco.MarkerSeverity.Error ? (
+                                                <ErrorIcon color="error" fontSize="small" />
+                                            ) : marker.severity === monaco.MarkerSeverity.Warning ? (
+                                                <Warning color="warning" fontSize="small" />
+                                            ) : marker.severity === monaco.MarkerSeverity.Info ? (
+                                                <Info color="info" fontSize="small" />
+                                            ) : (
+                                                <AssistantPhoto color="primary" fontSize="small" />
+                                            )}{" "}
+                                            {marker.message}
+                                            <span className="IssuePosition">
+                                                [{marker.startLineNumber}, {marker.startColumn}]
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </ResizablePanels>
+                    </div>
+                    <ChangesBrowser />
+                </ResizablePanels>
+            </div>
+            <div
+                style={{
+                    visibility: editorMode === EditorMode.DiffEditor && !noModels ? "visible" : "hidden",
+                    position: "absolute",
+                    inset: "0, 0",
+                    height: "100%",
+                    width: "100%",
+                }}
+            >
+                <ResizablePanels direction="horizontal" id="DiffEditor-Commits">
+                    <div ref={diffEditorRef} className="EditorContainer">
+                        <FileTabs onFileChange={handleFileChange} />
+                        <MonacoDiffEditor
                             language="yaml"
                             defaultValue=""
                             className="YamlEditor"
-                            editorDidMount={handleEditorDidMount}
+                            editorDidMount={handleDiffEditorDidMount}
                             theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
                             options={{
-                                tabSize: 2,
-                                insertSpaces: true,
-                                quickSuggestions: {other: true, strings: true},
+                                readOnly: true,
                             }}
-                            width="100%"
-                            height={totalHeight - 56}
+                            width={diffEditorTotalWidth}
+                            height={diffEditorTotalHeight - 56}
                         />
-                    ) : (
-                        <ResizablePanels direction="horizontal" id="DiffEditor-Commits">
-                            <MonacoDiffEditor
-                                language="yaml"
-                                defaultValue=""
-                                className="YamlEditor"
-                                editorDidMount={handleDiffEditorDidMount}
-                                theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
-                                options={{
-                                    readOnly: true,
-                                }}
-                                width="100%"
-                                height={totalHeight - 56}
-                            />
-                            <CommitBrowser />
-                        </ResizablePanels>
-                    )}
-                </div>
-                <div
-                    className="Issues"
-                    style={{
-                        color: theme.palette.text.primary,
-                        display: editorMode === EditorMode.Editor ? "block" : "none",
-                    }}
-                >
-                    <Paper elevation={1} style={{padding: 16}} sx={{borderRadius: 0}}>
-                        <Grid container columnSpacing={2} spacing={5} direction="row" alignItems="center">
-                            <Grid item>
-                                <Badge badgeContent={noModels ? 0 : markers.length} color="warning">
-                                    <ErrorIcon color="action" />
-                                </Badge>
-                            </Grid>
-                            <Grid item>Issues</Grid>
-                        </Grid>
-                    </Paper>
-                    <div className="IssuesContent" style={{display: noModels ? "none" : "block"}}>
-                        {markers.map(marker => (
-                            <div className="Issue" onClick={() => selectMarker(marker)} key={v4()}>
-                                {marker.severity === monaco.MarkerSeverity.Error ? (
-                                    <ErrorIcon color="error" fontSize="small" />
-                                ) : marker.severity === monaco.MarkerSeverity.Warning ? (
-                                    <Warning color="warning" fontSize="small" />
-                                ) : marker.severity === monaco.MarkerSeverity.Info ? (
-                                    <Info color="info" fontSize="small" />
-                                ) : (
-                                    <AssistantPhoto color="primary" fontSize="small" />
-                                )}{" "}
-                                {marker.message}
-                                <span className="IssuePosition">
-                                    [{marker.startLineNumber}, {marker.startColumn}]
-                                </span>
-                            </div>
-                        ))}
                     </div>
-                </div>
-            </ResizablePanels>
+                    <CommitBrowser />
+                </ResizablePanels>
+            </div>
         </div>
     );
 };

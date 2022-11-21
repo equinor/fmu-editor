@@ -105,7 +105,7 @@ electron_1.ipcMain.on("clear-recent-files", event => {
     menu_1.createMenu();
     event.reply("recent-files-cleared");
 });
-const appTitle = "Webviz Config Editor";
+const appTitle = "FMU Editor";
 function createWindow() {
     const win = new electron_1.BrowserWindow({
         title: appTitle,

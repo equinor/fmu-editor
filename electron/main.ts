@@ -114,7 +114,7 @@ ipcMain.on("clear-recent-files", event => {
     event.reply("recent-files-cleared");
 });
 
-const appTitle = "Webviz Config Editor";
+const appTitle = "FMU Editor";
 
 function createWindow() {
     const win = new BrowserWindow({
