@@ -11,7 +11,7 @@ export const getFileContent = (filePath: string): string => {
 };
 
 export const readFileTree = (dir: string): FileTree => {
-    const files = fs.readdirSync(dir).filter(item => !(/(^|\/)\.[^\/\.]/g).test(item));
+    const files = fs.readdirSync(dir).filter(item => !/(^|\/)\.[^\/\.]/g.test(item));
     const fileTree: FileTree = [];
 
     files.forEach(file => {
@@ -22,6 +22,7 @@ export const readFileTree = (dir: string): FileTree => {
                 path: filePath,
                 name: file,
                 type: "directory",
+                modified: stats.mtime,
                 children: readFileTree(filePath),
             });
         } else {
@@ -29,6 +30,7 @@ export const readFileTree = (dir: string): FileTree => {
                 path: filePath,
                 name: file,
                 type: "file",
+                modified: stats.mtime,
             });
         }
     });

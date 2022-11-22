@@ -41,6 +41,7 @@ const initialFilesState: FilesState = {
     fmuDirectory: electronStore.get("files.fmuDirectory") || "",
     directory: electronStore.get("files.directory") || "",
     fileTreeStates: electronStore.get("ui.fileTreeStates") || {},
+    fileChanges: [],
     activeFile: electronStore.get("files.activeFile"),
     eventSource: EventSource.Editor,
     files:
@@ -52,9 +53,6 @@ const initialFilesState: FilesState = {
                 associatedWithFile: fs.existsSync(file.filePath),
                 editorValue: fileContent,
                 editorViewState: file.editorViewState,
-                navigationItems: [],
-                yamlObjects: [],
-                currentPage: undefined,
                 hash: generateHashCode(fileContent),
                 selection: {
                     startLineNumber: 0,
@@ -63,7 +61,6 @@ const initialFilesState: FilesState = {
                     endColumn: 0,
                     direction: SelectionDirection.LTR,
                 },
-                selectedYamlObject: undefined,
                 title: "",
             };
         }) || [],

@@ -1,15 +1,15 @@
+import {monaco} from "react-monaco-editor";
+
 import {Draft, PayloadAction, createSlice} from "@reduxjs/toolkit";
 
 import electronStore from "@utils/electron-store";
 import {generateHashCode} from "@utils/hash";
-import {LayoutObject, YamlMetaObject, YamlObject} from "@utils/yaml-parser";
 
 import initialState from "@redux/initial-state";
 
-import { monaco } from "react-monaco-editor";
+import {FileChange} from "@shared-types/file-changes";
 import {FileTreeStates} from "@shared-types/file-tree";
-import {CodeEditorViewState, DiffEditorViewState, EventSource, File, FilesState} from "@shared-types/files";
-import {NavigationType} from "@shared-types/navigation";
+import {CodeEditorViewState, DiffEditorViewState, File, FilesState} from "@shared-types/files";
 
 import fs from "fs";
 import {SelectionDirection} from "monaco-editor";
@@ -64,6 +64,9 @@ export const filesSlice = createSlice({
             state.fileTreeStates = newState;
             electronStore.set(`ui.fileTreeStates`, newState);
         },
+        setFileChanges: (state: Draft<FilesState>, action: PayloadAction<FileChange[]>) => {
+            state.fileChanges = action.payload;
+        },
         setActiveFile: (
             state: Draft<FilesState>,
             action: PayloadAction<{
@@ -103,7 +106,10 @@ export const filesSlice = createSlice({
                     : el
             );
         },
-        addFile: (state: Draft<FilesState>, action: PayloadAction<{filePath: string; userFilePath: string; fileContent: string}>) => {
+        addFile: (
+            state: Draft<FilesState>,
+            action: PayloadAction<{filePath: string; userFilePath: string; fileContent: string}>
+        ) => {
             // Do not open file when already opened, but make it active
             const openedFile = state.files.find(el => el.filePath === action.payload.filePath);
             state.activeFile = action.payload.filePath;
@@ -115,11 +121,9 @@ export const filesSlice = createSlice({
 
             disposeUnusedDefaultModel(state.files);
 
-
             monaco.editor.createModel(action.payload.fileContent, "yaml", monaco.Uri.file(action.payload.filePath));
 
             state.files.push({
-                currentPage: undefined,
                 associatedWithFile: true,
                 selection: {
                     startLineNumber: 0,
@@ -133,9 +137,6 @@ export const filesSlice = createSlice({
                 hash: generateHashCode(action.payload.fileContent),
                 filePath: action.payload.filePath,
                 userFilePath: action.payload.userFilePath,
-                navigationItems: [],
-                yamlObjects: [],
-                selectedYamlObject: undefined,
                 title: "",
             });
         },
@@ -158,9 +159,7 @@ export const filesSlice = createSlice({
                     }
                     state.activeFile = newActiveFile;
                 }
-                state.files = state.files.filter(file => 
-                    file.filePath !== action.payload
-                );
+                state.files = state.files.filter(file => file.filePath !== action.payload);
                 const model = monaco.editor.getModel(monaco.Uri.file(fileToClose.filePath));
                 if (model) {
                     window.setTimeout(() => model.dispose(), 100); // Dispose model after 1 second - this is a workaround for an error that occurs in the DiffEditor when disposing the model immediately
@@ -200,63 +199,6 @@ export const filesSlice = createSlice({
                 }
             }
         },
-        setFileObjects: (
-            state: Draft<FilesState>,
-            action: PayloadAction<{
-                yamlObjects: YamlObject[];
-                title: string;
-                navigationItems: NavigationType;
-            }>
-        ) => {
-            state.files = state.files.map(file =>
-                file.filePath === state.activeFile
-                    ? {
-                          ...file,
-                          yamlObjects: action.payload.yamlObjects,
-                          title: action.payload.title,
-                          navigationItems: action.payload.navigationItems,
-                      }
-                    : file
-            );
-        },
-        setFileObjectsAndSelection: (
-            state: Draft<FilesState>,
-            action: PayloadAction<{
-                yamlObjects: YamlObject[];
-                selectedObject: YamlMetaObject;
-                page: LayoutObject;
-            }>
-        ) => {
-            state.files = state.files.map(file =>
-                file.filePath === state.activeFile
-                    ? {
-                          ...file,
-                          yamlObjects: action.payload.yamlObjects,
-                          currentPage: action.payload.page,
-                          selectedYamlObject: action.payload.selectedObject,
-                      }
-                    : file
-            );
-        },
-        setSelectedObject: (
-            state: Draft<FilesState>,
-            action: PayloadAction<{
-                object: YamlMetaObject | undefined;
-                page: LayoutObject;
-                source: EventSource;
-            }>
-        ) => {
-            state.eventSource = action.payload.source;
-            state.files = state.files.map(file =>
-                file.filePath === state.activeFile
-                    ? {
-                          ...file,
-                          selectedYamlObject: action.payload.object,
-                          currentPage: action.payload.page,
-                      }
-                    : file
-            );
-        },
     },
 });
 
@@ -265,16 +207,14 @@ export const {
     setDirectory,
     setFileTreeStates,
     resetFileTreeStates,
+    setFileChanges,
     setActiveFile,
     addFile,
     closeFile,
     markAsSaved,
     changeFilePath,
-    setFileObjects,
-    setFileObjectsAndSelection,
-    setSelectedObject,
     setValue,
     setEditorViewState,
-    setDiffEditorViewState
+    setDiffEditorViewState,
 } = filesSlice.actions;
 export default filesSlice.reducer;

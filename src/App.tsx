@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import {ThemeProvider, createTheme} from "@mui/material";
+import {ChangelogWatcherService} from "@services/changelog-service";
 import {EnvironmentService} from "@services/environment-service";
 import {FileManagerService} from "@services/file-manager";
 import {IpcService} from "@services/ipc-service";
@@ -22,6 +23,7 @@ import {setTheme} from "@redux/reducers/ui";
 import {Themes} from "@shared-types/ui";
 
 import "./App.css";
+import {FileChangesWatcherService} from "./services/file-changes-service";
 
 export const ColorModeContext = React.createContext({
     toggleColorMode: () => {},
@@ -61,10 +63,14 @@ function App(): JSX.Element {
                         <NotificationsProvider>
                             <EnvironmentService>
                                 <FileManagerService>
-                                    <IpcService>
-                                        <GetStartedDialog />
-                                        <MainWindow />
-                                    </IpcService>
+                                    <ChangelogWatcherService>
+                                        <FileChangesWatcherService>
+                                            <IpcService>
+                                                <GetStartedDialog />
+                                                <MainWindow />
+                                            </IpcService>
+                                        </FileChangesWatcherService>
+                                    </ChangelogWatcherService>
                                 </FileManagerService>
                             </EnvironmentService>
                         </NotificationsProvider>

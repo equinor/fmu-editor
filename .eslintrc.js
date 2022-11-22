@@ -10,13 +10,7 @@ module.exports = {
         ecmaVersion: 12,
         sourceType: "module",
     },
-    plugins: [
-        "react",
-        "@typescript-eslint",
-        "react-hooks",
-        "unused-imports",
-        "prettier",
-    ],
+    plugins: ["react", "@typescript-eslint", "react-hooks", "unused-imports", "prettier"],
     rules: {
         "no-plusplus": "off",
         "no-underscore-dangle": "off",
@@ -51,10 +45,7 @@ module.exports = {
         "require-yield": "off", // don't micromanage sagas or side effects
         "import/extensions": "off", // don't micromanage pretty imports
         "no-unused-expressions": "off", // prevents basic use of React exports such as in App.tsx
-        "react/jsx-filename-extension": [
-            2,
-            {extensions: [".js", ".jsx", ".ts", ".tsx"]},
-        ], // Make ESLint happy about JSX inside of tsx files
+        "react/jsx-filename-extension": [2, {extensions: [".js", ".jsx", ".ts", ".tsx"]}], // Make ESLint happy about JSX inside of tsx files
         // Temporarily, we will ignore these while we introduce linting to our repo *conservatively*.
         // These are to be re-enabled soon.
         "arrow-body-style": "off", // warn
@@ -91,10 +82,5 @@ module.exports = {
             },
         ],
     },
-    ignorePatterns: [
-        "package.json",
-        "./node_modules",
-        "./dist",
-        "**/dist/*.js",
-    ],
+    ignorePatterns: ["package.json", "./node_modules", "./dist", "**/dist/*.js"],
 };

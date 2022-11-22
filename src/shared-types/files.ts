@@ -1,8 +1,7 @@
-import {LayoutObject, YamlMetaObject, YamlObject} from "@utils/yaml-parser";
-
-import {NavigationType} from "@shared-types/navigation";
+import {FileChange} from "@shared-types/file-changes";
 
 import {SelectionDirection, editor} from "monaco-editor/esm/vs/editor/editor.api";
+
 import {FileTreeStates} from "./file-tree";
 
 export type CodeEditorViewState = {
@@ -43,10 +42,6 @@ export type File = {
     editorViewState: CodeEditorViewState | null;
     hash: number;
     selection: Selection;
-    navigationItems: NavigationType;
-    yamlObjects: YamlObject[];
-    selectedYamlObject: YamlMetaObject | undefined;
-    currentPage: LayoutObject | undefined;
     title: string;
 };
 
@@ -68,6 +63,7 @@ export type FilesState = {
     fmuDirectory: string;
     directory: string;
     fileTreeStates: {[key: string]: FileTreeStates};
+    fileChanges: FileChange[];
     files: File[];
     activeFile: string;
     eventSource: EventSource;
