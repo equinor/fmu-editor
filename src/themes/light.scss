@@ -99,31 +99,31 @@ $neutral-variant: #5B6056;
 }
 
 .surface-1 {
-    background: linear-gradient(#{color.change($primary-color, $alpha: 0.05)} 0%, #{color.change($primary-color, $alpha: 0.05)} 100%);
+    background-image: linear-gradient(#{color.change($primary-color, $alpha: 0.05)} 0%, #{color.change($primary-color, $alpha: 0.05)} 100%);
     box-shadow: 0px 1px 5px 1px rgba(0,0,0,0.1);
     z-index: 1;
 }
 
 .surface-2 {
-    background: linear-gradient(#{color.change($primary-color, $alpha: 0.08)} 0%, #{color.change($primary-color, $alpha: 0.08)} 100%);
+    background-image: linear-gradient(#{color.change($primary-color, $alpha: 0.08)} 0%, #{color.change($primary-color, $alpha: 0.08)} 100%);
     box-shadow: 0px 1px 10px 1px rgba(0,0,0,0.15);
     z-index: 2;
 }
 
 .surface-3 {
-    background: linear-gradient(#{color.change($primary-color, $alpha: 0.11)} 0%, #{color.change($primary-color, $alpha: 0.11)} 100%);
+    background-image: linear-gradient(#{color.change($primary-color, $alpha: 0.11)} 0%, #{color.change($primary-color, $alpha: 0.11)} 100%);
     box-shadow: 0px 1px 10px 1px rgba(0,0,0,0.15);
     z-index: 3;
 }
 
 .surface-4 {
-    background: linear-gradient(#{color.change($primary-color, $alpha: 0.12)} 0%, #{color.change($primary-color, $alpha: 0.12)} 100%);
+    background-image: linear-gradient(#{color.change($primary-color, $alpha: 0.12)} 0%, #{color.change($primary-color, $alpha: 0.12)} 100%);
     box-shadow: 0px 1px 10px 1px rgba(0,0,0,0.15);
     z-index: 4;
 }
 
 .surface-5 {
-    background: linear-gradient(#{color.change($primary-color, $alpha: 0.14)} 0%, #{color.change($primary-color, $alpha: 0.14)} 100%);
+    background-image: linear-gradient(#{color.change($primary-color, $alpha: 0.14)} 0%, #{color.change($primary-color, $alpha: 0.14)} 100%);
     box-shadow: 0px 1px 5px 1px rgba(0,0,0,0.25);
     z-index: 5;
 }
