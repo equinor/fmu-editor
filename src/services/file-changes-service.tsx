@@ -3,9 +3,8 @@ import React from "react";
 import {createGenericContext} from "@utils/generic-context";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setFileChanges} from "@redux/reducers/files";
 
-import {FileChangesWatcherRequest, FileChangesWatcherResponse} from "@shared-types/file-changes";
+import {FileChange, FileChangesWatcherRequest, FileChangesWatcherResponse} from "@shared-types/file-changes";
 
 // @ts-ignore
 // eslint-disable-next-line import/no-webpack-loader-syntax
@@ -13,11 +12,14 @@ import FileChangesWatcherWorker from "worker-loader!@workers/file-changes-watche
 
 const changelogWatcherWorker = new FileChangesWatcherWorker();
 
-export type Context = {};
+export type Context = {
+    fileChanges: FileChange[];
+};
 
 const [useFileChangesWatcherServiceContext, FileChangesWatcherServiceContextProvider] = createGenericContext<Context>();
 
 export const FileChangesWatcherService: React.FC = props => {
+    const [fileChanges, setFileChanges] = React.useState<FileChange[]>([]);
     const directory = useAppSelector(state => state.files.directory);
     const dispatch = useAppDispatch();
 
@@ -27,7 +29,7 @@ export const FileChangesWatcherService: React.FC = props => {
                 const data = e.data;
                 switch (data.type) {
                     case FileChangesWatcherResponse.FILE_CHANGES:
-                        dispatch(setFileChanges(data.fileChanges));
+                        setFileChanges(data.fileChanges);
                         break;
                     default:
                 }
@@ -45,7 +47,9 @@ export const FileChangesWatcherService: React.FC = props => {
     }, [directory]);
 
     return (
-        <FileChangesWatcherServiceContextProvider value={{}}>{props.children}</FileChangesWatcherServiceContextProvider>
+        <FileChangesWatcherServiceContextProvider value={{fileChanges}}>
+            {props.children}
+        </FileChangesWatcherServiceContextProvider>
     );
 };
 

@@ -50,6 +50,14 @@ export class Changelog {
         return path.join(this.directory, ".changelog.json");
     }
 
+    private getRelativeFilePath(filePath: string): string {
+        if (!this.directory) {
+            return filePath;
+        }
+
+        return path.relative(this.directory, filePath);
+    }
+
     private snapshotsPath(): string {
         if (!this.directory) {
             throw new DirectoryNotSetError();
@@ -180,11 +188,13 @@ export class Changelog {
 
         localChangelog.commits.push(commit);
         this.changelog.modified = new Date();
-        fs.writeFileSync(this.localChangelogPath(), JSON.stringify(this.changelog));
-        return true;
+        return this.saveLocalChangelog();
     }
 
     public getChangesForFile(filePath: string): ISnapshotCommitBundle[] {
+        if (!filePath || filePath === "") {
+            return [];
+        }
         if (!this.directory) {
             return [];
         }
@@ -197,12 +207,17 @@ export class Changelog {
         const bundles: ISnapshotCommitBundle[] = [];
 
         this.changelog.log.forEach(bundle => {
-            const commits = bundle.commits.filter(commit => commit.files.includes(filePath));
+            const commits = bundle.commits.filter(commit => commit.files.includes(this.getRelativeFilePath(filePath)));
             if (commits.length > 0) {
                 bundles.push({
                     snapshotPath: bundle.snapshotPath,
                     modified: bundle.modified,
-                    commits,
+                    commits: [
+                        ...commits.map(commit => ({
+                            ...commit,
+                            datetime: new Date(commit.datetime),
+                        })),
+                    ],
                 });
             }
         });

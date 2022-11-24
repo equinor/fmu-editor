@@ -7,7 +7,6 @@ import {generateHashCode} from "@utils/hash";
 
 import initialState from "@redux/initial-state";
 
-import {FileChange} from "@shared-types/file-changes";
 import {FileTreeStates} from "@shared-types/file-tree";
 import {CodeEditorViewState, DiffEditorViewState, File, FilesState} from "@shared-types/files";
 
@@ -63,9 +62,6 @@ export const filesSlice = createSlice({
             const newState = {...state.fileTreeStates, [state.directory]: []};
             state.fileTreeStates = newState;
             electronStore.set(`ui.fileTreeStates`, newState);
-        },
-        setFileChanges: (state: Draft<FilesState>, action: PayloadAction<FileChange[]>) => {
-            state.fileChanges = action.payload;
         },
         setActiveFile: (
             state: Draft<FilesState>,
@@ -207,7 +203,6 @@ export const {
     setDirectory,
     setFileTreeStates,
     resetFileTreeStates,
-    setFileChanges,
     setActiveFile,
     addFile,
     closeFile,

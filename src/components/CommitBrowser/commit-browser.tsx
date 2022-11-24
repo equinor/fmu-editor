@@ -17,6 +17,10 @@ export const CommitBrowser: React.FC = () => {
     const activeFile = useAppSelector(state => state.files.activeFile);
 
     React.useEffect(() => {
+        changelogWatcher.getChangesForFile(activeFile);
+    }, [activeFile, changelogWatcher]);
+
+    React.useEffect(() => {
         const handleChangelogModified = () => {
             changelogWatcher.getChangesForFile(activeFile);
         };

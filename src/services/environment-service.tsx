@@ -33,7 +33,7 @@ export const EnvironmentService: React.FC = props => {
                 })
             );
         }
-    }, []);
+    }, [setUsernameError, dispatch]);
 
     return <EnvironmentContextProvider value={{username}}>{props.children}</EnvironmentContextProvider>;
 };

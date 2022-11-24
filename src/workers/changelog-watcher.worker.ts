@@ -29,7 +29,7 @@ self.addEventListener("message", event => {
         case ChangelogWatcherRequest.APPEND_COMMIT:
             changelog.appendCommit(event.data.commit);
             // eslint-disable-next-line no-restricted-globals
-            self.postMessage({type: ChangelogWatcherResponse.SUCCESS});
+            self.postMessage({type: ChangelogWatcherResponse.COMMIT_APPENDED});
             break;
         case ChangelogWatcherRequest.GET_CHANGES_FOR_FILE:
             // eslint-disable-next-line no-restricted-globals

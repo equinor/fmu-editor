@@ -24,6 +24,7 @@ import {Themes} from "@shared-types/ui";
 
 import "./App.css";
 import {FileChangesWatcherService} from "./services/file-changes-service";
+import "./themes/light.scss";
 
 export const ColorModeContext = React.createContext({
     toggleColorMode: () => {},
@@ -56,27 +57,29 @@ function App(): JSX.Element {
     );
 
     return (
-        <div className={mode === "light" ? "LightMode" : "DarkMode"}>
-            <MainProcessDataProvider>
-                <ColorModeContext.Provider value={colorMode}>
-                    <ThemeProvider theme={theme}>
-                        <NotificationsProvider>
-                            <EnvironmentService>
-                                <FileManagerService>
-                                    <ChangelogWatcherService>
-                                        <FileChangesWatcherService>
-                                            <IpcService>
-                                                <GetStartedDialog />
-                                                <MainWindow />
-                                            </IpcService>
-                                        </FileChangesWatcherService>
-                                    </ChangelogWatcherService>
-                                </FileManagerService>
-                            </EnvironmentService>
-                        </NotificationsProvider>
-                    </ThemeProvider>
-                </ColorModeContext.Provider>
-            </MainProcessDataProvider>
+        <div className="DefaultTheme">
+            <div className={mode === "light" ? "LightMode" : "DarkMode"}>
+                <MainProcessDataProvider>
+                    <ColorModeContext.Provider value={colorMode}>
+                        <ThemeProvider theme={theme}>
+                            <NotificationsProvider>
+                                <EnvironmentService>
+                                    <FileManagerService>
+                                        <ChangelogWatcherService>
+                                            <FileChangesWatcherService>
+                                                <IpcService>
+                                                    <GetStartedDialog />
+                                                    <MainWindow />
+                                                </IpcService>
+                                            </FileChangesWatcherService>
+                                        </ChangelogWatcherService>
+                                    </FileManagerService>
+                                </EnvironmentService>
+                            </NotificationsProvider>
+                        </ThemeProvider>
+                    </ColorModeContext.Provider>
+                </MainProcessDataProvider>
+            </div>
         </div>
     );
 }

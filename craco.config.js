@@ -1,6 +1,6 @@
 const {getLoader, loaderByName, addBeforeLoader} = require("@craco/craco");
 
-const CracoAlias = require("craco-alias");
+const {CracoAliasPlugin} = require("react-app-alias");
 const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 
 module.exports = {
@@ -27,7 +27,7 @@ module.exports = {
     },
     plugins: [
         {
-            plugin: CracoAlias,
+            plugin: CracoAliasPlugin,
             options: {
                 source: "tsconfig",
                 baseUrl: "./",

@@ -1,5 +1,7 @@
 import {Circle, Close} from "@mui/icons-material";
 import {Tooltip, useTheme} from "@mui/material";
+import {useEnvironment} from "@services/environment-service";
+import {useFileChangesWatcher} from "@services/file-changes-service";
 
 import React from "react";
 
@@ -27,6 +29,8 @@ export const FileTab: React.FC<FileTabProps> = props => {
     const dispatch = useAppDispatch();
     const file = useAppSelector(state => state.files.files.find(el => el.filePath === props.filePath));
     const activeFilePath = useAppSelector(state => state.files.activeFile);
+    const fileChangesWatcher = useFileChangesWatcher();
+    const environment = useEnvironment();
 
     React.useEffect(() => {
         if (!file) {
@@ -34,8 +38,15 @@ export const FileTab: React.FC<FileTabProps> = props => {
         }
         setFilename(path.basename(file.filePath));
         setModified(generateHashCode(file.editorValue) !== file.hash || !file.associatedWithFile);
-        setUncommitted(file.userFilePath !== file.filePath);
     }, [file]);
+
+    React.useEffect(() => {
+        setUncommitted(
+            fileChangesWatcher.fileChanges
+                .filter(change => change.user === environment.username)
+                .some(change => change.filePath === file?.userFilePath)
+        );
+    }, [fileChangesWatcher.fileChanges, file?.filePath, environment.username]);
 
     React.useEffect(() => {
         setActive(props.filePath === activeFilePath);

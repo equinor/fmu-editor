@@ -41,7 +41,6 @@ const initialFilesState: FilesState = {
     fmuDirectory: electronStore.get("files.fmuDirectory") || "",
     directory: electronStore.get("files.directory") || "",
     fileTreeStates: electronStore.get("ui.fileTreeStates") || {},
-    fileChanges: [],
     activeFile: electronStore.get("files.activeFile"),
     eventSource: EventSource.Editor,
     files:

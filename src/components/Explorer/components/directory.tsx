@@ -47,7 +47,7 @@ export const Directory: React.VFC<DirectoryProps> = props => {
                 setExpanded(current[index].expanded);
             }
         });
-    }, []);
+    }, [fileTreeStates, props.indices]);
 
     const handleDirStateChange = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         setExpanded(prev => !prev);

@@ -1,8 +1,9 @@
-import {Paper, Tab, Tabs, Tooltip} from "@mui/material";
+import {Tab, Tabs, Tooltip} from "@mui/material";
 
 import React from "react";
 import {VscDiff, VscEdit} from "react-icons/vsc";
 
+import {Surface} from "@components/Surface";
 import {ThemeSwitch} from "@components/ThemeSwitch";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
@@ -18,7 +19,7 @@ export const Views: React.VFC = () => {
     const dispatch = useAppDispatch();
 
     return (
-        <Paper elevation={6} className="TabMenu" sx={{borderRadius: 0}}>
+        <Surface className="TabMenu" elevation={5}>
             <Tabs
                 orientation="vertical"
                 value={editorMode}
@@ -49,6 +50,6 @@ export const Views: React.VFC = () => {
             <div className="GlobalSettings">
                 <ThemeSwitch />
             </div>
-        </Paper>
+        </Surface>
     );
 };

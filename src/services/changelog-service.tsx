@@ -38,7 +38,7 @@ export const ChangelogWatcherService: React.FC = props => {
         if (changelogWatcherWorker) {
             changelogWatcherWorker.postMessage({
                 type: ChangelogWatcherRequest.APPEND_COMMIT,
-                payload: commit,
+                commit,
             });
         }
     }, []);
@@ -47,7 +47,7 @@ export const ChangelogWatcherService: React.FC = props => {
         if (changelogWatcherWorker) {
             changelogWatcherWorker.postMessage({
                 type: ChangelogWatcherRequest.GET_CHANGES_FOR_FILE,
-                payload: filePath,
+                filePath,
             });
         }
     }, []);
