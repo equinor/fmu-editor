@@ -7,7 +7,6 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    Paper,
     Stack,
     Typography,
     useTheme,
@@ -17,6 +16,8 @@ import React from "react";
 import {VscCheck, VscCollapseAll, VscFolderActive, VscLock} from "react-icons/vsc";
 
 import {checkIfWritable, readFileTree} from "@utils/file-operations";
+
+import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {resetFileTreeStates, setDirectory, setFileTreeStates} from "@redux/reducers/files";
@@ -156,7 +157,7 @@ export const Explorer: React.FC = () => {
     };
 
     return (
-        <Paper className="Explorer" elevation={3}>
+        <Surface elevation={4} className="Explorer">
             <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
                 <List>
                     {directories.map(el => (
@@ -180,7 +181,7 @@ export const Explorer: React.FC = () => {
                 </Stack>
             ) : (
                 <>
-                    <Paper elevation={3}>
+                    <Surface elevation={4}>
                         <Stack direction="row" alignItems="center" className="ExplorerTitle">
                             <div>
                                 {directory.split("/")[directory.split("/").length - 1]}
@@ -198,7 +199,7 @@ export const Explorer: React.FC = () => {
                                 <VscCollapseAll />
                             </IconButton>
                         </Stack>
-                    </Paper>
+                    </Surface>
                     <div className="ExplorerContent">
                         {fileTree.map((item, index) => {
                             if (item.type === "file") {
@@ -223,6 +224,6 @@ export const Explorer: React.FC = () => {
                     </div>
                 </>
             )}
-        </Paper>
+        </Surface>
     );
 };

@@ -81,9 +81,10 @@
 
 .IssuesTitle {
     padding: 12px;
-    font-size: 0.8em;
     display: flex;
     align-items: center;
+    text-transform: uppercase;
+    font-weight: bold;
 }
 
 .IssuesTitle > strong {

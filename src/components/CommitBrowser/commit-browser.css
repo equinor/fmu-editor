@@ -2,5 +2,29 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 16px;
+}
+
+.CommitBrowserHeader {
+    padding: var(--padding);
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.CommitBrowserContent {
+    padding: var(--padding);
+    overflow: auto;
+    height: 100%;
+}
+
+.CommitSnapshotBundle {
+    padding: 0;
+    cursor: pointer;
+}
+
+.CommitSnapshotBundle:hover {
+    background-color: var(--primary-color-95);
+}
+
+.CommitBrowserContent li {
+    list-style: none;
 }

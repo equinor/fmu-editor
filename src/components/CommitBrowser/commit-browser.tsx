@@ -1,7 +1,9 @@
-import {List, Paper, Typography} from "@mui/material";
+import {Divider, List, ListSubheader} from "@mui/material";
 import {useChangelogWatcher} from "@services/changelog-service";
 
 import React from "react";
+
+import {Surface} from "@components/Surface";
 
 import {useAppSelector} from "@redux/hooks";
 
@@ -36,29 +38,35 @@ export const CommitBrowser: React.FC = () => {
     }, [changelogWatcher.changesForFile]);
 
     return (
-        <Paper elevation={4} className="CommitBrowser">
-            <Typography variant="h5">Commits</Typography>
-            {commitBundles.map(bundle => (
-                <>
-                    <Typography variant="h6">{bundle.modified.toDateString()}</Typography>
-                    <List sx={{width: "100%", maxWidth: 360}}>
-                        {bundle.commits.map(commit => (
-                            <Commit
-                                key={commit.id}
-                                summary="Commit"
-                                message={commit.message}
-                                user={commit.author}
-                                timestamp={commit.datetime.getTime()}
-                            />
-                        ))}
-                    </List>
-                </>
-            ))}
-            {commitBundles.length === 0 && (
-                <Typography variant="body2" sx={{textAlign: "center"}}>
-                    No commits
-                </Typography>
-            )}
-        </Paper>
+        <Surface elevation={4} className="CommitBrowser">
+            <Surface elevation={5} className="CommitBrowserHeader">
+                Commits
+            </Surface>
+            <div className="CommitBrowserContent">
+                <List sx={{width: "100%"}} subheader={<li />}>
+                    {commitBundles.map(bundle => (
+                        <li key={`section-${bundle.snapshotPath}`}>
+                            <ul className="CommitSnapshotBundle">
+                                <ListSubheader style={{backgroundColor: "transparent"}}>
+                                    {bundle.modified.toDateString()}
+                                </ListSubheader>
+                                {bundle.commits.map((commit, index) => (
+                                    <>
+                                        {index > 0 && <Divider variant="inset" component="li" />}
+                                        <Commit
+                                            key={commit.id}
+                                            message={commit.message}
+                                            user={commit.author}
+                                            timestamp={commit.datetime.getTime()}
+                                        />
+                                    </>
+                                ))}
+                            </ul>
+                        </li>
+                    ))}
+                </List>
+                {commitBundles.length === 0 && "No Commits"}
+            </div>
+        </Surface>
     );
 };

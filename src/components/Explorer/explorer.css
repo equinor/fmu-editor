@@ -9,7 +9,6 @@
 }
 
 .ExplorerTitle {
-    font-size: 0.85em;
     font-weight: bold;
     text-transform: uppercase;
     height: 20px;
@@ -26,7 +25,8 @@
 }
 
 .ExplorerPath {
-    border-left: 1px rgb(151, 151, 151) solid;
+    border-left: 1px var(--outline) solid;
+    border-left-color: var(--outline);
     margin-left: 4px;
     width: 12px;
     height: 100%;
@@ -38,7 +38,6 @@
     display: flex;
     gap: 4px;
     align-items: center;
-    font-size: 0.85em;
 }
 
 .ExplorerNoDirectory {
@@ -58,7 +57,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    padding-left: 16px;
+    padding-left: calc(2 * var(--padding));
     user-select: none;
     text-decoration: none;
 }
@@ -69,8 +68,8 @@
 }
 
 .ExplorerItem:focus {
-    background-color: rgb(33, 74, 150);
-    outline: 1px rgb(88, 91, 255) solid;
+    background-color: var(--primary-color);
+    outline: 1px var(--outline) solid;
     color: white !important;
 }
 

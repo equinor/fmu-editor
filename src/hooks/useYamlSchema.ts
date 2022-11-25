@@ -49,6 +49,5 @@ export const useYamlSchema = (yaml: any) => {
                 ],
             });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pathToYamlSchemaFile]);
+    }, [pathToYamlSchemaFile, yaml, dispatch]);
 };

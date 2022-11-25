@@ -1,129 +1,44 @@
-@use "sass:map";
 @use "sass:color";
-@use "sass:math";
-
-@function scale-color($color, $default-value, $tone) {
-    $scale: -(1 - math.div($tone, $default-value)) * 100%;
-    @if $tone >= $default-value {
-        $scale: math.div($tone - $default-value, 100 - $default-value) * 100%;
-    }
-    @return color.scale($color, $lightness: $scale);
-}
-
-@function make-tones($color, $default-value) {
-    $tones: (
-        "0": scale-color($color, $default-value, 0),
-        "10": scale-color($color, $default-value, 10),
-        "20": scale-color($color, $default-value, 20),
-        "30": scale-color($color, $default-value, 30),
-        "40": scale-color($color, $default-value, 40),
-        "50": scale-color($color, $default-value, 50),
-        "60": scale-color($color, $default-value, 60),
-        "70": scale-color($color, $default-value, 70),
-        "80": scale-color($color, $default-value, 80),
-        "90": scale-color($color, $default-value, 90),
-        "95": scale-color($color, $default-value, 95),
-        "99": scale-color($color, $default-value, 99),
-        "100": scale-color($color, $default-value, 100),
-    );
-    @return $tones;
-}
-
-@mixin add-color($name, $color, $default-value: 40) {
-    --#{$name}-color: #{$color};
-
-    @each $tone, $color in make-tones($color, $default-value) {
-        --#{$name}-color-#{$tone}: #{$color};
-    };
-}
-
-$primary-color: #386A20;
-$secondary-color: #55624C;
-$tertiary-color: #19686A;
-$error-color: #B3261E;
-$neutral-color: #5D5F5A;
-$neutral-variant: #5B6056;
+@use "light.module.scss" as *;
 
 :root {
-    @include add-color("primary", $primary-color);
-    @include add-color("secondary", $secondary-color);
-    @include add-color("tertiary", $tertiary-color);
-    @include add-color("error", $error-color);
-    @include add-color("neutral", $neutral-color);
-    @include add-color("neutral-variant", $neutral-color);
+    @include definitions;
+}
 
-    --primary: var(--primary-color);
-    --on-primary: var(--primary-color-100);
-    --primary-container: var(--primary-color-90);
-    --on-primary-container: var(--primary-color-10);
-
-    --secondary: var(--secondary-color);
-    --on-secondary: var(--secondary-color-100);
-    --secondary-container: var(--secondary-color-90);
-    --on-secondary-container: var(--secondary-color-10);
-
-    --tertiary: var(--tertiary-color);
-    --on-tertiary: var(--tertiary-color-100);
-    --tertiary-container: var(--tertiary-color-90);
-    --on-tertiary-container: var(--tertiary-color-10);
-
-    --error: var(--error-color);
-    --on-error: var(--error-color-100);
-    --error-container: var(--error-color-90);
-    --on-error-container: var(--error-color-10);
-
-    --background: var(--neutral-color-99);
-    --on-background: var(--neutral-color-10);
-    --surface: var(--neutral-color-99);
-    --on-surface: var(--neutral-color-10);
-
-    --surface-variant: var(--neutral-variant-90);
-    --on-surface-variant: var(--neutral-variant-30);
-    --outline: var(--neutral-variant-50);
-    --outline-variant: var(--neutral-variant-80);
-
-    --surface-1: #{color.mix(scale-color($neutral-color, 40, 99), $primary-color, 95%)};
-    --surface-2: #{color.mix(scale-color($neutral-color, 40, 99), $primary-color, 92%)};
-    --surface-3: #{color.mix(scale-color($neutral-color, 40, 99), $primary-color, 89%)};
-    --surface-4: #{color.mix(scale-color($neutral-color, 40, 99), $primary-color, 88%)};
-    --surface-5: #{color.mix(scale-color($neutral-color, 40, 99), $primary-color, 86%)};
-
-    --padding: 8px;
+body {
+    font-size: var(--font-size);
 }
 
 .surface {
     background-color: var(--surface);
-    z-index: 0;
-    position: relative;
-    padding: var(--padding);
 }
 
 .surface-1 {
-    background-image: linear-gradient(#{color.change($primary-color, $alpha: 0.05)} 0%, #{color.change($primary-color, $alpha: 0.05)} 100%);
+    background-image: linear-gradient(#{color.change($primary-color, $alpha: 0.95)} 0%, #{color.change($primary-color, $alpha: 0.05)} 100%);
     box-shadow: 0px 1px 5px 1px rgba(0,0,0,0.1);
     z-index: 1;
 }
 
 .surface-2 {
     background-image: linear-gradient(#{color.change($primary-color, $alpha: 0.08)} 0%, #{color.change($primary-color, $alpha: 0.08)} 100%);
-    box-shadow: 0px 1px 10px 1px rgba(0,0,0,0.15);
+    box-shadow: 0px 1px 5px 1px rgba(0,0,0,0.15);
     z-index: 2;
 }
 
 .surface-3 {
     background-image: linear-gradient(#{color.change($primary-color, $alpha: 0.11)} 0%, #{color.change($primary-color, $alpha: 0.11)} 100%);
-    box-shadow: 0px 1px 10px 1px rgba(0,0,0,0.15);
+    box-shadow: 0px 1px 5px 1px rgba(0,0,0,0.2);
     z-index: 3;
 }
 
 .surface-4 {
     background-image: linear-gradient(#{color.change($primary-color, $alpha: 0.12)} 0%, #{color.change($primary-color, $alpha: 0.12)} 100%);
-    box-shadow: 0px 1px 10px 1px rgba(0,0,0,0.15);
+    box-shadow: 0px 1px 5px 1px rgba(0,0,0,0.25);
     z-index: 4;
 }
 
 .surface-5 {
     background-image: linear-gradient(#{color.change($primary-color, $alpha: 0.14)} 0%, #{color.change($primary-color, $alpha: 0.14)} 100%);
-    box-shadow: 0px 1px 5px 1px rgba(0,0,0,0.25);
+    box-shadow: 0px 1px 5px 1px rgba(0,0,0,0.3);
     z-index: 5;
 }

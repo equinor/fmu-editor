@@ -1,0 +1,9 @@
+.Input {
+    background-color: var(--background);
+    padding: var(--padding) !important;
+}
+
+.Input--character-count-adornment {
+    opacity: 0.5;
+    padding-left: var(--padding);
+}

@@ -4,7 +4,7 @@
  * This source code is licensed under the MPLv2.0 license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import {ThemeProvider, createTheme} from "@mui/material";
+import {ThemeProvider} from "@mui/material";
 import {ChangelogWatcherService} from "@services/changelog-service";
 import {EnvironmentService} from "@services/environment-service";
 import {FileManagerService} from "@services/file-manager";
@@ -24,6 +24,7 @@ import {Themes} from "@shared-types/ui";
 
 import "./App.css";
 import {FileChangesWatcherService} from "./services/file-changes-service";
+import {LightTheme} from "./themes/light";
 import "./themes/light.scss";
 
 export const ColorModeContext = React.createContext({
@@ -46,6 +47,7 @@ function App(): JSX.Element {
         [dispatch]
     );
 
+    /*
     const theme = React.useMemo(
         () =>
             createTheme({
@@ -55,13 +57,14 @@ function App(): JSX.Element {
             }),
         [mode]
     );
+    */
 
     return (
         <div className="DefaultTheme">
             <div className={mode === "light" ? "LightMode" : "DarkMode"}>
                 <MainProcessDataProvider>
                     <ColorModeContext.Provider value={colorMode}>
-                        <ThemeProvider theme={theme}>
+                        <ThemeProvider theme={LightTheme}>
                             <NotificationsProvider>
                                 <EnvironmentService>
                                     <FileManagerService>

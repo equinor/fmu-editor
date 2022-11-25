@@ -1,7 +1,8 @@
 import {useYamlSchema} from "@hooks/useYamlSchema";
 import {AssistantPhoto, Error as ErrorIcon, Info, Warning} from "@mui/icons-material";
-import {Badge, Grid, Paper, Typography, useTheme} from "@mui/material";
+import {Badge, Grid, Typography, useTheme} from "@mui/material";
 import useSize from "@react-hook/size";
+import {useFileManager} from "@services/file-manager";
 
 import {ipcRenderer} from "electron";
 
@@ -13,6 +14,7 @@ import {CommitBrowser} from "@components/CommitBrowser";
 // import {CommitBrowser} from "@components/CommitBrowser";
 import {FileTabs} from "@components/FileTabs";
 import {ResizablePanels} from "@components/ResizablePanels";
+import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setActiveFile} from "@redux/reducers/files";
@@ -22,6 +24,7 @@ import {EditorMode} from "@shared-types/ui";
 
 import FmuLogo from "@assets/fmu-logo.svg";
 
+import fs from "fs";
 // @ts-ignore
 import {Environment, languages} from "monaco-editor";
 // @ts-ignore
@@ -105,6 +108,7 @@ export const Editor: React.FC<EditorProps> = () => {
     const eventSource = useAppSelector(state => state.files.eventSource);
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
     const editorMode = useAppSelector(state => state.ui.editorMode);
+    const fileManager = useFileManager();
 
     useYamlSchema(yaml);
 
@@ -269,10 +273,26 @@ export const Editor: React.FC<EditorProps> = () => {
         }
 
         if (file) {
-            const model = monaco.editor.getModel(monaco.Uri.file(file.filePath));
-            if (model) {
+            const userFilePath = fileManager.fileManager.getUserFileIfExists(file.filePath);
+            let userModel = monaco.editor.getModel(monaco.Uri.file(userFilePath));
+            if (!userModel) {
+                userModel = monaco.editor.createModel(
+                    fs.readFileSync(userFilePath).toString(),
+                    "yaml",
+                    monaco.Uri.file(userFilePath)
+                );
+            }
+            let diffModel = monaco.editor.getModel(monaco.Uri.file(file.filePath));
+            if (!diffModel) {
+                diffModel = monaco.editor.createModel(
+                    fs.readFileSync(file.filePath).toString(),
+                    "yaml",
+                    monaco.Uri.file(file.filePath)
+                );
+            }
+            if (userModel) {
                 if (monacoEditorRef.current && monacoRef.current && editorMode === EditorMode.Editor) {
-                    monacoEditorRef.current.setModel(model);
+                    monacoEditorRef.current.setModel(userModel);
                     if (file.editorViewState) {
                         monacoEditorRef.current.restoreViewState(file.editorViewState);
                     }
@@ -281,8 +301,8 @@ export const Editor: React.FC<EditorProps> = () => {
 
                 if (monacoDiffEditorRef.current && monacoDiffRef.current && editorMode === EditorMode.DiffEditor) {
                     monacoDiffEditorRef.current.setModel({
-                        original: model,
-                        modified: model,
+                        original: userModel,
+                        modified: diffModel ?? userModel,
                     });
                     monacoDiffEditorRef.current.focus();
                 }
@@ -290,7 +310,7 @@ export const Editor: React.FC<EditorProps> = () => {
         }
 
         setNoModels(false);
-    }, [activeFile, files, editorMode]);
+    }, [activeFile, files, editorMode, fileManager]);
 
     const selectMarker = (marker: monaco.editor.IMarker) => {
         if (monacoEditorRef.current) {
@@ -369,7 +389,7 @@ export const Editor: React.FC<EditorProps> = () => {
                                     display: editorMode === EditorMode.Editor ? "block" : "none",
                                 }}
                             >
-                                <Paper elevation={1} style={{padding: 16}} sx={{borderRadius: 0}}>
+                                <Surface elevation={3} className="IssuesTitle">
                                     <Grid container columnSpacing={2} spacing={5} direction="row" alignItems="center">
                                         <Grid item>
                                             <Badge badgeContent={noModels ? 0 : markers.length} color="warning">
@@ -378,7 +398,7 @@ export const Editor: React.FC<EditorProps> = () => {
                                         </Grid>
                                         <Grid item>Issues</Grid>
                                     </Grid>
-                                </Paper>
+                                </Surface>
                                 <div className="IssuesContent" style={{display: noModels ? "none" : "block"}}>
                                     {markers.map(marker => (
                                         <div className="Issue" onClick={() => selectMarker(marker)} key={v4()}>

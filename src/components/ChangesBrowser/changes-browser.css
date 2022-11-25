@@ -1,5 +1,61 @@
 .ChangesBrowser {
-    padding: 8px;
     height: 100%;
-    border-left: 1px #ccc solid;
+}
+
+.ChangesBrowserHeader {
+    padding: var(--padding);
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.ChangesBrowserContent {
+    padding: var(--padding);
+}
+
+.ChangesBrowserContentHeader {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.ChangesBrowserList {
+    background-color: var(--background);
+    padding: var(--padding);
+    height: 20vh;
+    min-height: 100px;
+}
+
+.ChangesBrowserListItem {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing);
+    justify-content: space-between;
+    cursor: pointer;
+    flex-wrap: nowrap;
+}
+
+.ChangesBrowserListItem:hover {
+    background-color: var(--primary-color-95);
+}
+
+.ChangesBrowserListItem > div {
+    flex-grow: 4;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1;
+}
+
+.ChangesBrowserListItem > div > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    direction: rtl;
+}
+
+.ChangesBrowserListItem > button {
+    white-space: nowrap;
 }

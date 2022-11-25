@@ -1,22 +1,14 @@
 import {Edit} from "@mui/icons-material";
-import {
-    Button,
-    List,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
-    ListSubheader,
-    Paper,
-    Stack,
-    TextField,
-    Typography,
-} from "@mui/material";
+import {Button, Stack} from "@mui/material";
 import {useChangelogWatcher} from "@services/changelog-service";
 import {useEnvironment} from "@services/environment-service";
 import {useFileChangesWatcher} from "@services/file-changes-service";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
+
+import {Input} from "@components/Input";
+import {Surface} from "@components/Surface";
 
 import {useAppSelector} from "@redux/hooks";
 
@@ -30,7 +22,8 @@ import "./changes-browser.css";
 
 export const ChangesBrowser: React.VFC = () => {
     const [stagedFiles, setStagedFiles] = React.useState<string[]>([]);
-    const [commitMessage, setCommitMessage] = React.useState<string>("");
+    const [commitSummary, setCommitSummary] = React.useState<string>("");
+    const [commitDescription, setCommitDescription] = React.useState<string>("");
     const [userFileChanges, setUserFileChanges] = React.useState<FileChange[]>([]);
 
     const fileChangesWatcher = useFileChangesWatcher();
@@ -70,75 +63,92 @@ export const ChangesBrowser: React.VFC = () => {
             const commit: ICommit = {
                 id: v4(),
                 author: environment.username,
-                message: commitMessage,
+                message: [commitSummary, commitDescription].join("\n"),
                 datetime: new Date(),
                 files: stagedFiles.map(el => adjustFilePath(el)),
             };
             changelog.appendCommit(commit);
-            setCommitMessage("");
+            setCommitSummary("");
+            setCommitDescription("");
             setStagedFiles([]);
         }
-    }, [stagedFiles, fileManager, environment, changelog, commitMessage, adjustFilePath]);
+    }, [stagedFiles, fileManager, environment, changelog, commitSummary, commitDescription, adjustFilePath]);
 
     return (
-        <Paper elevation={4} className="ChangesBrowser">
-            <Stack direction="column" spacing={2} sx={{width: "100%"}}>
-                {userFileChanges.length > 0 && (
-                    <Typography variant="h6">{userFileChanges.length} file change(s)</Typography>
-                )}
-                <List
-                    component="nav"
-                    aria-labelledby="nested-list-subheader"
-                    sx={{width: "100%"}}
-                    subheader={
-                        <ListSubheader component="div" id="nested-list-subheader">
-                            Unstaged files
-                        </ListSubheader>
-                    }
-                >
+        <Surface elevation={4} className="ChangesBrowser">
+            {userFileChanges.length > 0 && (
+                <Surface elevation={4} className="ChangesBrowserHeader">
+                    {userFileChanges.length} file change{userFileChanges.length > 1 && "s"} to commit
+                </Surface>
+            )}
+            <Stack direction="column" className="ChangesBrowserContent" spacing={2}>
+                <div className="ChangesBrowserContentHeader">
+                    Unstaged Files ({userFileChanges.filter(el => !stagedFiles.includes(el.filePath)).length})
+                </div>
+                <div className="ChangesBrowserList">
                     {userFileChanges
                         .filter(el => !stagedFiles.includes(el.filePath))
                         .map(fileChange => (
-                            <ListItemButton onClick={() => handleCommitChange(fileChange.filePath)}>
-                                <ListItemIcon>
-                                    <Edit color="success" />
-                                </ListItemIcon>
-                                <ListItemText primary={adjustFilePath(fileChange.filePath)} />
-                            </ListItemButton>
+                            <div className="ChangesBrowserListItem" key={fileChange.filePath}>
+                                <div>
+                                    <Edit color="success" fontSize="small" />
+                                    <span>{adjustFilePath(fileChange.filePath)}</span>
+                                </div>
+                                <Button
+                                    variant="text"
+                                    onClick={() => handleCommitChange(fileChange.filePath)}
+                                    size="small"
+                                >
+                                    Stage File
+                                </Button>
+                            </div>
                         ))}
-                </List>
-                <List
-                    component="nav"
-                    aria-labelledby="nested-list-subheader"
-                    sx={{width: "100%"}}
-                    subheader={
-                        <ListSubheader component="div" id="nested-list-subheader">
-                            Staged files
-                        </ListSubheader>
-                    }
-                >
+                </div>
+                <div className="ChangesBrowserContentHeader">Staged Files ({stagedFiles.length})</div>
+                <div className="ChangesBrowserList">
                     {userFileChanges
                         .filter(el => stagedFiles.includes(el.filePath))
                         .map(fileChange => (
-                            <ListItemButton>
-                                <ListItemIcon>
-                                    <Edit color="success" />
-                                </ListItemIcon>
-                                <ListItemText primary={adjustFilePath(fileChange.filePath)} />
-                            </ListItemButton>
+                            <div className="ChangesBrowserListItem" key={fileChange.filePath}>
+                                <div>
+                                    <Edit color="success" fontSize="small" />
+                                    <span>{adjustFilePath(fileChange.filePath)}</span>
+                                </div>
+                                <Button
+                                    variant="text"
+                                    onClick={() => handleCommitChange(fileChange.filePath)}
+                                    size="small"
+                                >
+                                    Unstage File
+                                </Button>
+                            </div>
                         ))}
-                </List>
-                <TextField
-                    id="outlined-textarea"
-                    label="Commit message"
-                    placeholder="Summary"
-                    multiline
-                    rows={10}
-                    onChange={e => setCommitMessage(e.target.value)}
-                    value={commitMessage}
-                />
-                <Button onClick={() => handleCommit()}>Commit changes</Button>
+                </div>
+                <div className="ChangesBrowserContentHeader">Commit Message</div>
+                <Stack direction="column" spacing={0}>
+                    <Input
+                        placeholder="Summary"
+                        onChange={e => setCommitSummary(e.target.value)}
+                        value={commitSummary}
+                        maxLength={70}
+                    />
+                    <Input
+                        placeholder="Description"
+                        multiline
+                        rows={5}
+                        onChange={e => setCommitDescription(e.target.value)}
+                        value={commitDescription}
+                        fontSize="0.98em"
+                    />
+                </Stack>
+                <Button
+                    onClick={() => handleCommit()}
+                    disabled={stagedFiles.length === 0 || commitSummary.length === 0}
+                    variant="contained"
+                >
+                    Commit changes
+                </Button>
             </Stack>
-        </Paper>
+        </Surface>
     );
 };

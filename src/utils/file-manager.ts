@@ -114,4 +114,12 @@ export class FileManager {
         }
         return true;
     }
+
+    getUserFileIfExists(filePath: string): string {
+        const newFilePath = this.modifyFilePath(filePath);
+        if (fs.existsSync(newFilePath)) {
+            return newFilePath;
+        }
+        return filePath;
+    }
 }

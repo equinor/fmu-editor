@@ -1,4 +1,4 @@
-import {Tab, Tabs, Tooltip} from "@mui/material";
+import {Tab, Tabs} from "@mui/material";
 
 import React from "react";
 import {VscDiff, VscEdit} from "react-icons/vsc";
@@ -29,20 +29,12 @@ export const Views: React.VFC = () => {
                 }
             >
                 <Tab
-                    icon={
-                        <Tooltip title="Editor" placement="right" arrow>
-                            <VscEdit color="inherit" size={24} />
-                        </Tooltip>
-                    }
+                    icon={<VscEdit color="inherit" size={24} title="Editor" />}
                     value={EditorMode.Editor}
                     className="MenuTab"
                 />
                 <Tab
-                    icon={
-                        <Tooltip title="Diff-Editor" placement="right" arrow>
-                            <VscDiff color="inherit" size={24} />
-                        </Tooltip>
-                    }
+                    icon={<VscDiff color="inherit" size={24} title="Diff Editor" />}
                     value={EditorMode.DiffEditor}
                     className="MenuTab"
                 />
