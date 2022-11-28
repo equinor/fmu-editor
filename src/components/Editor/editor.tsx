@@ -17,7 +17,7 @@ import {ResizablePanels} from "@components/ResizablePanels";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setActiveFile} from "@redux/reducers/files";
+import {setActiveFile, setValue} from "@redux/reducers/files";
 
 import {CodeEditorViewState} from "@shared-types/files";
 import {EditorMode} from "@shared-types/ui";
@@ -31,13 +31,13 @@ import {Environment, languages} from "monaco-editor";
 import "monaco-yaml/lib/esm/monaco.contribution";
 // @ts-ignore
 import {v4} from "uuid";
-// @ts-ignore
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import EditorWorker from "worker-loader!monaco-editor/esm/vs/editor/editor.worker";
-// @ts-ignore
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import YamlWorker from "worker-loader!monaco-yaml/lib/esm/yaml.worker";
 
+// @ts-ignore
+// eslint-disable-next-line import/no-webpack-loader-syntax
+// import EditorWorker from "worker-loader!monaco-editor/esm/vs/editor/editor.worker";
+// @ts-ignore
+// eslint-disable-next-line import/no-webpack-loader-syntax
+// import YamlWorker from "worker-loader!monaco-yaml/lib/esm/yaml.worker";
 import "./editor.css";
 
 declare global {
@@ -46,6 +46,7 @@ declare global {
     }
 }
 
+/*
 window.MonacoEnvironment = {
     getWorker(moduleId, label) {
         switch (label) {
@@ -58,6 +59,7 @@ window.MonacoEnvironment = {
         }
     },
 };
+*/
 
 const convertFromViewState = (viewState: monaco.editor.ICodeEditorViewState | null): CodeEditorViewState | null => {
     if (!viewState) {
@@ -105,7 +107,6 @@ export const Editor: React.FC<EditorProps> = () => {
 
     const files = useAppSelector(state => state.files.files);
     const activeFile = useAppSelector(state => state.files.activeFile);
-    const eventSource = useAppSelector(state => state.files.eventSource);
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
     const editorMode = useAppSelector(state => state.ui.editorMode);
     const fileManager = useFileManager();
@@ -198,23 +199,17 @@ export const Editor: React.FC<EditorProps> = () => {
         // setTimeout(handleMarkersChange, 2000);
     };
 
-    /*
-
     const handleEditorValueChange = (e: monaco.editor.IModelContentChangedEvent) => {
         if (e.isFlush) {
             return;
         }
         const model = monacoEditorRef.current?.getModel();
         if (model) {
-            if (parserTimer.current) {
-                clearTimeout(parserTimer.current);
-            }
-            parserTimer.current = setTimeout(() => {
-                dispatch(setValue(model.getValue()));
-                yamlParser.parse(model.getValue());
-            }, 200);
+            dispatch(setValue(model.getValue()));
         }
     };
+
+    /*
 
     const handleMarkersChange = () => {
         if (!monacoRef.current || !monacoEditorRef.current) {
@@ -237,8 +232,8 @@ export const Editor: React.FC<EditorProps> = () => {
     const handleEditorDidMount: EditorDidMount = (editor, monacoInstance) => {
         monacoEditorRef.current = editor;
         monacoRef.current = monacoInstance;
-        /*
         monacoEditorRef.current.onDidChangeModelContent(handleEditorValueChange);
+        /*
         monacoEditorRef.current.onDidChangeCursorPosition(handleCursorPositionChange);
         monacoEditorRef.current.onDidChangeCursorSelection(handleCursorSelectionChange);
         monacoRef.current.editor.onDidChangeMarkers(handleMarkersChange);
@@ -301,8 +296,8 @@ export const Editor: React.FC<EditorProps> = () => {
 
                 if (monacoDiffEditorRef.current && monacoDiffRef.current && editorMode === EditorMode.DiffEditor) {
                     monacoDiffEditorRef.current.setModel({
-                        original: userModel,
-                        modified: diffModel ?? userModel,
+                        original: diffModel ?? userModel,
+                        modified: userModel,
                     });
                     monacoDiffEditorRef.current.focus();
                 }

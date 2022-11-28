@@ -51,7 +51,7 @@ export const CommitBrowser: React.FC = () => {
                                     {bundle.modified.toDateString()}
                                 </ListSubheader>
                                 {bundle.commits.map((commit, index) => (
-                                    <>
+                                    <React.Fragment key={commit.id}>
                                         {index > 0 && <Divider variant="inset" component="li" />}
                                         <Commit
                                             key={commit.id}
@@ -59,7 +59,7 @@ export const CommitBrowser: React.FC = () => {
                                             user={commit.author}
                                             timestamp={commit.datetime.getTime()}
                                         />
-                                    </>
+                                    </React.Fragment>
                                 ))}
                             </ul>
                         </li>

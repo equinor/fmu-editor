@@ -117,8 +117,6 @@ export const filesSlice = createSlice({
 
             disposeUnusedDefaultModel(state.files);
 
-            monaco.editor.createModel(action.payload.fileContent, "yaml", monaco.Uri.file(action.payload.filePath));
-
             state.files.push({
                 associatedWithFile: true,
                 selection: {

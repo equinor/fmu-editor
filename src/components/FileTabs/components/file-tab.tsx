@@ -46,7 +46,7 @@ export const FileTab: React.FC<FileTabProps> = props => {
                 .filter(change => change.user === environment.username)
                 .some(change => change.filePath === file?.userFilePath)
         );
-    }, [fileChangesWatcher.fileChanges, file?.filePath, environment.username]);
+    }, [fileChangesWatcher.fileChanges, file?.filePath, environment.username, file?.userFilePath]);
 
     React.useEffect(() => {
         setActive(props.filePath === activeFilePath);
