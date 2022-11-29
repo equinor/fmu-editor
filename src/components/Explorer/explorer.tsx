@@ -157,7 +157,7 @@ export const Explorer: React.FC = () => {
     };
 
     return (
-        <Surface elevation={4} className="Explorer">
+        <Surface elevation="raised" className="Explorer">
             <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
                 <List>
                     {directories.map(el => (
@@ -181,7 +181,7 @@ export const Explorer: React.FC = () => {
                 </Stack>
             ) : (
                 <>
-                    <Surface elevation={4}>
+                    <Surface elevation="raised">
                         <Stack direction="row" alignItems="center" className="ExplorerTitle">
                             <div>
                                 {directory.split("/")[directory.split("/").length - 1]}

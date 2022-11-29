@@ -1,53 +1,64 @@
+import {useEnvironment} from "@services/environment-service";
+
 import {useEffect} from "react";
 
 import {preprocessJsonSchema} from "@utils/json-schema-preprocessor";
 
 import {NotificationType} from "@components/Notifications";
 
-import {useAppDispatch, useAppSelector} from "@redux/hooks";
+import {useAppDispatch} from "@redux/hooks";
 import {addNotification} from "@redux/reducers/notifications";
 
-import {setDiagnosticsOptions} from "monaco-yaml";
+import fs from "fs";
+import {SchemasSettings, setDiagnosticsOptions} from "monaco-yaml";
+import path from "path";
 
-export const useYamlSchema = (yaml: any) => {
-    const pathToYamlSchemaFile = useAppSelector(
-        state => state.preferences.pathToYamlSchemaFile
-    );
+export const useYamlSchemas = (yaml: any) => {
+    const environment = useEnvironment();
+
     const dispatch = useAppDispatch();
 
     useEffect(() => {
-        if (yaml && pathToYamlSchemaFile && pathToYamlSchemaFile !== "") {
-            let jsonSchema: object;
+        if (environment.environmentPath) {
+            const pathToSchemas = path.join(environment.environmentPath, "schemas");
             try {
-                jsonSchema = preprocessJsonSchema(pathToYamlSchemaFile);
+                if (fs.existsSync(pathToSchemas)) {
+                    const schemas: SchemasSettings[] = [];
+                    fs.readdirSync(pathToSchemas).forEach(file => {
+                        const schema = file.includes("webviz")
+                            ? preprocessJsonSchema(path.join(pathToSchemas, file))
+                            : JSON.parse(fs.readFileSync(path.join(pathToSchemas, file), "utf-8").toString());
+                        const schemaName = file.split("_")[0];
+                        schemas.push({
+                            fileMatch: [`*`],
+                            uri: `file://${path.join(pathToSchemas, file)}`,
+                            schema,
+                        });
+                    });
+                    setDiagnosticsOptions({
+                        validate: true,
+                        enableSchemaRequest: true,
+                        hover: true,
+                        completion: true,
+                        format: true,
+                        schemas,
+                    });
+                } else {
+                    dispatch(
+                        addNotification({
+                            type: NotificationType.ERROR,
+                            message: `Could not find schema directory: '${pathToSchemas}'. Are you sure you are in the correct environment?`,
+                        })
+                    );
+                }
             } catch (e) {
                 dispatch(
                     addNotification({
                         type: NotificationType.ERROR,
-                        message: "Invalid Webviz YAML schema selected.",
-                        action: {
-                            label: "Change",
-                            action: () => {},
-                        },
+                        message: `Could not read schemas: ${e}`,
                     })
                 );
-                return;
             }
-
-            setDiagnosticsOptions({
-                validate: true,
-                enableSchemaRequest: true,
-                hover: true,
-                completion: true,
-                format: true,
-                schemas: [
-                    {
-                        fileMatch: ["*"],
-                        uri: `file://${pathToYamlSchemaFile}`, // id of the first schema
-                        schema: jsonSchema || {},
-                    },
-                ],
-            });
         }
-    }, [pathToYamlSchemaFile, yaml, dispatch]);
+    }, [environment, yaml, dispatch]);
 };

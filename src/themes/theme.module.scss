@@ -1,0 +1,195 @@
+@use "utils.module.scss" as *;
+
+$light: (
+    // Primary colours
+    "primary": #007079,
+    "primary-hover": #004F55,
+    "primary-hover-alt": #DEEDEE,
+    "primary-selected-highlight": #E6FAEC,
+    "primary-selected-hover": #C3F3D2,
+
+    // Secondary colours
+    "secondary": #243746,
+    "secondary-hover": #18252F,
+    "secondary-highlight": #D5EAF4,
+
+    // Feedback colours
+    // Warning
+    "warning": #FF9200,
+    "warning-hover": #AD6200,
+    "warning-highlight": #FFE7D6,
+    "warning-text": #AD6200,
+
+    // Danger
+    "danger": #EB0000,
+    "danger-hover": #B30D2F,
+    "danger-highlight": #FFC1C1,
+    "danger-text": #B30D2F,
+
+    // Success
+    "success": #4BB748,
+    "success-hover": #358132,
+    "success-highlight": #E6FAEC,
+    "success-text": #358132,
+
+    // Text
+    "text-color": #3D3D3D,
+    "text-secondary": #565656,
+    "text-tertiary": #6F6F6F,
+
+    // Background
+    "background-color": #FFFFFF,
+    "background-semi-transparent": #FFFFFF33,
+    "background-light": #F7F7F7,
+    "background-medium": #DCDCDC,
+    "background-warning": #FFE7D6,
+    "background-danger": #FFC1C1,
+    "background-info": #D5EAF4,
+    "background-overlay": #000000CC,
+    "background-scrim": #00000066,
+);
+
+$dark: (
+    // Primary colours
+    "primary": #97CACE,
+    "primary-hover": #ADE2E6,
+    "primary-hover-alt": #ADE2E619,
+    "primary-selected-highlight": #E6FAEC,
+    "primary-selected-hover": #C3F3D2,
+
+    // Secondary colours
+    "secondary": #DEE5E7,
+    "secondary-hover": #FFFFFF,
+    "secondary-highlight": #FFFFFF19,
+
+    // Feedback colours
+    // Warning
+    "warning": #FF9200,
+    "warning-hover": #FFDAA8,
+    "warning-highlight": #FFC67A19,
+    "warning-text": #FFC67A,
+
+    // Danger
+    "danger": #EB0000,
+    "danger-hover": #FF949B,
+    "danger-highlight": #FF667019,
+    "danger-text": #FF6670,
+
+    // Success
+    "success": #4BB748,
+    "success-hover": #C1E7C1,
+    "success-highlight": #A1DAA019,
+    "success-text": #A1DAA0,
+
+    // Text
+    "text-color": #FFFFFF,
+    "text-secondary": #DEE5E7,
+    "text-tertiary": #9CA6AC,
+
+    // Background
+    "background-color": #132634,
+    "background-semi-transparent": #00000047,
+    "background-light": #FFFFFF28,
+    "background-medium": #DEE5E7,
+    "background-warning": #FFE7D6,
+    "background-danger": #FFC1C1,
+    "background-info": #D5EAF4,
+    "background-overlay": #2E3F4D,
+    "background-scrim": #00000066,
+);
+
+$general: (
+    // Elevation
+    "elevation-none": "0.0px 0.0px 1.0px 0px rgba(0, 0, 0, 0.14)",
+    "elevation-raised": "0.0px 1.0px 5.0px 0px rgba(0, 0, 0, 0.2),0.0px 3.0px 4.0px 0px rgba(0, 0, 0, 0.12),0.0px 2.0px 4.0px 0px rgba(0, 0, 0, 0.14)",
+    "elevation-overlay": "0.0px 1.0px 10.0px 0px rgba(0, 0, 0, 0.2),0.0px 4.0px 5.0px 0px rgba(0, 0, 0, 0.12),0.0px 2.0px 4.0px 0px rgba(0, 0, 0, 0.14)",
+    "elevation-sticky": "0.0px 4.0px 5.0px 0px rgba(0, 0, 0, 0.2),0.0px 3.0px 14.0px 0px rgba(0, 0, 0, 0.12),0.0px 8.0px 10.0px 0px rgba(0, 0, 0, 0.14)",
+    "elevation-temporary-nav": "0.0px 7.0px 8.0px 0px rgba(0, 0, 0, 0.2),0.0px 5.0px 22.0px 0px rgba(0, 0, 0, 0.12),0.0px 12.0px 17.0px 0px rgba(0, 0, 0, 0.14)",
+    "elevation-above-scrim": "0.0px 11.0px 15.0px 0px rgba(0, 0, 0, 0.2),0.0px 9.0px 46.0px 0px rgba(0, 0, 0, 0.12),0.0px 24.0px 38.0px 0px rgba(0, 0, 0, 0.14)",
+
+    // Typography
+    "font-family": Equinor,
+    "font-size": 16px,
+
+    "h1": (font-weight: 400, font-size: 2rem, line-height: 2.5rem),
+    "h1-bold": (font-weight: 700, font-size: 2rem, line-height: 2.5rem),
+    "h2": (font-weight: 400, font-size: 1.75rem, line-height: 2.1875rem),
+    "h3": (font-weight: 400, font-size: 1.5rem, line-height: 1.875rem),
+    "h4": (font-weight: 400, font-size: 1.25rem, line-height: 2rem),
+    "h5": (font-weight: 500, font-size: 1.125rem, line-height: 1.5rem),
+    "h6": (font-weight: 500, font-size: 1rem, line-height: 1.5rem),
+
+    "body-long": (font-weight: 400, font-size: 1rem, line-height: 1.5rem),
+    "body-long-bold": (font-weight: 700, font-size: 1rem, line-height: 1.5rem),
+    "body-long-bold-italic": (font-weight: 700, font-size: 1rem, line-height: 1.5rem, font-style: italic),
+    "body-long-italic": (font-weight: 400, font-size: 1rem, line-height: 1.5rem, font-style: italic),
+    "body-long-link": (font-weight: 400, font-size: 1rem, line-height: 1.5rem, text-decoration: underline),
+
+    "body-short": (font-weight: 400, font-size: 0.875rem, line-height: 1.25rem),
+    "body-short-bold": (font-weight: 700, font-size: 1rem, line-height: 1.25rem),
+    "body-short-bold-italic": (font-weight: 700, font-size: 1rem, line-height: 1.25rem, font-style: italic),
+    "body-short-italic": (font-weight: 400, font-size: 1rem, line-height: 1.25rem, font-style: italic),
+    "body-short-link": (font-weight: 400, font-size: 1rem, line-height: 1.25rem, text-decoration: underline),
+
+    "caption": (font-weight: 500, font-size: 0.875rem, line-height: 1rem),
+    "ingress": (font-weight: 400, font-size: 1.125rem, line-height: 1.5rem),
+    "meta": (font-weight: 400, font-size: 0.625rem, line-height: 1rem),
+    "overline": (font-weight: 500, font-size: 0.625rem, line-height: 1rem),
+
+    // Spacing
+    "spacing-xx": 2px,
+    "spacing-x": 4px,
+    "spacing-s": 8px,
+    "spacing-ms": 16px,
+    "spacing-m": 16px,
+    "spacing-l": 24px,
+    "spacing-xl": 32px,
+    "spacing-xxl": 40px,
+    "spacing-xxxl": 48px,
+
+    // Shape
+    "border-radius": 4px,
+
+    // Grid spacing
+    "grid-width-s": 599px,
+    "grid-spacing-s": 8px,
+    "grid-margin-s": 16px,
+    "grid-width-m": 839px,
+    "grid-spacing-m": 16px,
+    "grid-margin-m": 24px,
+    "grid-spacing-l": 16px,
+    "grid-margin-l": 32px,
+);
+
+:export {
+    @each $key, $value in $general {
+        @include format-export-variable($key, $value);
+    }
+
+    
+    @each $key, $value in $light {
+        @include format-export-variable($key, $value, "light-");
+    }
+
+    @each $key, $value in $dark {
+        @include format-export-variable($key, $value, "dark-");
+    }
+}
+
+@mixin theme {
+    @each $key, $value in $general {
+        @include format-variable($key, $value);
+    }
+}
+
+@mixin light-theme {
+    @each $key, $value in $light {
+        @include format-variable($key, $value);
+    }
+}
+
+@mixin dark-theme {
+    @each $key, $value in $dark {
+        @include format-variable($key, $value);
+    }
+}

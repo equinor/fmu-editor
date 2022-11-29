@@ -3,13 +3,13 @@
 }
 
 .ChangesBrowserHeader {
-    padding: var(--padding);
+    padding: var(--spacing-s);
     font-weight: bold;
     text-transform: uppercase;
 }
 
 .ChangesBrowserContent {
-    padding: var(--padding);
+    padding: var(--spacing-s);
 }
 
 .ChangesBrowserContentHeader {
@@ -18,10 +18,11 @@
 }
 
 .ChangesBrowserList {
-    background-color: var(--background);
-    padding: var(--padding);
+    background-color: var(--backgroundColor);
+    padding: var(--spacing-s);
     height: 20vh;
     min-height: 100px;
+    overflow: auto;
 }
 
 .ChangesBrowserListItem {

@@ -1,0 +1,59 @@
+@use "sass:map";
+@use "sass:string";
+
+@function format-variable-name($name) {
+    $index: str-index($name, "-");
+
+    @while $index {
+        $name: str-slice($name, 0, $index - 1) + to-upper-case(str-slice($name, $index + 1, $index + 1)) + str-slice($name, $index + 2, str-length($name));
+        $index: str-index($name, "-");
+    }
+
+    @return $name;
+}
+
+@function format-variable-value($value) {
+    @if type-of($value) == "string" {
+        @return unquote($value);
+    }
+
+    @if type-of($value) == "map" {
+        $map: ();
+
+        @each $key, $value in $value {
+            $map: map.merge($map, (format-variable-name($key): format-variable-value($value)));
+        }
+
+        @return $map;
+    }
+
+    @return $value;
+}
+
+@mixin format-export-variable($key, $value, $prefix: "") {
+    @if type-of($value) == "map" {
+        @each $k, $v in $value {
+            #{format-variable-name(#{$prefix}#{$key}-#{$k})}: #{format-variable-value($v)};
+        }
+    } @else {
+        #{format-variable-name(#{$prefix}#{$key})}: #{format-variable-value($value)};
+    }
+}
+
+@function format-theme-for-export($theme) {
+    $map: ();
+    @each $key, $value in $theme {
+        $map: map.merge($map, (format-variable-name($key): format-variable-value($value)));
+    }
+    @return $map;
+}
+
+@mixin format-variable($key, $value) {
+    @if type-of($value) == "map" {
+        @each $k, $v in $value {
+            --#{#{$key}-#{$k}}: #{format-variable-value($v)};
+        }
+    } @else {
+        --#{$key}: #{format-variable-value($value)};
+    }
+}

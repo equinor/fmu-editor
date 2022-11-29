@@ -7,9 +7,11 @@ import {useFileManager} from "@services/file-manager";
 import {ipcRenderer} from "electron";
 
 import React from "react";
-import MonacoEditor, {DiffEditorDidMount, EditorDidMount, monaco} from "react-monaco-editor";
+import MonacoEditor, {DiffEditorDidMount, EditorDidMount, MonacoDiffEditor, monaco} from "react-monaco-editor";
 
 import {ChangesBrowser} from "@components/ChangesBrowser";
+import {CommitBrowser} from "@components/CommitBrowser";
+// import {CommitBrowser} from "@components/CommitBrowser";
 import {FileTabs} from "@components/FileTabs";
 import {ResizablePanels} from "@components/ResizablePanels";
 import {Surface} from "@components/Surface";
@@ -332,21 +334,29 @@ export const Editor: React.FC<EditorProps> = () => {
                 backgroundColor: theme.palette.mode === "dark" ? "#1E1E1E" : theme.palette.background.default,
             }}
         >
-            <ResizablePanels direction="horizontal" id="Editor-Changes">
-                <div className="EditorContainer">
-                    <div
-                        className="Editor__NoModels"
-                        style={{
-                            display: noModels ? "flex" : "none",
-                            color: theme.palette.mode === "dark" ? "#fff" : "#000",
-                            backgroundColor: theme.palette.background.paper,
-                        }}
-                    >
-                        <img src={FmuLogo} alt="FMU Logo" />
-                        <Typography variant="h6">FMU Editor</Typography>
-                        <Typography variant="body1">Please select a file...</Typography>
-                    </div>
-                    <div className="EditorContainer" style={{display: !noModels ? "flex" : "none"}}>
+            <div
+                className="Editor__NoModels"
+                style={{
+                    visibility: noModels ? "visible" : "hidden",
+                    color: theme.palette.mode === "dark" ? "#fff" : "#000",
+                    backgroundColor: theme.palette.background.paper,
+                }}
+            >
+                <img src={FmuLogo} alt="FMU Logo" />
+                <Typography variant="h6">FMU Editor</Typography>
+                <Typography variant="body1">Please select a file...</Typography>
+            </div>
+            <div
+                style={{
+                    visibility: editorMode === EditorMode.Editor && !noModels ? "visible" : "hidden",
+                    position: "absolute",
+                    inset: "0, 0",
+                    height: "100%",
+                    width: "100%",
+                }}
+            >
+                <ResizablePanels direction="horizontal" id="Editor-Changes">
+                    <div className="EditorContainer">
                         <ResizablePanels direction="vertical" id="Editor-Issues">
                             <div ref={editorRef} className="Editor">
                                 <FileTabs onFileChange={handleFileChange} />
@@ -404,9 +414,37 @@ export const Editor: React.FC<EditorProps> = () => {
                             </div>
                         </ResizablePanels>
                     </div>
-                </div>
-                <ChangesBrowser />
-            </ResizablePanels>
+                    <ChangesBrowser />
+                </ResizablePanels>
+            </div>
+            <div
+                style={{
+                    visibility: editorMode === EditorMode.DiffEditor && !noModels ? "visible" : "hidden",
+                    position: "absolute",
+                    inset: "0, 0",
+                    height: "100%",
+                    width: "100%",
+                }}
+            >
+                <ResizablePanels direction="horizontal" id="DiffEditor-Commits">
+                    <div ref={diffEditorRef} className="EditorContainer">
+                        <FileTabs onFileChange={handleFileChange} />
+                        <MonacoDiffEditor
+                            language="yaml"
+                            defaultValue=""
+                            className="YamlEditor"
+                            editorDidMount={handleDiffEditorDidMount}
+                            theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
+                            options={{
+                                readOnly: true,
+                            }}
+                            width={diffEditorTotalWidth}
+                            height={diffEditorTotalHeight - 56}
+                        />
+                    </div>
+                    <CommitBrowser />
+                </ResizablePanels>
+            </div>
         </div>
     );
 };

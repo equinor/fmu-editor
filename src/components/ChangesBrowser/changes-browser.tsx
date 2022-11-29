@@ -1,5 +1,5 @@
 import {Edit} from "@mui/icons-material";
-import {Button, Stack} from "@mui/material";
+import {Button, CircularProgress, Stack} from "@mui/material";
 import {useChangelogWatcher} from "@services/changelog-service";
 import {useEnvironment} from "@services/environment-service";
 import {useFileChangesWatcher} from "@services/file-changes-service";
@@ -42,7 +42,7 @@ export const ChangesBrowser: React.VFC = () => {
 
     const adjustFilePath = React.useCallback(
         (filePath: string) => {
-            return path.relative(path.join(directory, ".users", environment.username), filePath);
+            return path.relative(path.join(directory, ".users", environment.username || ""), filePath);
         },
         [environment.username, directory]
     );
@@ -59,7 +59,7 @@ export const ChangesBrowser: React.VFC = () => {
     );
 
     const handleCommit = React.useCallback(() => {
-        if (fileManager.fileManager.commitFileChanges(stagedFiles)) {
+        if (fileManager.fileManager.commitFileChanges(stagedFiles) && environment.username) {
             const commit: ICommit = {
                 id: v4(),
                 author: environment.username,
@@ -74,81 +74,96 @@ export const ChangesBrowser: React.VFC = () => {
         }
     }, [stagedFiles, fileManager, environment, changelog, commitSummary, commitDescription, adjustFilePath]);
 
+    const loadingOrError = React.useCallback(() => {
+        if (environment.username === null) {
+            if (!environment.usernameError) {
+                return <CircularProgress />;
+            }
+            return <div>Could not load username from environment.</div>;
+        }
+        return null;
+    }, [environment.username, environment.usernameError]);
+
     return (
-        <Surface elevation={4} className="ChangesBrowser">
-            {userFileChanges.length > 0 && (
-                <Surface elevation={4} className="ChangesBrowserHeader">
-                    {userFileChanges.length} file change{userFileChanges.length > 1 && "s"} to commit
-                </Surface>
+        <Surface elevation="raised" className="ChangesBrowser">
+            {loadingOrError()}
+            {environment.username !== null && (
+                <>
+                    {userFileChanges.length > 0 && (
+                        <Surface elevation="raised" className="ChangesBrowserHeader">
+                            {userFileChanges.length} file change{userFileChanges.length > 1 && "s"} to commit
+                        </Surface>
+                    )}
+                    <Stack direction="column" className="ChangesBrowserContent" spacing={2}>
+                        <div className="ChangesBrowserContentHeader">
+                            Unstaged Files ({userFileChanges.filter(el => !stagedFiles.includes(el.filePath)).length})
+                        </div>
+                        <div className="ChangesBrowserList">
+                            {userFileChanges
+                                .filter(el => !stagedFiles.includes(el.filePath))
+                                .map(fileChange => (
+                                    <div className="ChangesBrowserListItem" key={fileChange.filePath}>
+                                        <div>
+                                            <Edit color="success" fontSize="small" />
+                                            <span>{adjustFilePath(fileChange.filePath)}</span>
+                                        </div>
+                                        <Button
+                                            variant="text"
+                                            onClick={() => handleCommitChange(fileChange.filePath)}
+                                            size="small"
+                                        >
+                                            Stage File
+                                        </Button>
+                                    </div>
+                                ))}
+                        </div>
+                        <div className="ChangesBrowserContentHeader">Staged Files ({stagedFiles.length})</div>
+                        <div className="ChangesBrowserList">
+                            {userFileChanges
+                                .filter(el => stagedFiles.includes(el.filePath))
+                                .map(fileChange => (
+                                    <div className="ChangesBrowserListItem" key={fileChange.filePath}>
+                                        <div>
+                                            <Edit color="success" fontSize="small" />
+                                            <span>{adjustFilePath(fileChange.filePath)}</span>
+                                        </div>
+                                        <Button
+                                            variant="text"
+                                            onClick={() => handleCommitChange(fileChange.filePath)}
+                                            size="small"
+                                        >
+                                            Unstage File
+                                        </Button>
+                                    </div>
+                                ))}
+                        </div>
+                        <div className="ChangesBrowserContentHeader">Commit Message</div>
+                        <Stack direction="column" spacing={0}>
+                            <Input
+                                placeholder="Summary"
+                                onChange={e => setCommitSummary(e.target.value)}
+                                value={commitSummary}
+                                maxLength={70}
+                            />
+                            <Input
+                                placeholder="Description"
+                                multiline
+                                rows={5}
+                                onChange={e => setCommitDescription(e.target.value)}
+                                value={commitDescription}
+                                fontSize="0.98em"
+                            />
+                        </Stack>
+                        <Button
+                            onClick={() => handleCommit()}
+                            disabled={stagedFiles.length === 0 || commitSummary.length === 0}
+                            variant="contained"
+                        >
+                            Commit changes
+                        </Button>
+                    </Stack>
+                </>
             )}
-            <Stack direction="column" className="ChangesBrowserContent" spacing={2}>
-                <div className="ChangesBrowserContentHeader">
-                    Unstaged Files ({userFileChanges.filter(el => !stagedFiles.includes(el.filePath)).length})
-                </div>
-                <div className="ChangesBrowserList">
-                    {userFileChanges
-                        .filter(el => !stagedFiles.includes(el.filePath))
-                        .map(fileChange => (
-                            <div className="ChangesBrowserListItem" key={fileChange.filePath}>
-                                <div>
-                                    <Edit color="success" fontSize="small" />
-                                    <span>{adjustFilePath(fileChange.filePath)}</span>
-                                </div>
-                                <Button
-                                    variant="text"
-                                    onClick={() => handleCommitChange(fileChange.filePath)}
-                                    size="small"
-                                >
-                                    Stage File
-                                </Button>
-                            </div>
-                        ))}
-                </div>
-                <div className="ChangesBrowserContentHeader">Staged Files ({stagedFiles.length})</div>
-                <div className="ChangesBrowserList">
-                    {userFileChanges
-                        .filter(el => stagedFiles.includes(el.filePath))
-                        .map(fileChange => (
-                            <div className="ChangesBrowserListItem" key={fileChange.filePath}>
-                                <div>
-                                    <Edit color="success" fontSize="small" />
-                                    <span>{adjustFilePath(fileChange.filePath)}</span>
-                                </div>
-                                <Button
-                                    variant="text"
-                                    onClick={() => handleCommitChange(fileChange.filePath)}
-                                    size="small"
-                                >
-                                    Unstage File
-                                </Button>
-                            </div>
-                        ))}
-                </div>
-                <div className="ChangesBrowserContentHeader">Commit Message</div>
-                <Stack direction="column" spacing={0}>
-                    <Input
-                        placeholder="Summary"
-                        onChange={e => setCommitSummary(e.target.value)}
-                        value={commitSummary}
-                        maxLength={70}
-                    />
-                    <Input
-                        placeholder="Description"
-                        multiline
-                        rows={5}
-                        onChange={e => setCommitDescription(e.target.value)}
-                        value={commitDescription}
-                        fontSize="0.98em"
-                    />
-                </Stack>
-                <Button
-                    onClick={() => handleCommit()}
-                    disabled={stagedFiles.length === 0 || commitSummary.length === 0}
-                    variant="contained"
-                >
-                    Commit changes
-                </Button>
-            </Stack>
         </Surface>
     );
 };

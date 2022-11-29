@@ -1,10 +1,11 @@
-import * as fs from "fs";
-import parseJson from "parse-json";
 import * as edsIcons from "@equinor/eds-icons";
 
+import * as fs from "fs";
+import parseJson from "parse-json";
+
 export const preprocessJsonSchema = (path: string): object => {
-    const allIcons = Object.values(edsIcons).map((el) => el.name);
-    const fileContent = fs.readFileSync(path);
+    const allIcons = Object.values(edsIcons).map(el => el.name);
+    const fileContent = fs.readFileSync(path, "utf-8");
     const json = parseJson(fileContent.toString(), path);
     if ("properties" in json) {
         if ("layout" in json["properties"]) {

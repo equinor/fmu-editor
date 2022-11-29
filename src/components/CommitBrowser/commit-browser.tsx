@@ -38,8 +38,8 @@ export const CommitBrowser: React.FC = () => {
     }, [changelogWatcher.changesForFile]);
 
     return (
-        <Surface elevation={4} className="CommitBrowser">
-            <Surface elevation={5} className="CommitBrowserHeader">
+        <Surface elevation="raised" className="CommitBrowser">
+            <Surface elevation="raised" className="CommitBrowserHeader">
                 Commits
             </Surface>
             <div className="CommitBrowserContent">

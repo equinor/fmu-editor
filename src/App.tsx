@@ -12,7 +12,6 @@ import {IpcService} from "@services/ipc-service";
 
 import React from "react";
 
-import {GetStartedDialog} from "@components/GetStartedDialog";
 import {MainProcessDataProvider} from "@components/MainProcessDataProvider";
 import {MainWindow} from "@components/MainWindow";
 import {NotificationsProvider} from "@components/Notifications";
@@ -25,7 +24,7 @@ import {Themes} from "@shared-types/ui";
 import "./App.css";
 import {FileChangesWatcherService} from "./services/file-changes-service";
 import {LightTheme} from "./themes/light";
-import "./themes/light.scss";
+import "./themes/theme.scss";
 
 export const ColorModeContext = React.createContext({
     toggleColorMode: () => {},
@@ -71,7 +70,6 @@ function App(): JSX.Element {
                                         <ChangelogWatcherService>
                                             <FileChangesWatcherService>
                                                 <IpcService>
-                                                    <GetStartedDialog />
                                                     <MainWindow />
                                                 </IpcService>
                                             </FileChangesWatcherService>

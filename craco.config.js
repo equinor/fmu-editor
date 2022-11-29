@@ -7,7 +7,11 @@ module.exports = {
     webpack: {
         plugins: {
             add: [
-                new MonacoWebpackPlugin(),
+                new MonacoWebpackPlugin({
+                    customLanguages: ["yaml"],
+                    globalAPI: true,
+                    filename: "static/vs/[name].[contenthash].worker.js",
+                }),
             ],
         },
         configure: (webpackConfig, {env}) => {

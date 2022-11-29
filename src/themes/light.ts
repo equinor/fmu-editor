@@ -1,18 +1,20 @@
-import { createTheme } from "@mui/material";
-import palette from "./light.module.scss";
+import {createTheme} from "@mui/material";
 
+import palette from "./theme.module.scss";
+
+console.log(palette);
 
 export const LightTheme = createTheme({
     palette: {
         primary: {
-            main: palette.primaryColor,
+            main: palette.lightPrimary,
         },
         secondary: {
-            main: palette.secondaryColor,
+            main: palette.lightSecondary,
         },
         background: {
-            paper: palette.neutralColor_99,
-            default: palette.neutralColor_99,
-        }
-    }
+            paper: palette.lightBackgroundLight,
+            default: palette.lightBackgroundColor,
+        },
+    },
 });

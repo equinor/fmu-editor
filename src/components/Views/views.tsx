@@ -19,7 +19,7 @@ export const Views: React.VFC = () => {
     const dispatch = useAppDispatch();
 
     return (
-        <Surface className="TabMenu" elevation={5}>
+        <Surface className="TabMenu" elevation="raised">
             <Tabs
                 orientation="vertical"
                 value={editorMode}

@@ -21,7 +21,7 @@ export const FileManagerService: React.FC = props => {
     const fileManager = React.useRef<FileManager>(new FileManager());
 
     React.useEffect(() => {
-        if (fileManager.current) {
+        if (fileManager.current && environment.username) {
             fileManager.current.setFmuDirectory(fmuDirectory);
             fileManager.current.setUsername(environment.username);
             fileManager.current.setCurrentDirectory(currentDirectory);

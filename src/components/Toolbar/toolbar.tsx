@@ -2,7 +2,7 @@ import {Button} from "@mui/material";
 import {useEnvironment} from "@services/environment-service";
 
 import React from "react";
-import {VscAccount} from "react-icons/vsc";
+import {VscAccount, VscGlobe} from "react-icons/vsc";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {addNotification} from "@redux/reducers/notifications";
@@ -32,8 +32,23 @@ export const Toolbar: React.FC = () => {
               }
             : {
                   type: NotificationType.ERROR,
-                  message: `Could not read username from OS. ${environment.usernameError}`,
+                  message: `Could not read username from OS. ${environment.usernameError || ""}`,
               };
+
+        dispatch(addNotification(notification));
+    };
+
+    const handleEnvironmentPathClick = () => {
+        const notification: Notification =
+            environment.environmentPath !== null
+                ? {
+                      type: NotificationType.INFORMATION,
+                      message: `Read environment path '${environment.environmentPath}' from OS.`,
+                  }
+                : {
+                      type: NotificationType.ERROR,
+                      message: `Could not read environment path from OS. ${environment.environmentPathError || ""}`,
+                  };
 
         dispatch(addNotification(notification));
     };
@@ -47,6 +62,10 @@ export const Toolbar: React.FC = () => {
             <Button size="small" onClick={handleUsernameClick} title="Current user. Click for more information.">
                 <VscAccount />
                 {environment.username}
+            </Button>
+            <Button size="small" onClick={handleEnvironmentPathClick} title="Active environment">
+                <VscGlobe />
+                {environment.environmentPath || <i>No environment detected</i>}
             </Button>
         </div>
     );
