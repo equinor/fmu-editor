@@ -1,8 +1,9 @@
-import {useTheme} from "@mui/material";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
-import {VscChevronDown, VscChevronRight, VscFile} from "react-icons/vsc";
+import {VscChevronDown, VscChevronRight} from "react-icons/vsc";
+
+import {getFileIcon} from "@src/file-icons";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {openFile} from "@redux/thunks";
@@ -23,10 +24,10 @@ export type DirectoryProps = {
 export const Directory: React.VFC<DirectoryProps> = props => {
     const fileTreeStates = useAppSelector(state => state.files.fileTreeStates[state.files.directory]);
     const activeFile = useAppSelector(state => state.files.activeFile);
+    const directory = useAppSelector(state => state.files.directory);
     const [expanded, setExpanded] = React.useState<boolean>(true);
 
     const dispatch = useAppDispatch();
-    const theme = useTheme();
     const {fileManager} = useFileManager();
 
     React.useEffect(() => {
@@ -62,12 +63,7 @@ export const Directory: React.VFC<DirectoryProps> = props => {
 
     return (
         <div className="Directory">
-            <a
-                className="ExplorerItem"
-                href="#"
-                onClick={e => handleDirStateChange(e)}
-                style={{color: theme.palette.text.primary}}
-            >
+            <a className="ExplorerItem" href="#" onClick={e => handleDirStateChange(e)}>
                 {props.level > 1 &&
                     Array(props.level - 1)
                         .fill(0)
@@ -88,7 +84,6 @@ export const Directory: React.VFC<DirectoryProps> = props => {
                                     className={`ExplorerItem${activeFile === item.path ? " ExplorerItem--active" : ""}`}
                                     key={item.name}
                                     onClick={e => handleFileClick(e, item.path)}
-                                    style={{color: theme.palette.text.primary}}
                                 >
                                     {Array(props.level)
                                         .fill(0)
@@ -96,7 +91,7 @@ export const Directory: React.VFC<DirectoryProps> = props => {
                                             <div className="ExplorerPath" key={`${item.name}-${v4()}`} />
                                         ))}
                                     <div className="ExplorerItemText">
-                                        <VscFile />
+                                        {getFileIcon(item.path.replace(directory, ""))}
                                         {item.name}
                                     </div>
                                 </a>

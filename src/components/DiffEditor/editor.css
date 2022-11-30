@@ -51,6 +51,7 @@
     align-items: center;
     gap: 16px;
     z-index: 101;
+    background-color: var(--background-light);
 }
 
 .Editor__NoModels > img {

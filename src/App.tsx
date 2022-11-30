@@ -23,7 +23,7 @@ import {Themes} from "@shared-types/ui";
 
 import "./App.css";
 import {FileChangesWatcherService} from "./services/file-changes-service";
-import {LightTheme} from "./themes/light";
+import {Theme} from "./themes/theme";
 import "./themes/theme.scss";
 
 export const ColorModeContext = React.createContext({
@@ -46,42 +46,30 @@ function App(): JSX.Element {
         [dispatch]
     );
 
-    /*
-    const theme = React.useMemo(
-        () =>
-            createTheme({
-                palette: {
-                    mode,
-                },
-            }),
-        [mode]
-    );
-    */
+    React.useLayoutEffect(() => {
+        document.body.setAttribute("data-theme", mode);
+    }, [mode]);
 
     return (
-        <div className="DefaultTheme">
-            <div className={mode === "light" ? "LightMode" : "DarkMode"}>
-                <MainProcessDataProvider>
-                    <ColorModeContext.Provider value={colorMode}>
-                        <ThemeProvider theme={LightTheme}>
-                            <NotificationsProvider>
-                                <EnvironmentService>
-                                    <FileManagerService>
-                                        <ChangelogWatcherService>
-                                            <FileChangesWatcherService>
-                                                <IpcService>
-                                                    <MainWindow />
-                                                </IpcService>
-                                            </FileChangesWatcherService>
-                                        </ChangelogWatcherService>
-                                    </FileManagerService>
-                                </EnvironmentService>
-                            </NotificationsProvider>
-                        </ThemeProvider>
-                    </ColorModeContext.Provider>
-                </MainProcessDataProvider>
-            </div>
-        </div>
+        <MainProcessDataProvider>
+            <ColorModeContext.Provider value={colorMode}>
+                <ThemeProvider theme={Theme(mode)}>
+                    <NotificationsProvider>
+                        <EnvironmentService>
+                            <FileManagerService>
+                                <ChangelogWatcherService>
+                                    <FileChangesWatcherService>
+                                        <IpcService>
+                                            <MainWindow />
+                                        </IpcService>
+                                    </FileChangesWatcherService>
+                                </ChangelogWatcherService>
+                            </FileManagerService>
+                        </EnvironmentService>
+                    </NotificationsProvider>
+                </ThemeProvider>
+            </ColorModeContext.Provider>
+        </MainProcessDataProvider>
     );
 }
 

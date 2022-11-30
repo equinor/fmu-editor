@@ -36,6 +36,9 @@ $light: (
     "text-color": #3D3D3D,
     "text-secondary": #565656,
     "text-tertiary": #6F6F6F,
+    "text-on-primary": #FFFFFF,
+    "text-on-light": #000000,
+    "text-on-dark": #FFFFFF,
 
     // Background
     "background-color": #FFFFFF,
@@ -85,6 +88,9 @@ $dark: (
     "text-color": #FFFFFF,
     "text-secondary": #DEE5E7,
     "text-tertiary": #9CA6AC,
+    "text-on-primary": #000000,
+    "text-on-light": #000000,
+    "text-on-dark": #FFFFFF,
 
     // Background
     "background-color": #132634,
@@ -109,7 +115,7 @@ $general: (
 
     // Typography
     "font-family": Equinor,
-    "font-size": 16px,
+    "font-size": 14px,
 
     "h1": (font-weight: 400, font-size: 2rem, line-height: 2.5rem),
     "h1-bold": (font-weight: 700, font-size: 2rem, line-height: 2.5rem),

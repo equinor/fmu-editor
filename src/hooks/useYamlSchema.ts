@@ -30,7 +30,7 @@ export const useYamlSchemas = (yaml: any) => {
                             : JSON.parse(fs.readFileSync(path.join(pathToSchemas, file), "utf-8").toString());
                         const schemaName = file.split("_")[0];
                         schemas.push({
-                            fileMatch: [`*`],
+                            fileMatch: ["*"],
                             uri: `file://${path.join(pathToSchemas, file)}`,
                             schema,
                         });

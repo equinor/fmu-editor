@@ -1,6 +1,7 @@
 .Input {
-    background-color: var(--background);
-    padding: var(--padding) !important;
+    background-color: var(--background-light);
+    padding: var(--spacing-s) !important;
+    color: var(--text-color);
 }
 
 .Input--character-count-adornment {

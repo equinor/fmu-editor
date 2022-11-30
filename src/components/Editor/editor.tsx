@@ -1,5 +1,5 @@
 import {useYamlSchemas} from "@hooks/useYamlSchema";
-import {AssistantPhoto, Error as ErrorIcon, Info, Warning} from "@mui/icons-material";
+import {Error as ErrorIcon} from "@mui/icons-material";
 import {Badge, Grid, Typography, useTheme} from "@mui/material";
 import useSize from "@react-hook/size";
 import {useFileManager} from "@services/file-manager";
@@ -7,7 +7,8 @@ import {useFileManager} from "@services/file-manager";
 import {ipcRenderer} from "electron";
 
 import React from "react";
-import MonacoEditor, {DiffEditorDidMount, EditorDidMount, monaco} from "react-monaco-editor";
+import {VscError, VscInfo, VscLightbulb, VscWarning} from "react-icons/vsc";
+import MonacoEditor, {EditorDidMount, monaco} from "react-monaco-editor";
 
 import {ChangesBrowser} from "@components/ChangesBrowser";
 import {FileTabs} from "@components/FileTabs";
@@ -15,7 +16,7 @@ import {ResizablePanels} from "@components/ResizablePanels";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setActiveFile, setValue} from "@redux/reducers/files";
+import {setActiveFile, setEditorViewState, setValue} from "@redux/reducers/files";
 
 import {CodeEditorViewState} from "@shared-types/files";
 import {EditorMode} from "@shared-types/ui";
@@ -24,23 +25,21 @@ import FmuLogo from "@assets/fmu-logo.svg";
 
 import fs from "fs";
 // @ts-ignore
-import {Environment, languages} from "monaco-editor";
-// @ts-ignore
-import "monaco-yaml/lib/esm/monaco.contribution";
+import {languages} from "monaco-editor";
 // @ts-ignore
 import {v4} from "uuid";
-// @ts-ignore
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import EditorWorker from "worker-loader!monaco-editor/esm/vs/editor/editor.worker";
-// @ts-ignore
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import YamlWorker from "worker-loader!monaco-yaml/lib/esm/yaml.worker";
 
+// @ts-ignore
+// eslint-disable-next-line import/no-webpack-loader-syntax
+// import EditorWorker from "worker-loader!monaco-editor/esm/vs/editor/editor.worker";
+// @ts-ignore
+// eslint-disable-next-line import/no-webpack-loader-syntax
+// import YamlWorker from "worker-loader!monaco-yaml/yaml.worker";
 import "./editor.css";
 
 declare global {
     interface Window {
-        MonacoEnvironment: Environment;
+        MonacoEnvironment?: monaco.Environment;
     }
 }
 
@@ -48,9 +47,22 @@ window.MonacoEnvironment = {
     getWorker(moduleId, label) {
         switch (label) {
             case "editorWorkerService":
-                return new EditorWorker();
+                return new Worker(new URL("monaco-editor/esm/vs/editor/editor.worker", import.meta.url));
+            case "css":
+            case "less":
+            case "scss":
+                return new Worker(new URL("monaco-editor/esm/vs/language/css/css.worker", import.meta.url));
+            case "handlebars":
+            case "html":
+            case "razor":
+                return new Worker(new URL("monaco-editor/esm/vs/language/html/html.worker", import.meta.url));
+            case "json":
+                return new Worker(new URL("monaco-editor/esm/vs/language/json/json.worker", import.meta.url));
+            case "javascript":
+            case "typescript":
+                return new Worker(new URL("monaco-editor/esm/vs/language/typescript/ts.worker", import.meta.url));
             case "yaml":
-                return new YamlWorker();
+                return new Worker(new URL("monaco-yaml/yaml.worker", import.meta.url));
             default:
                 throw new Error(`Unknown label ${label}`);
         }
@@ -80,21 +92,13 @@ type EditorProps = {};
 
 export const Editor: React.FC<EditorProps> = () => {
     const [noModels, setNoModels] = React.useState<boolean>(false);
-    const [selection, setSelection] = React.useState<monaco.ISelection | null>(null);
-    const [lineDecorations, setLineDecorations] = React.useState<string[]>([]);
     const [markers, setMarkers] = React.useState<monaco.editor.IMarker[]>([]);
-    const parserTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-    const [models, setModels] = React.useState<monaco.editor.ITextModel[]>([]);
 
     const monacoEditorRef = React.useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-    const monacoDiffEditorRef = React.useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
     const editorRef = React.useRef<HTMLDivElement | null>(null);
-    const diffEditorRef = React.useRef<HTMLDivElement | null>(null);
     const monacoRef = React.useRef<typeof monaco | null>(null);
-    const monacoDiffRef = React.useRef<typeof monaco | null>(null);
 
     const [editorTotalWidth, editorTotalHeight] = useSize(editorRef);
-    const [diffEditorTotalWidth, diffEditorTotalHeight] = useSize(diffEditorRef);
 
     const timeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -119,7 +123,6 @@ export const Editor: React.FC<EditorProps> = () => {
     }, [timeout]);
 
     /*
-
     const handleCursorPositionChange = (e: monaco.editor.ICursorPositionChangedEvent): void => {
         if (
             selection === null ||
@@ -134,15 +137,6 @@ export const Editor: React.FC<EditorProps> = () => {
             if (e.reason === monaco.editor.CursorChangeReason.ContentFlush) {
                 return;
             }
-            yamlParser.updateSelection(
-                new monaco.Selection(
-                    e.position.lineNumber,
-                    e.position.column,
-                    e.position.lineNumber,
-                    e.position.column
-                ),
-                EventSource.Editor
-            );
             if (monacoEditorRef.current) {
                 dispatch(setEditorViewState(convertFromViewState(monacoEditorRef.current.saveViewState())));
             }
@@ -161,23 +155,12 @@ export const Editor: React.FC<EditorProps> = () => {
             if (e.reason === monaco.editor.CursorChangeReason.ContentFlush) {
                 return;
             }
-            yamlParser.updateSelection(e.selection, EventSource.Editor);
+
             if (monacoEditorRef.current) {
                 dispatch(setEditorViewState(convertFromViewState(monacoEditorRef.current.saveViewState())));
             }
         }
     };
-
-    const updateLineDecorations = React.useCallback(
-        (newDecorations: monaco.editor.IModelDeltaDecoration[]) => {
-            if (!monacoEditorRef.current) {
-                return;
-            }
-            setLineDecorations(monacoEditorRef.current.deltaDecorations(lineDecorations, newDecorations));
-        },
-        [lineDecorations]
-    );
-
     */
 
     const handleFileChange = (filePath: string) => {
@@ -192,7 +175,6 @@ export const Editor: React.FC<EditorProps> = () => {
                 })
             );
         }
-        // setTimeout(handleMarkersChange, 2000);
     };
 
     const handleEditorValueChange = (e: monaco.editor.IModelContentChangedEvent) => {
@@ -204,8 +186,6 @@ export const Editor: React.FC<EditorProps> = () => {
             dispatch(setValue(model.getValue()));
         }
     };
-
-    /*
 
     const handleMarkersChange = () => {
         if (!monacoRef.current || !monacoEditorRef.current) {
@@ -223,24 +203,16 @@ export const Editor: React.FC<EditorProps> = () => {
             dispatch(setEditorViewState(convertFromViewState(monacoEditorRef.current.saveViewState())));
         }
     };
-    */
 
     const handleEditorDidMount: EditorDidMount = (editor, monacoInstance) => {
         monacoEditorRef.current = editor;
         monacoRef.current = monacoInstance;
         monacoEditorRef.current.onDidChangeModelContent(handleEditorValueChange);
-        /*
-        monacoEditorRef.current.onDidChangeCursorPosition(handleCursorPositionChange);
-        monacoEditorRef.current.onDidChangeCursorSelection(handleCursorSelectionChange);
+        // monacoEditorRef.current.onDidChangeCursorPosition(handleCursorPositionChange);
+        // monacoEditorRef.current.onDidChangeCursorSelection(handleCursorSelectionChange);
         monacoRef.current.editor.onDidChangeMarkers(handleMarkersChange);
-        monacoEditorRef.current.onDidLayoutChange(handleEditorViewStateChanged);
-        monacoEditorRef.current.onDidScrollChange(handleEditorViewStateChanged);
-        */
-    };
-
-    const handleDiffEditorDidMount: DiffEditorDidMount = (editor, monacoInstance) => {
-        monacoDiffEditorRef.current = editor;
-        monacoDiffRef.current = monacoInstance;
+        // monacoEditorRef.current.onDidLayoutChange(handleEditorViewStateChanged);
+        // monacoEditorRef.current.onDidScrollChange(handleEditorViewStateChanged);
     };
 
     React.useEffect(() => {
@@ -254,12 +226,6 @@ export const Editor: React.FC<EditorProps> = () => {
         const file = files.find(el => el.filePath === activeFile);
         if (files.length === 0 || file === undefined) {
             setNoModels(true);
-            if (editorMode === EditorMode.DiffEditor) {
-                monacoDiffEditorRef.current?.setModel({
-                    original: monaco.editor.createModel("", "yaml"),
-                    modified: monaco.editor.createModel("", "yaml"),
-                });
-            }
             return;
         }
 
@@ -273,14 +239,6 @@ export const Editor: React.FC<EditorProps> = () => {
                     monaco.Uri.file(userFilePath)
                 );
             }
-            let diffModel = monaco.editor.getModel(monaco.Uri.file(file.filePath));
-            if (!diffModel) {
-                diffModel = monaco.editor.createModel(
-                    fs.readFileSync(file.filePath).toString(),
-                    "yaml",
-                    monaco.Uri.file(file.filePath)
-                );
-            }
             if (userModel) {
                 if (monacoEditorRef.current && monacoRef.current && editorMode === EditorMode.Editor) {
                     monacoEditorRef.current.setModel(userModel);
@@ -289,31 +247,19 @@ export const Editor: React.FC<EditorProps> = () => {
                     }
                     monacoEditorRef.current.focus();
                 }
-
-                if (monacoDiffEditorRef.current && monacoDiffRef.current && editorMode === EditorMode.DiffEditor) {
-                    monacoDiffEditorRef.current.setModel({
-                        original: diffModel ?? userModel,
-                        modified: userModel,
-                    });
-                    monacoDiffEditorRef.current.focus();
-                }
             }
         }
 
         setNoModels(false);
     }, [activeFile, files, editorMode, fileManager]);
 
-    const selectMarker = (marker: monaco.editor.IMarker) => {
+    const selectMarker = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, marker: monaco.editor.IMarker) => {
         if (monacoEditorRef.current) {
             monacoEditorRef.current.setSelection(
                 new monaco.Range(marker.startLineNumber, marker.startColumn, marker.endLineNumber, marker.endColumn)
             );
-            /*
-            monacoEditorRef.current.revealLinesInCenterIfOutsideViewport(
-                marker.startLineNumber,
-                marker.endLineNumber
-            );
-            */
+
+            monacoEditorRef.current.revealLinesInCenterIfOutsideViewport(marker.startLineNumber, marker.endLineNumber);
         }
     };
 
@@ -338,8 +284,6 @@ export const Editor: React.FC<EditorProps> = () => {
                         className="Editor__NoModels"
                         style={{
                             display: noModels ? "flex" : "none",
-                            color: theme.palette.mode === "dark" ? "#fff" : "#000",
-                            backgroundColor: theme.palette.background.paper,
                         }}
                     >
                         <img src={FmuLogo} alt="FMU Logo" />
@@ -365,13 +309,7 @@ export const Editor: React.FC<EditorProps> = () => {
                                     height={editorTotalHeight - 56}
                                 />
                             </div>
-                            <div
-                                className="Issues"
-                                style={{
-                                    color: theme.palette.text.primary,
-                                    display: editorMode === EditorMode.Editor ? "block" : "none",
-                                }}
-                            >
+                            <div className="Issues">
                                 <Surface elevation="raised" className="IssuesTitle">
                                     <Grid container columnSpacing={2} spacing={5} direction="row" alignItems="center">
                                         <Grid item>
@@ -384,21 +322,21 @@ export const Editor: React.FC<EditorProps> = () => {
                                 </Surface>
                                 <div className="IssuesContent" style={{display: noModels ? "none" : "block"}}>
                                     {markers.map(marker => (
-                                        <div className="Issue" onClick={() => selectMarker(marker)} key={v4()}>
+                                        <a href="#" className="Issue" onClick={e => selectMarker(e, marker)} key={v4()}>
                                             {marker.severity === monaco.MarkerSeverity.Error ? (
-                                                <ErrorIcon color="error" fontSize="small" />
+                                                <VscError color={theme.palette.error.main} size={16} />
                                             ) : marker.severity === monaco.MarkerSeverity.Warning ? (
-                                                <Warning color="warning" fontSize="small" />
+                                                <VscWarning color={theme.palette.warning.main} size={16} />
                                             ) : marker.severity === monaco.MarkerSeverity.Info ? (
-                                                <Info color="info" fontSize="small" />
+                                                <VscInfo color={theme.palette.info.main} size={16} />
                                             ) : (
-                                                <AssistantPhoto color="primary" fontSize="small" />
+                                                <VscLightbulb color={theme.palette.secondary.main} size={16} />
                                             )}{" "}
                                             {marker.message}
                                             <span className="IssuePosition">
-                                                [{marker.startLineNumber}, {marker.startColumn}]
+                                                [Ln {marker.startLineNumber}, Col {marker.startColumn}]
                                             </span>
-                                        </div>
+                                        </a>
                                     ))}
                                 </div>
                             </div>

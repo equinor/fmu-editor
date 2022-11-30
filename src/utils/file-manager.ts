@@ -32,7 +32,6 @@ export class FileManager {
         if (!this.currentDirectory) {
             return "";
         }
-        this.maybeCreateTempUserDirectory();
         return path.join(this.currentDirectory, ".users", this.username);
     }
 
@@ -41,7 +40,7 @@ export class FileManager {
 
         try {
             if (!fs.existsSync(this.userDirectory())) {
-                fs.mkdirSync(this.userDirectory());
+                fs.mkdirSync(this.userDirectory(), {recursive: true});
             }
             return true;
         } catch (e) {

@@ -26,7 +26,7 @@ import FmuLogo from "@assets/fmu-logo.svg";
 
 import fs from "fs";
 // @ts-ignore
-import {Environment, languages} from "monaco-editor";
+import {languages} from "monaco-editor";
 // @ts-ignore
 import "monaco-yaml/lib/esm/monaco.contribution";
 // @ts-ignore
@@ -42,7 +42,7 @@ import "./editor.css";
 
 declare global {
     interface Window {
-        MonacoEnvironment: Environment;
+        MonacoEnvironment?: monaco.Environment;
     }
 }
 
@@ -338,11 +338,9 @@ export const Editor: React.FC<EditorProps> = () => {
                 className="Editor__NoModels"
                 style={{
                     visibility: noModels ? "visible" : "hidden",
-                    color: theme.palette.mode === "dark" ? "#fff" : "#000",
-                    backgroundColor: theme.palette.background.paper,
                 }}
             >
-                <img src={FmuLogo} alt="FMU Logo" />
+                <FmuLogo />
                 <Typography variant="h6">FMU Editor</Typography>
                 <Typography variant="body1">Please select a file...</Typography>
             </div>

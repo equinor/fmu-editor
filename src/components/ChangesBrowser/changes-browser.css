@@ -3,9 +3,14 @@
 }
 
 .ChangesBrowserHeader {
-    padding: var(--spacing-s);
-    font-weight: bold;
+    font-weight: 800;
     text-transform: uppercase;
+    background-color: var(--background-light);
+    padding: var(--spacing-x);
+    padding-left: var(--spacing-m);
+    height: 30px;
+    display: flex;
+    align-items: center;
 }
 
 .ChangesBrowserContent {
@@ -13,29 +18,31 @@
 }
 
 .ChangesBrowserContentHeader {
-    font-weight: bold;
+    font-weight: var(--h6-font-weight);
+    font-size: var(--h6-font-size);
+    line-height: var(--h6-line-height);
     text-transform: uppercase;
 }
 
 .ChangesBrowserList {
-    background-color: var(--backgroundColor);
-    padding: var(--spacing-s);
+    background-color: var(--background-light);
     height: 20vh;
     min-height: 100px;
     overflow: auto;
+    padding: var(--spacing-xx);
 }
 
 .ChangesBrowserListItem {
     display: flex;
     align-items: center;
-    gap: var(--spacing);
     justify-content: space-between;
     cursor: pointer;
     flex-wrap: nowrap;
+    padding: var(--spacing-s);
 }
 
 .ChangesBrowserListItem:hover {
-    background-color: var(--primary-color-95);
+    background-color: var(--primary-hover-alt);
 }
 
 .ChangesBrowserListItem > div {

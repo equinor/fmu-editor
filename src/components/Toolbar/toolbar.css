@@ -4,12 +4,11 @@
     justify-content: left;
     align-items: center;
     padding: 0 1rem;
-    border-bottom: 1px solid #e0e0e0;
-    background-color: var(--primary-color);
-    color: var(--on-primary-color);
+    background-color: var(--primary);
+    color: var(--text-on-primary);
     height: 30px;
     z-index: 50;
-    gap: var(--spacing);
+    gap: var(--spacing-m);
 }
 
 .ToolbarFmuLogo {
@@ -19,12 +18,12 @@
 
 .Toolbar button {
     text-transform: none;
-    color: white;
+    color: var(--text-on-primary);
     display: flex;
-    gap: var(--spacing);
+    gap: var(--spacing-s);
     border-radius: 0;
 }
 
 .Toolbar button:hover {
-    background-color: var(--primary-color-50);
+    background-color: var(--primary-hover);
 }

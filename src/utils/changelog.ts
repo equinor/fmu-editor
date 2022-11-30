@@ -65,13 +65,27 @@ export class Changelog {
         return path.join(this.directory, ".snapshots");
     }
 
+    private static changelogIsCorrectlyFormatted(content: any): boolean {
+        return (
+            content &&
+            content.created &&
+            content.directory &&
+            content.modified &&
+            content.log &&
+            Array.isArray(content.log)
+        );
+    }
+
     private createLocalChangelogFileIfNotExists(): boolean {
         if (!this.directory) {
             return false;
         }
 
         if (fs.existsSync(this.localChangelogPath())) {
-            return false;
+            const content = JSON.parse(fs.readFileSync(this.localChangelogPath()).toString());
+            if (Changelog.changelogIsCorrectlyFormatted(content)) {
+                return false;
+            }
         }
 
         const currentChangelog: ILocalChangelog = {

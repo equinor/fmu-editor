@@ -9,6 +9,8 @@
     align-content: center;
     border-radius: 0px;
     padding: 0px !important;
+    background-color: var(--background-light);
+    color: var(--text-on-primary);
 }
 
 .TabMenu .MuiTabs-indicator {

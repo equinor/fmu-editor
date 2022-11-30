@@ -67,10 +67,6 @@ export const FileTab: React.FC<FileTabProps> = props => {
             <div
                 className={`FileTab${active ? " FileTab--active" : ""}${modified ? " FileTab--modified" : ""}`}
                 onClick={() => handleClickEvent()}
-                style={{
-                    backgroundColor: active ? theme.palette.action.disabledBackground : theme.palette.background.paper,
-                    color: theme.palette.text.primary,
-                }}
             >
                 {filename}
                 {uncommitted && (

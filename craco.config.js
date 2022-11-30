@@ -8,7 +8,7 @@ module.exports = {
         plugins: {
             add: [
                 new MonacoWebpackPlugin({
-                    customLanguages: ["yaml"],
+                    languages: ["yaml"],
                     globalAPI: true,
                     filename: "static/vs/[name].[contenthash].worker.js",
                 }),
@@ -18,6 +18,8 @@ module.exports = {
             const isEnvDevelopment = env === "development";
 
             webpackConfig.target = "electron-renderer";
+
+            webpackConfig.ignoreWarnings = [/Failed to parse source map/];
 
             if (isEnvDevelopment) {
                 webpackConfig.output.filename = "static/js/[name].bundle.js";

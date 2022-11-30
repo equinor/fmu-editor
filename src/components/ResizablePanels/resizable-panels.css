@@ -31,7 +31,7 @@
 }
 
 .ResizeDragBar {
-    background-color: var(--outline);
+    background-color: var(--text-tertiary);
     transition: background-color 0.5s ease-out 100ms,
         border-color 0.5s ease-out 100ms;
     z-index: 100;
@@ -49,8 +49,8 @@
 }
 
 .ResizeDragBar:hover {
-    border-color: 1px var(--primary-color);
-    background-color: var(--primary-color);
+    border-color: 1px var(--primary);
+    background-color: var(--primary);
 }
 
 .ResizeDragBar__vertical:hover::after, 
@@ -61,7 +61,7 @@
     width: 100%;
     height: 3px;
     pointer-events: none;
-    background-color: var(--primary-color);
+    background-color: var(--primary);
 }
 
 .ResizeDragBar__horizontal:hover::after, 
@@ -72,12 +72,12 @@
     height: 100%;
     width: 3px;
     pointer-events: none;
-    background-color: var(--primary-color);
+    background-color: var(--primary);
 }
 
 .ResizeDragBar--active {
-    border-color: 1px var(--primary-color);
-    background-color: var(--primary-color);
+    border-color: 1px var(--primary);
+    background-color: var(--primary);
 }
 
 .ResizablePanel {

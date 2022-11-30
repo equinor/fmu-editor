@@ -16,14 +16,12 @@ export const FileTabs: React.FC<FileTabsProps> = props => {
     const files = useAppSelector(state => state.files.files);
 
     return (
-        <div className="FileTabs" style={{backgroundColor: theme.shadows[1]}}>
+        <div className="FileTabs">
             {files.map(file => (
                 <FileTab
                     key={file.filePath}
                     filePath={file.filePath}
-                    onSelect={(filePath: string) =>
-                        props.onFileChange(filePath)
-                    }
+                    onSelect={(filePath: string) => props.onFileChange(filePath)}
                 />
             ))}
         </div>

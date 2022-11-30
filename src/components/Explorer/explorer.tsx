@@ -32,6 +32,13 @@ import fs from "fs";
 import {Directory} from "./components/directory";
 import "./explorer.css";
 
+const readDirectories = (fmuDirectory: string): string[] => {
+    return fs
+        .readdirSync(fmuDirectory)
+        .filter(file => fs.statSync(`${fmuDirectory}/${file}`).isDirectory())
+        .reverse();
+};
+
 export const Explorer: React.FC = () => {
     const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
     const directory = useAppSelector(state => state.files.directory);
@@ -41,6 +48,8 @@ export const Explorer: React.FC = () => {
     const [allCollapsed, setAllCollapsed] = React.useState<number>(0);
     const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
     const [directories, setDirectories] = React.useState<string[]>([]);
+
+    const refreshTimer = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
     const dispatch = useAppDispatch();
     const theme = useTheme();
@@ -61,15 +70,16 @@ export const Explorer: React.FC = () => {
     }, [directory, dispatch]);
 
     React.useEffect(() => {
-        if (fmuDirectory !== undefined && fmuDirectory !== "") {
-            setDirectories(
-                fs
-                    .readdirSync(fmuDirectory)
-                    .filter(file => fs.statSync(`${fmuDirectory}/${file}`).isDirectory())
-                    .reverse()
-            );
+        if (refreshTimer.current) {
+            clearInterval(refreshTimer.current);
         }
-    }, [fmuDirectory]);
+        if (fmuDirectory !== undefined && fmuDirectory !== "" && drawerOpen) {
+            setDirectories(readDirectories(fmuDirectory));
+            refreshTimer.current = setInterval(() => {
+                setDirectories(readDirectories(fmuDirectory));
+            }, 3000);
+        }
+    }, [fmuDirectory, drawerOpen]);
 
     const handleOpenDirectoryClick = () => {
         selectFmuDirectory(fmuDirectory, dispatch);
@@ -178,6 +188,13 @@ export const Explorer: React.FC = () => {
                         Select FMU Directory
                     </Button>
                     <Typography>In order to start using the editor, please select your FMU directory.</Typography>
+                </Stack>
+            ) : directory === undefined || directory === "" ? (
+                <Stack className="ExplorerNoDirectory" spacing={2}>
+                    <Button variant="contained" onClick={toggleDrawer(true)}>
+                        Select Working Directory
+                    </Button>
+                    <Typography>In order to start using the editor, please select your working directory.</Typography>
                 </Stack>
             ) : (
                 <>

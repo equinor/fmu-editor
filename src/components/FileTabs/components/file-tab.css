@@ -3,12 +3,16 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    background-color: transparent;
+    background-color: var(--background-medium);
     padding: 12px;
-    font-size: 0.75rem;
     cursor: pointer;
     white-space: nowrap;
     gap: 8px;
+    font-size: 0.8rem;
+}
+
+.FileTab--active {
+    background-color: var(--background-light);
 }
 
 .FileTab__CloseButton {

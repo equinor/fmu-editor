@@ -5,17 +5,20 @@
     @include theme;
 }
 
-body {
+html {
     font-size: var(--font-size);
     font-family: var(--font-family);
+    line-height: var(--body-long-line-height);
 }
 
 body[data-theme="light"] {
     @include light-theme;
+    color: var(--text-color);
 }
 
 body[data-theme="dark"] {
     @include dark-theme;
+    color: var(--text-color);
 }
 
 @media screen and (max-width: #{map.get($general, "grid-width-s")}) {

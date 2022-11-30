@@ -151,7 +151,7 @@ export const ChangesBrowser: React.VFC = () => {
                                 rows={5}
                                 onChange={e => setCommitDescription(e.target.value)}
                                 value={commitDescription}
-                                fontSize="0.98em"
+                                fontSize="0.98rem"
                             />
                         </Stack>
                         <Button

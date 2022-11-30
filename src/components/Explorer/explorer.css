@@ -11,9 +11,13 @@
 .ExplorerTitle {
     font-weight: bold;
     text-transform: uppercase;
-    height: 20px;
-    padding: 4px 4px 4px 16px;
-}
+    padding: var(--spacing-x);
+    padding-left: var(--spacing-m);
+    height: 30px;
+    display: flex;
+    align-items: center;
+    background-color: var(--background-light);
+} 
 
 .ExplorerTitle > div {
     display: flex;
@@ -25,8 +29,7 @@
 }
 
 .ExplorerPath {
-    border-left: 1px var(--outline) solid;
-    border-left-color: var(--outline);
+    border-left: 1px var(--text-color) solid;
     margin-left: 4px;
     width: 12px;
     height: 100%;
@@ -46,6 +49,7 @@
 
 .ExplorerContent {
     overflow-y: auto;
+    padding: var(--spacing-s);
 }
 
 .ExplorerItem {
@@ -57,22 +61,25 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    padding-left: calc(2 * var(--padding));
+    padding-left: calc(2 * var(--spacing-s));
     user-select: none;
     text-decoration: none;
+    color: var(--text-color);
 }
 
 .ExplorerItem:hover {
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: var(--primary-hover-alt);
     cursor: pointer;
+    color: var(--text-color);
 }
 
 .ExplorerItem:focus {
-    background-color: var(--primary-color);
-    outline: 1px var(--outline) solid;
-    color: white !important;
+    background-color: var(--primary);
+    outline: 1px var(--primary) solid;
+    color: var(--text-on-primary);
 }
 
 .ExplorerItem--active{
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: var(--secondary-highlight);
+    color: var(--text-color);
 }

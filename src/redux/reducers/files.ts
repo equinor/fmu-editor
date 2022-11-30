@@ -10,7 +10,6 @@ import initialState from "@redux/initial-state";
 import {FileTreeStates} from "@shared-types/file-tree";
 import {CodeEditorViewState, DiffEditorViewState, File, FilesState} from "@shared-types/files";
 
-import fs from "fs";
 import {SelectionDirection} from "monaco-editor";
 import path from "path";
 
@@ -35,12 +34,6 @@ export const filesSlice = createSlice({
             }>
         ) => {
             state.fmuDirectory = action.payload.path;
-            const directory =
-                fs
-                    .readdirSync(action.payload.path)
-                    .find(file => fs.statSync(`${action.payload.path}/${file}`).isDirectory()) || "";
-
-            state.directory = directory === "" ? directory : `${action.payload.path}/${directory}`;
             electronStore.set("files.fmuDirectory", action.payload.path);
         },
         setDirectory: (

@@ -26,8 +26,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Craco",
-            "program": "${workspaceFolder}/node_modules/@craco/craco/bin/craco.js",
-            "args": ["--config", "./some/dir/webpack.config.js"]
+            "program": "${workspaceFolder}/node_modules/.bin/craco"
         }
     ],
     "compounds": [
