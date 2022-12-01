@@ -3,11 +3,12 @@
     flex-direction: row;
     justify-content: left;
     align-items: center;
-    padding: 0 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
     background-color: var(--primary);
     color: var(--text-on-primary);
-    height: 30px;
     z-index: 50;
+    height: 30px;
     gap: var(--spacing-m);
 }
 
@@ -22,8 +23,19 @@
     display: flex;
     gap: var(--spacing-s);
     border-radius: 0;
+    margin: 0;
+    height: 30px;
 }
 
 .Toolbar button:hover {
     background-color: var(--primary-hover);
+}
+
+.Toolbar button.error {
+    background-color: var(--warning);
+    color: var(--text-on-light);
+}
+
+.Toolbar button.error:hover {
+    background-color: var(--warning-hover);
 }

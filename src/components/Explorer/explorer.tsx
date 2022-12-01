@@ -169,7 +169,7 @@ export const Explorer: React.FC = () => {
     return (
         <Surface elevation="raised" className="Explorer">
             <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
-                <List>
+                <List className="DirectoryDrawer">
                     {directories.map(el => (
                         <ListItem key={el} disablePadding>
                             <ListItemButton onClick={() => handleDirectoryChange(el)}>

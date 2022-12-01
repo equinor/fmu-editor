@@ -4,7 +4,7 @@
     justify-content: center;
     align-items: center;
     background-color: var(--background-medium);
-    padding: 12px;
+    padding: var(--spacing-s);
     cursor: pointer;
     white-space: nowrap;
     gap: 8px;
@@ -16,7 +16,9 @@
 }
 
 .FileTab__CloseButton {
-    display: block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     padding: 1px;
     min-width: 16px;
 }
@@ -36,6 +38,7 @@
 .FileTab:hover .FileTab__CloseButton:hover,
 .FileTab--active .FileTab__CloseButton:hover {
     border-radius: 4px;
+    color: var(--primary-hover);
 }
 
 .FileTab--modified {
