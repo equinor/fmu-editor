@@ -3,7 +3,7 @@ import {useEnvironment} from "@services/environment-service";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
-import {VscAccount, VscFolderActive, VscGlobe} from "react-icons/vsc";
+import {VscAccount, VscFolderActive, VscGlobe, VscPerson} from "react-icons/vsc";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {addNotification} from "@redux/reducers/notifications";
@@ -11,15 +11,17 @@ import {selectFmuDirectory} from "@redux/thunks";
 
 import {Notification, NotificationType} from "@shared-types/notifications";
 
+import path from "path";
+
 import "./toolbar.css";
 
 export const Toolbar: React.FC = () => {
     const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
     const environment = useEnvironment();
-    const [progress, setProgress] = React.useState<number>(0);
+    const [progress, setProgress] = React.useState<number>(100);
 
     const dispatch = useAppDispatch();
-    const fileManager = useFileManager();
+    const {fileManager, copyUserDirectory} = useFileManager();
 
     const handleOpenDirectoryClick = () => {
         selectFmuDirectory(fmuDirectory, dispatch);
@@ -56,10 +58,36 @@ export const Toolbar: React.FC = () => {
         dispatch(addNotification(notification));
     };
 
+    const handleUserDirectoryClick = () => {
+        if (fileManager.userDirectoryExists()) {
+            const notification: Notification = {
+                type: NotificationType.INFORMATION,
+                message: `User directory up to date and located at '${fileManager.userDirectory()}'.`,
+            };
+            dispatch(addNotification(notification));
+            return;
+        }
+        dispatch(
+            addNotification({
+                type: NotificationType.INFORMATION,
+                message: `You don't have a copy of the working directory (${fileManager.getCurrentDirectory()}). Create it now? Note: this might take a couple of minutes.`,
+                action: {
+                    label: "Create",
+                    action: () => {
+                        copyUserDirectory();
+                        setProgress(0);
+                    },
+                },
+            })
+        );
+    };
+
     React.useEffect(() => {
         const adjustProgress = (e: Event) => {
             // @ts-ignore
-            setProgress(e.detail.progress as number);
+            console.log(e.detail.progress);
+            // @ts-ignore
+            setProgress(Math.round(e.detail.progress * 100) as number);
         };
 
         document.addEventListener("copyUserDirectoryProgress", adjustProgress);
@@ -88,10 +116,25 @@ export const Toolbar: React.FC = () => {
                 <VscGlobe />
                 {environment.environmentPath || <i>No environment detected</i>}
             </Button>
-            <LinearProgress variant="determinate" value={progress} />
-            <Button onClick={() => fileManager.copyUserDirectory()} title="Copy user directory to FMU directory">
-                Copy user directory
+            <Button
+                size="small"
+                onClick={handleUserDirectoryClick}
+                title={
+                    fileManager.userDirectoryExists() ? "Current user directory" : "Click here to create user directory"
+                }
+            >
+                <VscPerson />
+                {progress < 100 ? (
+                    <i>Copying...</i>
+                ) : fileManager.userDirectoryExists() ? (
+                    path.relative(fileManager.getFmuDirectory(), fileManager.userDirectory())
+                ) : (
+                    <i>User directory no created yet</i>
+                )}
             </Button>
+            <div style={{width: 50, display: progress < 100 ? "block" : "none"}}>
+                <LinearProgress color="inherit" variant="determinate" value={progress} />
+            </div>
         </div>
     );
 };

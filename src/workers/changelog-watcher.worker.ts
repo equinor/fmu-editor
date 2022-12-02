@@ -1,6 +1,15 @@
 import {Changelog} from "@utils/changelog";
 
-import {ChangelogWatcherRequest, ChangelogWatcherResponse} from "@shared-types/changelog";
+import {
+    ChangelogWatcherRequestTypes,
+    ChangelogWatcherRequests,
+    ChangelogWatcherResponseTypes,
+    ChangelogWatcherResponses,
+} from "@shared-types/changelog";
+
+import {Webworker} from "./worker-utils";
+
+const webworker = new Webworker<ChangelogWatcherResponses, ChangelogWatcherRequests>();
 
 const changelog = new Changelog();
 let lastTimestamp = 0;
@@ -11,8 +20,7 @@ const refreshChangelog = () => {
     }
     changelog.maybeRefresh();
     if (changelog.modifiedTimestamp() > lastTimestamp) {
-        // eslint-disable-next-line no-restricted-globals
-        self.postMessage({type: ChangelogWatcherResponse.MODIFIED});
+        webworker.postMessage(ChangelogWatcherResponseTypes.MODIFIED);
         lastTimestamp = changelog.modifiedTimestamp();
     }
 };
@@ -20,24 +28,16 @@ const refreshChangelog = () => {
 // eslint-disable-next-line no-restricted-globals
 self.setInterval(refreshChangelog, 3000);
 
-// eslint-disable-next-line no-restricted-globals
-self.addEventListener("message", event => {
-    switch (event.data.type) {
-        case ChangelogWatcherRequest.SET_DIRECTORY:
-            changelog.setDirectory(event.data.directory);
-            break;
-        case ChangelogWatcherRequest.APPEND_COMMIT:
-            changelog.appendCommit(event.data.commit);
-            // eslint-disable-next-line no-restricted-globals
-            self.postMessage({type: ChangelogWatcherResponse.COMMIT_APPENDED});
-            break;
-        case ChangelogWatcherRequest.GET_CHANGES_FOR_FILE:
-            // eslint-disable-next-line no-restricted-globals
-            self.postMessage({
-                type: ChangelogWatcherResponse.CHANGES_FOR_FILE,
-                changes: changelog.getChangesForFile(event.data.filePath),
-            });
-            break;
-        default:
-    }
+webworker.on(ChangelogWatcherRequestTypes.SET_DIRECTORY, ({directory}) => {
+    changelog.setDirectory(directory);
+});
+
+webworker.on(ChangelogWatcherRequestTypes.APPEND_COMMIT, ({commit}) => {
+    changelog.appendCommit(commit);
+});
+
+webworker.on(ChangelogWatcherRequestTypes.GET_CHANGES_FOR_FILE, ({filePath}) => {
+    webworker.postMessage(ChangelogWatcherResponseTypes.CHANGES_FOR_FILE, {
+        changes: changelog.getChangesForFile(filePath),
+    });
 });

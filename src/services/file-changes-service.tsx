@@ -2,15 +2,23 @@ import React from "react";
 
 import {createGenericContext} from "@utils/generic-context";
 
+import {Webworker} from "@workers/worker-utils";
+
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 
-import {FileChange, FileChangesWatcherRequest, FileChangesWatcherResponse} from "@shared-types/file-changes";
+import {
+    FileChange,
+    FileChangesRequests,
+    FileChangesResponses,
+    FileChangesWatcherRequestType,
+    FileChangesWatcherResponseType,
+} from "@shared-types/file-changes";
 
 // @ts-ignore
 // eslint-disable-next-line import/no-webpack-loader-syntax
-import FileChangesWatcherWorker from "worker-loader!@workers/file-changes-watcher.worker";
+import worker from "worker-loader!@workers/file-changes-watcher.worker";
 
-const changelogWatcherWorker = new FileChangesWatcherWorker();
+const changelogWatcherWorker = new Webworker<FileChangesRequests, FileChangesResponses>(worker);
 
 export type Context = {
     fileChanges: FileChange[];
@@ -25,24 +33,15 @@ export const FileChangesWatcherService: React.FC = props => {
 
     React.useEffect(() => {
         if (changelogWatcherWorker) {
-            changelogWatcherWorker.onmessage = (e: MessageEvent) => {
-                const data = e.data;
-                switch (data.type) {
-                    case FileChangesWatcherResponse.FILE_CHANGES:
-                        setFileChanges(data.fileChanges);
-                        break;
-                    default:
-                }
-            };
+            changelogWatcherWorker.on(FileChangesWatcherResponseType.FILE_CHANGES, data => {
+                setFileChanges(data.fileChanges);
+            });
         }
     }, [dispatch]);
 
     React.useEffect(() => {
         if (changelogWatcherWorker) {
-            changelogWatcherWorker.postMessage({
-                type: FileChangesWatcherRequest.SET_DIRECTORY,
-                directory,
-            });
+            changelogWatcherWorker.postMessage(FileChangesWatcherRequestType.SET_DIRECTORY, {directory});
         }
     }, [directory]);
 

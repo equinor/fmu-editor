@@ -42,9 +42,9 @@ export const Directory: React.VFC<DirectoryProps> = props => {
         }
         let current = fileTreeStates;
         props.indices.forEach((index, i) => {
-            if (i < props.indices.length - 1 && current[index].children !== undefined) {
-                current = fileTreeStates[index].children as FileTreeStates;
-            } else if (current.at(index)) {
+            if (i < props.indices.length - 1 && current?.at(index)?.children !== undefined) {
+                current = fileTreeStates[index]?.children as FileTreeStates;
+            } else if (current?.at(index)) {
                 setExpanded(current[index].expanded);
             }
         });

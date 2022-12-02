@@ -8,6 +8,7 @@ import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {addNotification} from "@redux/reducers/notifications";
 import {setInitialConfigurationDone} from "@redux/reducers/uiCoach";
 import {saveFile} from "@redux/thunks";
+import {SaveFileResult} from "@redux/thunks/save-file";
 
 import {NotificationType} from "@shared-types/notifications";
 
@@ -15,7 +16,7 @@ import {useFileManager} from "./file-manager";
 
 export const IpcService: React.FC = props => {
     const dispatch = useAppDispatch();
-    const {fileManager} = useFileManager();
+    const {fileManager, copyUserDirectory} = useFileManager();
     const activeFilePath = useAppSelector(state => state.files.activeFile);
     const associatedWithFile = useAppSelector(
         state => state.files.files.find(el => el.filePath === state.files.activeFile)?.associatedWithFile || false
@@ -32,7 +33,21 @@ export const IpcService: React.FC = props => {
             ipcRenderer.on(channelName, func);
         };
         addListener("save-file", () => {
-            saveFile(activeFilePath, currentEditorValue, fileManager, dispatch);
+            const result = saveFile(activeFilePath, currentEditorValue, fileManager, dispatch);
+            if (result === SaveFileResult.NO_USER_DIRECTORY) {
+                dispatch(
+                    addNotification({
+                        type: NotificationType.ERROR,
+                        message: `You don't have a copy of the working directory (${fileManager.getCurrentDirectory()}). Create it now? Note: this might take a couple of minutes.`,
+                        action: {
+                            label: "Create",
+                            action: () => {
+                                copyUserDirectory();
+                            },
+                        },
+                    })
+                );
+            }
             // document.dispatchEvent(new Event("save-file"));
         });
 
@@ -60,7 +75,15 @@ export const IpcService: React.FC = props => {
                 ipcRenderer.removeAllListeners(channelName);
             });
         };
-    }, [activeFilePath, currentEditorValue, dispatch, mainProcessData, associatedWithFile, fileManager]);
+    }, [
+        activeFilePath,
+        currentEditorValue,
+        dispatch,
+        mainProcessData,
+        associatedWithFile,
+        fileManager,
+        copyUserDirectory,
+    ]);
 
     return <>{props.children}</>;
 };

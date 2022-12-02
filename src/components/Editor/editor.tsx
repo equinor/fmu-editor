@@ -43,6 +43,13 @@ declare global {
     }
 }
 
+const compareMarkers = (a: monaco.editor.IMarker, b: monaco.editor.IMarker): number => {
+    if (a.startLineNumber === b.startLineNumber) {
+        return a.startColumn - b.startColumn;
+    }
+    return a.startLineNumber - b.startLineNumber;
+};
+
 window.MonacoEnvironment = {
     getWorker(moduleId, label) {
         switch (label) {
@@ -192,9 +199,11 @@ export const Editor: React.FC<EditorProps> = () => {
             return;
         }
         setMarkers(
-            monacoRef.current.editor.getModelMarkers({
-                resource: monacoEditorRef.current.getModel()?.uri,
-            })
+            monacoRef.current.editor
+                .getModelMarkers({
+                    resource: monacoEditorRef.current.getModel()?.uri,
+                })
+                .sort(compareMarkers)
         );
     };
 

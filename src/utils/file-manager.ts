@@ -15,6 +15,10 @@ export class FileManager {
         this.error = "";
     }
 
+    getCurrentDirectory(): string | null {
+        return this.currentDirectory;
+    }
+
     setUsername(username: string) {
         this.username = username;
     }
@@ -23,9 +27,12 @@ export class FileManager {
         this.fmuDirectory = fmuDirectory;
     }
 
+    getFmuDirectory(): string {
+        return this.fmuDirectory;
+    }
+
     setCurrentDirectory(currentDirectory: string) {
         this.currentDirectory = currentDirectory;
-        this.maybeCreateTempUserDirectory();
     }
 
     userDirectory(): string {
@@ -33,6 +40,10 @@ export class FileManager {
             return "";
         }
         return path.join(this.currentDirectory, ".users", this.username);
+    }
+
+    userDirectoryExists(): boolean {
+        return fs.existsSync(this.userDirectory());
     }
 
     maybeCreateTempUserDirectory(): boolean {

@@ -66,7 +66,7 @@ export const FileManagerService: React.FC = props => {
                 }
             };
         }
-    }, [fileOperationsWorker]);
+    }, []);
 
     return (
         <FileManagerContextProvider
