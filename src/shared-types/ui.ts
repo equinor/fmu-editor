@@ -8,13 +8,13 @@ export type PaneConfiguration = {
     sizes: number[];
 };
 
-export enum EditorMode {
+export enum Page {
     Editor = "editor",
-    DiffEditor = "diff-editor",
+    DiffEditor = "source-control",
 }
 
 export type UiState = {
-    editorMode: EditorMode;
+    page: Page;
     settings: {
         theme: Themes;
         editorFontSize: number;

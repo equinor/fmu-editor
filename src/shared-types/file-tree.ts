@@ -4,6 +4,7 @@ export type FileTreeItem = {
     type: "file" | "directory";
     modified: Date;
     children?: FileTree;
+    fileSize?: number;
 };
 
 export type FileTree = FileTreeItem[];

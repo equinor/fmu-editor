@@ -21,12 +21,12 @@ export class Webworker<
     private messageLog: string[];
     // eslint-disable-next-line no-restricted-globals
     private worker: any;
-    constructor(Worker?: any) {
+    constructor(params: {self?: any; Worker?: any}) {
         this.listeners = {} as {[key in keyof Responses]: (payload: Responses[key]) => void};
         this.messageLog = [];
 
-        if (Worker) {
-            this.worker = new Worker();
+        if (params.Worker) {
+            this.worker = new params.Worker();
             this.worker.onmessage = (event: MessageEvent<PayloadMap<Responses>[keyof PayloadMap<Responses>]>) => {
                 const listener = this.listeners[event.data.type];
                 if (listener) {
@@ -37,9 +37,9 @@ export class Webworker<
             };
         } else {
             // eslint-disable-next-line no-restricted-globals
-            this.worker = self;
+            this.worker = params.self;
             // eslint-disable-next-line no-restricted-globals
-            self.addEventListener(
+            this.worker.addEventListener(
                 "message",
                 (event: MessageEvent<PayloadMap<Responses>[keyof PayloadMap<Responses>]>) => {
                     const listener = this.listeners[event.data.type];
@@ -61,6 +61,6 @@ export class Webworker<
         this.messageLog = [...this.messageLog, type as string];
 
         // eslint-disable-next-line no-restricted-globals
-        self.postMessage({type: type as string, payload});
+        this.worker.postMessage({type: type as string, payload});
     }
 }

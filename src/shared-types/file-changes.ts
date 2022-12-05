@@ -7,9 +7,16 @@ export enum FileChangesWatcherResponseType {
     NO_USER_DIRECTORY,
 }
 
+export enum FileChangeType {
+    MODIFIED,
+    ADDED,
+    DELETED
+}
+
 export type FileChange = {
     user: string;
     filePath: string;
+    type: FileChangeType;
     modified: Date;
 };
 

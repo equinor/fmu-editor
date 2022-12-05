@@ -18,7 +18,7 @@ import {
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import worker from "worker-loader!@workers/file-changes-watcher.worker";
 
-const changelogWatcherWorker = new Webworker<FileChangesRequests, FileChangesResponses>(worker);
+const changelogWatcherWorker = new Webworker<FileChangesRequests, FileChangesResponses>({Worker: worker});
 
 export type Context = {
     fileChanges: FileChange[];

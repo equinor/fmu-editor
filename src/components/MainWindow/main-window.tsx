@@ -2,6 +2,8 @@ import {useTheme} from "@mui/material";
 
 import React from "react";
 
+import {ChangesBrowser} from "@components/ChangesBrowser";
+import {DiffEditor} from "@components/DiffEditor";
 import {Editor} from "@components/Editor";
 import {Explorer} from "@components/Explorer/explorer";
 import {ResizablePanels} from "@components/ResizablePanels";
@@ -19,6 +21,9 @@ export const MainWindow: React.FC = () => {
 
     const mainWindowRef = React.useRef<HTMLDivElement | null>(null);
     const files = useAppSelector(state => state.files);
+    const page = useAppSelector(state => state.ui.page);
+
+    const [selectedFile, setSelectedFile] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         if (!files || files.activeFile === "") {
@@ -32,10 +37,18 @@ export const MainWindow: React.FC = () => {
         <div className="MainWindow" ref={mainWindowRef} style={{backgroundColor: theme.palette.background.default}}>
             <div className="ContentWrapper">
                 <Views />
-                <ResizablePanels direction="horizontal" id="file-explorer">
-                    <Explorer />
-                    <Editor />
-                </ResizablePanels>
+                {page === "editor" && (
+                    <ResizablePanels direction="horizontal" id="file-explorer">
+                        <Explorer />
+                        <Editor />
+                    </ResizablePanels>
+                )}
+                {page === "source-control" && (
+                    <ResizablePanels direction="horizontal" id="source-control">
+                        <ChangesBrowser selectedFile={selectedFile} onFileSelect={file => setSelectedFile(file)} />
+                        <DiffEditor file={selectedFile} onClose={() => setSelectedFile(null)} />
+                    </ResizablePanels>
+                )}
             </div>
             <Toolbar />
         </div>

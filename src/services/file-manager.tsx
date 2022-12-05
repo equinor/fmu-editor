@@ -3,12 +3,15 @@ import React from "react";
 import {FileManager} from "@utils/file-manager";
 import {createGenericContext} from "@utils/generic-context";
 
+import {Webworker} from "@workers/worker-utils";
+
 import {useAppSelector} from "@redux/hooks";
 
 import {
     FileOperationsRequestType,
     FileOperationsRequests,
     FileOperationsResponseType,
+    FileOperationsResponses,
 } from "@shared-types/file-operations";
 
 // @ts-ignore
@@ -17,7 +20,9 @@ import FileOperationsWorker from "worker-loader!@workers/file-operations.worker"
 
 import {useEnvironment} from "./environment-service";
 
-const fileOperationsWorker = new FileOperationsWorker();
+const fileOperationsWorker = new Webworker<FileOperationsRequests, FileOperationsResponses>({
+    Worker: FileOperationsWorker,
+});
 
 export type Context = {
     fileManager: FileManager;
@@ -38,33 +43,28 @@ export const FileManagerService: React.FC = props => {
             fileManager.current.setFmuDirectory(fmuDirectory);
             fileManager.current.setUsername(environment.username);
             fileManager.current.setCurrentDirectory(currentDirectory);
+
+            fileOperationsWorker.postMessage(FileOperationsRequestType.SET_USER_DIRECTORY, {
+                username: environment.username,
+                directory: currentDirectory,
+            });
         }
     }, [environment.username, fmuDirectory, currentDirectory]);
 
     const copyUserDirectory = React.useCallback(() => {
         if (fileOperationsWorker && environment.username) {
-            const request: FileOperationsRequests = {
-                type: FileOperationsRequestType.COPY_USER_DIRECTORY,
-                payload: {
-                    username: environment.username,
-                    directory: currentDirectory,
-                },
-            };
-            fileOperationsWorker.postMessage(request);
+            fileOperationsWorker.postMessage(FileOperationsRequestType.COPY_USER_DIRECTORY, {
+                username: environment.username,
+                directory: currentDirectory,
+            });
         }
     }, [environment, currentDirectory]);
 
     React.useEffect(() => {
         if (fileOperationsWorker) {
-            fileOperationsWorker.onmessage = (e: MessageEvent) => {
-                const data = e.data;
-                switch (data.type) {
-                    case FileOperationsResponseType.COPY_USER_DIRECTORY_PROGRESS:
-                        document.dispatchEvent(new CustomEvent("copyUserDirectoryProgress", {detail: data.payload}));
-                        break;
-                    default:
-                }
-            };
+            fileOperationsWorker.on(FileOperationsResponseType.COPY_USER_DIRECTORY_PROGRESS, payload => {
+                document.dispatchEvent(new CustomEvent("copyUserDirectoryProgress", {detail: payload}));
+            });
         }
     }, []);
 

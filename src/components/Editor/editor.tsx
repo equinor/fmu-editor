@@ -10,7 +10,6 @@ import React from "react";
 import {VscError, VscInfo, VscLightbulb, VscWarning} from "react-icons/vsc";
 import MonacoEditor, {EditorDidMount, monaco} from "react-monaco-editor";
 
-import {ChangesBrowser} from "@components/ChangesBrowser";
 import {FileTabs} from "@components/FileTabs";
 import {ResizablePanels} from "@components/ResizablePanels";
 import {Surface} from "@components/Surface";
@@ -19,7 +18,7 @@ import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setActiveFile, setEditorViewState, setValue} from "@redux/reducers/files";
 
 import {CodeEditorViewState} from "@shared-types/files";
-import {EditorMode} from "@shared-types/ui";
+import {Page} from "@shared-types/ui";
 
 import FmuLogo from "@assets/fmu-logo.svg";
 
@@ -115,7 +114,7 @@ export const Editor: React.FC<EditorProps> = () => {
     const files = useAppSelector(state => state.files.files);
     const activeFile = useAppSelector(state => state.files.activeFile);
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
-    const editorMode = useAppSelector(state => state.ui.editorMode);
+    const editorMode = useAppSelector(state => state.ui.page);
     const fileManager = useFileManager();
 
     useYamlSchemas(yaml);
@@ -176,7 +175,7 @@ export const Editor: React.FC<EditorProps> = () => {
                 setActiveFile({
                     filePath,
                     viewState:
-                        editorMode === EditorMode.Editor
+                        editorMode === Page.Editor
                             ? convertFromViewState(monacoEditorRef.current.saveViewState())
                             : null,
                 })
@@ -249,7 +248,7 @@ export const Editor: React.FC<EditorProps> = () => {
                 );
             }
             if (userModel) {
-                if (monacoEditorRef.current && monacoRef.current && editorMode === EditorMode.Editor) {
+                if (monacoEditorRef.current && monacoRef.current && editorMode === Page.Editor) {
                     monacoEditorRef.current.setModel(userModel);
                     if (file.editorViewState) {
                         monacoEditorRef.current.restoreViewState(file.editorViewState);
@@ -287,73 +286,70 @@ export const Editor: React.FC<EditorProps> = () => {
                 backgroundColor: theme.palette.mode === "dark" ? "#1E1E1E" : theme.palette.background.default,
             }}
         >
-            <ResizablePanels direction="horizontal" id="Editor-Changes">
-                <div className="EditorContainer">
-                    <div
-                        className="Editor__NoModels"
-                        style={{
-                            display: noModels ? "flex" : "none",
-                        }}
-                    >
-                        <img src={FmuLogo} alt="FMU Logo" />
-                        <Typography variant="h6">FMU Editor</Typography>
-                        <Typography variant="body1">Please select a file...</Typography>
-                    </div>
-                    <div className="EditorContainer" style={{display: !noModels ? "flex" : "none"}}>
-                        <ResizablePanels direction="vertical" id="Editor-Issues">
-                            <div ref={editorRef} className="Editor">
-                                <FileTabs onFileChange={handleFileChange} />
-                                <MonacoEditor
-                                    language="yaml"
-                                    defaultValue=""
-                                    className="YamlEditor"
-                                    editorDidMount={handleEditorDidMount}
-                                    theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
-                                    options={{
-                                        tabSize: 2,
-                                        insertSpaces: true,
-                                        quickSuggestions: {other: true, strings: true},
-                                    }}
-                                    width={editorTotalWidth}
-                                    height={editorTotalHeight - 56}
-                                />
-                            </div>
-                            <div className="Issues">
-                                <Surface elevation="raised" className="IssuesTitle">
-                                    <Grid container columnSpacing={2} spacing={5} direction="row" alignItems="center">
-                                        <Grid item>
-                                            <Badge badgeContent={noModels ? 0 : markers.length} color="warning">
-                                                <ErrorIcon color="action" />
-                                            </Badge>
-                                        </Grid>
-                                        <Grid item>Issues</Grid>
-                                    </Grid>
-                                </Surface>
-                                <div className="IssuesContent" style={{display: noModels ? "none" : "block"}}>
-                                    {markers.map(marker => (
-                                        <a href="#" className="Issue" onClick={e => selectMarker(e, marker)} key={v4()}>
-                                            {marker.severity === monaco.MarkerSeverity.Error ? (
-                                                <VscError color={theme.palette.error.main} size={16} />
-                                            ) : marker.severity === monaco.MarkerSeverity.Warning ? (
-                                                <VscWarning color={theme.palette.warning.main} size={16} />
-                                            ) : marker.severity === monaco.MarkerSeverity.Info ? (
-                                                <VscInfo color={theme.palette.info.main} size={16} />
-                                            ) : (
-                                                <VscLightbulb color={theme.palette.secondary.main} size={16} />
-                                            )}{" "}
-                                            {marker.message}
-                                            <span className="IssuePosition">
-                                                [Ln {marker.startLineNumber}, Col {marker.startColumn}]
-                                            </span>
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-                        </ResizablePanels>
-                    </div>
+            <div className="EditorContainer">
+                <div
+                    className="Editor__NoModels"
+                    style={{
+                        display: noModels ? "flex" : "none",
+                    }}
+                >
+                    <img src={FmuLogo} alt="FMU Logo" />
+                    <Typography variant="h6">FMU Editor</Typography>
+                    <Typography variant="body1">Please select a file...</Typography>
                 </div>
-                <ChangesBrowser />
-            </ResizablePanels>
+                <div className="EditorContainer" style={{display: !noModels ? "flex" : "none"}}>
+                    <ResizablePanels direction="vertical" id="Editor-Issues">
+                        <div ref={editorRef} className="Editor">
+                            <FileTabs onFileChange={handleFileChange} />
+                            <MonacoEditor
+                                language="yaml"
+                                defaultValue=""
+                                className="YamlEditor"
+                                editorDidMount={handleEditorDidMount}
+                                theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
+                                options={{
+                                    tabSize: 2,
+                                    insertSpaces: true,
+                                    quickSuggestions: {other: true, strings: true},
+                                }}
+                                width={editorTotalWidth}
+                                height={editorTotalHeight - 56}
+                            />
+                        </div>
+                        <div className="Issues">
+                            <Surface elevation="raised" className="IssuesTitle">
+                                <Grid container columnSpacing={2} spacing={5} direction="row" alignItems="center">
+                                    <Grid item>
+                                        <Badge badgeContent={noModels ? 0 : markers.length} color="warning">
+                                            <ErrorIcon color="action" />
+                                        </Badge>
+                                    </Grid>
+                                    <Grid item>Issues</Grid>
+                                </Grid>
+                            </Surface>
+                            <div className="IssuesContent" style={{display: noModels ? "none" : "block"}}>
+                                {markers.map(marker => (
+                                    <a href="#" className="Issue" onClick={e => selectMarker(e, marker)} key={v4()}>
+                                        {marker.severity === monaco.MarkerSeverity.Error ? (
+                                            <VscError color={theme.palette.error.main} size={16} />
+                                        ) : marker.severity === monaco.MarkerSeverity.Warning ? (
+                                            <VscWarning color={theme.palette.warning.main} size={16} />
+                                        ) : marker.severity === monaco.MarkerSeverity.Info ? (
+                                            <VscInfo color={theme.palette.info.main} size={16} />
+                                        ) : (
+                                            <VscLightbulb color={theme.palette.secondary.main} size={16} />
+                                        )}{" "}
+                                        {marker.message}
+                                        <span className="IssuePosition">
+                                            [Ln {marker.startLineNumber}, Col {marker.startColumn}]
+                                        </span>
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    </ResizablePanels>
+                </div>
+            </div>
         </div>
     );
 };

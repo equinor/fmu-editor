@@ -112,3 +112,13 @@
 .IssuePosition {
     margin-left: 8px;
 }
+
+.DiffEditorHeader {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-s);
+    gap: var(--spacing-s);
+    background-color: var(--background-light);
+}

@@ -39,17 +39,22 @@
     cursor: pointer;
     flex-wrap: nowrap;
     padding: var(--spacing-s);
+    gap: var(--spacing-s);
 }
 
 .ChangesBrowserListItem:hover {
     background-color: var(--primary-hover-alt);
 }
 
+.ChangesBrowserListItemSelected {
+    background-color: var(--secondary-highlight);
+}
+
 .ChangesBrowserListItem > div {
     flex-grow: 4;
     display: flex;
     align-items: center;
-    gap: var(--spacing);
+    gap: var(--spacing-s);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

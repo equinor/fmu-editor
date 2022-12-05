@@ -30,13 +30,13 @@ export const Directory: React.VFC<DirectoryProps> = props => {
     const dispatch = useAppDispatch();
     const {fileManager} = useFileManager();
 
-    React.useEffect(() => {
+    React.useLayoutEffect(() => {
         if (props.collapsed !== undefined) {
             setExpanded(false);
         }
     }, [props.collapsed]);
 
-    React.useEffect(() => {
+    React.useLayoutEffect(() => {
         if (!fileTreeStates || fileTreeStates.length === 0) {
             return;
         }

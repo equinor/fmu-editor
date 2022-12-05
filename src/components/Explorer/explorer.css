@@ -49,9 +49,9 @@
 }
 
 .ExplorerContent {
+    overflow: hidden;
     overflow-y: auto;
     padding: var(--spacing-s);
-    overflow: hidden;
 }
 
 .ExplorerItem {

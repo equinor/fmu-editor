@@ -22,7 +22,7 @@ import {
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import worker from "worker-loader!@workers/changelog-watcher.worker";
 
-const changelogWatcherWorker = new Webworker<ChangelogWatcherRequests, ChangelogWatcherResponses>(worker);
+const changelogWatcherWorker = new Webworker<ChangelogWatcherRequests, ChangelogWatcherResponses>({Worker: worker});
 
 export type Context = {
     appendCommit: (commit: ICommit) => void;

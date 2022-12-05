@@ -1,7 +1,8 @@
-import {Tab, Tabs} from "@mui/material";
+import {useUserFileChanges} from "@hooks/useUserFileChanges";
+import {Badge, Tab, Tabs} from "@mui/material";
 
 import React from "react";
-import {VscDiff, VscEdit} from "react-icons/vsc";
+import {VscEdit, VscSourceControl} from "react-icons/vsc";
 
 import {Surface} from "@components/Surface";
 import {ThemeSwitch} from "@components/ThemeSwitch";
@@ -9,14 +10,15 @@ import {ThemeSwitch} from "@components/ThemeSwitch";
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setEditorMode} from "@redux/reducers/ui";
 
-import {EditorMode} from "@shared-types/ui";
+import {Page} from "@shared-types/ui";
 
 import "./views.css";
 
 export const Views: React.VFC = () => {
-    const editorMode = useAppSelector(state => state.ui.editorMode);
+    const editorMode = useAppSelector(state => state.ui.page);
 
     const dispatch = useAppDispatch();
+    const userFileChanges = useUserFileChanges();
 
     return (
         <Surface className="TabMenu" elevation="raised">
@@ -25,17 +27,28 @@ export const Views: React.VFC = () => {
                 value={editorMode}
                 color="inherit"
                 onChange={(event: React.SyntheticEvent<Element, Event>, newValue: string) =>
-                    dispatch(setEditorMode(newValue as EditorMode))
+                    dispatch(setEditorMode(newValue as Page))
                 }
             >
                 <Tab
                     icon={<VscEdit color="inherit" size={24} title="Editor" />}
-                    value={EditorMode.Editor}
+                    value={Page.Editor}
                     className="MenuTab"
                 />
                 <Tab
-                    icon={<VscDiff color="inherit" size={24} title="Diff Editor" />}
-                    value={EditorMode.DiffEditor}
+                    icon={
+                        <Badge
+                            badgeContent={userFileChanges.length}
+                            color="primary"
+                            anchorOrigin={{
+                                vertical: "bottom",
+                                horizontal: "right",
+                            }}
+                        >
+                            <VscSourceControl color="inherit" size={24} title="Source control" />
+                        </Badge>
+                    }
+                    value={Page.DiffEditor}
                     className="MenuTab"
                 />
             </Tabs>

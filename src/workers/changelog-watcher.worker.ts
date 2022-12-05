@@ -9,7 +9,8 @@ import {
 
 import {Webworker} from "./worker-utils";
 
-const webworker = new Webworker<ChangelogWatcherResponses, ChangelogWatcherRequests>();
+// eslint-disable-next-line no-restricted-globals
+const webworker = new Webworker<ChangelogWatcherResponses, ChangelogWatcherRequests>({self});
 
 const changelog = new Changelog();
 let lastTimestamp = 0;

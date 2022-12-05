@@ -1,8 +1,8 @@
-import {Edit} from "@mui/icons-material";
+import {useUserFileChanges} from "@hooks/useUserFileChanges";
+import {Add, Edit, Remove} from "@mui/icons-material";
 import {Button, CircularProgress, Stack} from "@mui/material";
 import {useChangelogWatcher} from "@services/changelog-service";
 import {useEnvironment} from "@services/environment-service";
-import {useFileChangesWatcher} from "@services/file-changes-service";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
@@ -13,28 +13,35 @@ import {Surface} from "@components/Surface";
 import {useAppSelector} from "@redux/hooks";
 
 import {ICommit} from "@shared-types/changelog";
-import {FileChange} from "@shared-types/file-changes";
+import {FileChangeType} from "@shared-types/file-changes";
 
 import path from "path";
 import {v4} from "uuid";
 
 import "./changes-browser.css";
 
-export const ChangesBrowser: React.VFC = () => {
+export type ChangesBrowserProps = {
+    onFileSelect: (file: string) => void;
+    selectedFile: string | null;
+};
+
+export const ChangesBrowser: React.FC<ChangesBrowserProps> = props => {
     const [stagedFiles, setStagedFiles] = React.useState<string[]>([]);
     const [commitSummary, setCommitSummary] = React.useState<string>("");
     const [commitDescription, setCommitDescription] = React.useState<string>("");
-    const [userFileChanges, setUserFileChanges] = React.useState<FileChange[]>([]);
+    const [selectedFile, setSelectedFile] = React.useState<string | null>(null);
+    const userFileChanges = useUserFileChanges();
 
-    const fileChangesWatcher = useFileChangesWatcher();
     const directory = useAppSelector(state => state.files.directory);
     const environment = useEnvironment();
     const fileManager = useFileManager();
     const changelog = useChangelogWatcher();
 
     React.useEffect(() => {
-        setUserFileChanges(fileChangesWatcher.fileChanges.filter(change => change.user === environment.username));
-    }, [fileChangesWatcher.fileChanges, environment.username]);
+        if (props.selectedFile === null) {
+            setSelectedFile(props.selectedFile);
+        }
+    }, [props.selectedFile]);
 
     React.useEffect(() => {
         setStagedFiles(prev => prev.filter(el => userFileChanges.some(change => change.filePath === el)));
@@ -48,7 +55,8 @@ export const ChangesBrowser: React.VFC = () => {
     );
 
     const handleCommitChange = React.useCallback(
-        (filePath: string) => {
+        (e, filePath: string) => {
+            e.stopPropagation();
             if (stagedFiles.includes(filePath)) {
                 setStagedFiles(prev => prev.filter(el => el !== filePath));
             } else {
@@ -84,6 +92,14 @@ export const ChangesBrowser: React.VFC = () => {
         return null;
     }, [environment.username, environment.usernameError]);
 
+    const handleFileSelected = React.useCallback(
+        (file: string) => {
+            setSelectedFile(file);
+            props.onFileSelect(file);
+        },
+        [props]
+    );
+
     return (
         <Surface elevation="raised" className="ChangesBrowser">
             {loadingOrError()}
@@ -102,14 +118,32 @@ export const ChangesBrowser: React.VFC = () => {
                             {userFileChanges
                                 .filter(el => !stagedFiles.includes(el.filePath))
                                 .map(fileChange => (
-                                    <div className="ChangesBrowserListItem" key={fileChange.filePath}>
+                                    <div
+                                        className={`ChangesBrowserListItem${
+                                            fileChange.filePath === selectedFile
+                                                ? " ChangesBrowserListItemSelected"
+                                                : ""
+                                        }`}
+                                        key={fileChange.filePath}
+                                        onClick={() => handleFileSelected(fileChange.filePath)}
+                                    >
                                         <div>
-                                            <Edit color="success" fontSize="small" />
-                                            <span>{adjustFilePath(fileChange.filePath)}</span>
+                                            {fileChange.type === FileChangeType.MODIFIED && (
+                                                <Edit color="warning" fontSize="small" />
+                                            )}
+                                            {fileChange.type === FileChangeType.ADDED && (
+                                                <Add color="success" fontSize="small" />
+                                            )}
+                                            {fileChange.type === FileChangeType.DELETED && (
+                                                <Remove color="error" fontSize="small" />
+                                            )}
+                                            <span title={adjustFilePath(fileChange.filePath)}>
+                                                {adjustFilePath(fileChange.filePath)}
+                                            </span>
                                         </div>
                                         <Button
                                             variant="text"
-                                            onClick={() => handleCommitChange(fileChange.filePath)}
+                                            onClick={e => handleCommitChange(e, fileChange.filePath)}
                                             size="small"
                                         >
                                             Stage File
@@ -122,14 +156,32 @@ export const ChangesBrowser: React.VFC = () => {
                             {userFileChanges
                                 .filter(el => stagedFiles.includes(el.filePath))
                                 .map(fileChange => (
-                                    <div className="ChangesBrowserListItem" key={fileChange.filePath}>
+                                    <div
+                                        className={`ChangesBrowserListItem${
+                                            fileChange.filePath === selectedFile
+                                                ? " ChangesBrowserListItemSelected"
+                                                : ""
+                                        }`}
+                                        key={fileChange.filePath}
+                                        onClick={() => handleFileSelected(fileChange.filePath)}
+                                    >
                                         <div>
-                                            <Edit color="success" fontSize="small" />
-                                            <span>{adjustFilePath(fileChange.filePath)}</span>
+                                            {fileChange.type === FileChangeType.MODIFIED && (
+                                                <Edit color="warning" fontSize="small" />
+                                            )}
+                                            {fileChange.type === FileChangeType.ADDED && (
+                                                <Add color="success" fontSize="small" />
+                                            )}
+                                            {fileChange.type === FileChangeType.DELETED && (
+                                                <Remove color="error" fontSize="small" />
+                                            )}
+                                            <span title={adjustFilePath(fileChange.filePath)}>
+                                                {adjustFilePath(fileChange.filePath)}
+                                            </span>
                                         </div>
                                         <Button
                                             variant="text"
-                                            onClick={() => handleCommitChange(fileChange.filePath)}
+                                            onClick={e => handleCommitChange(e, fileChange.filePath)}
                                             size="small"
                                         >
                                             Unstage File

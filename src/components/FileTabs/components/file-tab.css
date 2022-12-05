@@ -3,7 +3,7 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    background-color: var(--background-medium);
+    background-color: var(--background-light);
     padding: var(--spacing-s);
     cursor: pointer;
     white-space: nowrap;
@@ -12,7 +12,7 @@
 }
 
 .FileTab--active {
-    background-color: var(--background-light);
+    background-color: var(--background-semi-transparent);
 }
 
 .FileTab__CloseButton {

@@ -132,4 +132,12 @@ export class FileManager {
         }
         return filePath;
     }
+
+    getOriginalFileIfExists(filePath: string): string {
+        const newFilePath = this.unmodifyFilePath(filePath);
+        if (fs.existsSync(newFilePath)) {
+            return newFilePath;
+        }
+        return filePath;
+    }
 }

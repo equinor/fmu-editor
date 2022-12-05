@@ -85,8 +85,6 @@ export const Toolbar: React.FC = () => {
     React.useEffect(() => {
         const adjustProgress = (e: Event) => {
             // @ts-ignore
-            console.log(e.detail.progress);
-            // @ts-ignore
             setProgress(Math.round(e.detail.progress * 100) as number);
         };
 

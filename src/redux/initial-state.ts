@@ -7,7 +7,7 @@ import {generateHashCode} from "@utils/hash";
 import {EventSource, File, FilesState} from "@shared-types/files";
 import {NotificationsState} from "@shared-types/notifications";
 import {PreferencesState} from "@shared-types/preferences";
-import {EditorMode, Themes, UiState} from "@shared-types/ui";
+import {Page, Themes, UiState} from "@shared-types/ui";
 import {UiCoachState} from "@shared-types/ui-coach";
 
 import fs from "fs";
@@ -16,7 +16,7 @@ import {SelectionDirection} from "monaco-editor";
 const paneConfiguration = electronStore.get("ui.paneConfiguration");
 
 const initialUiState: UiState = {
-    editorMode: EditorMode.Editor,
+    page: Page.Editor,
     settings: {
         theme: electronStore.get("ui.settings.theme") || Themes.Light,
         editorFontSize: electronStore.get("ui.settings.editorFontSize") || 1.0,
