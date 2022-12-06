@@ -74,6 +74,12 @@ export class FileManager {
         return newFilePath;
     }
 
+    relativeFilePath(filePath: string): string {
+        if (!this.currentDirectory) return filePath;
+
+        return path.relative(this.currentDirectory, filePath);
+    }
+
     saveFile(filePath: string, value: string): {success: boolean; filePath: string} {
         const newFilePath = this.modifyFilePath(filePath);
         const dir = path.dirname(newFilePath);
@@ -139,5 +145,13 @@ export class FileManager {
             return newFilePath;
         }
         return filePath;
+    }
+
+    makeOriginalFilePath(relativeFilePath: string, compareSnapshotPath: string | null): string {
+        if (compareSnapshotPath) {
+            return path.join(compareSnapshotPath, relativeFilePath);
+        }
+        if (!this.currentDirectory) return "";
+        return path.join(this.currentDirectory, relativeFilePath);
     }
 }

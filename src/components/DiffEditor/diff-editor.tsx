@@ -1,23 +1,26 @@
 import {useYamlSchemas} from "@hooks/useYamlSchema";
 import {Close} from "@mui/icons-material";
-import {IconButton, Typography, useTheme} from "@mui/material";
+import {IconButton, useTheme} from "@mui/material";
 import useSize from "@react-hook/size";
 import {useFileManager} from "@services/file-manager";
-
-import {ipcRenderer} from "electron";
 
 import React from "react";
 import {DiffEditorDidMount, MonacoDiffEditor, monaco} from "react-monaco-editor";
 
-import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setActiveFile, setValue} from "@redux/reducers/files";
+import {CommitBrowser} from "@components/CommitBrowser";
+import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
+import {Surface} from "@components/Surface";
 
-import {CodeEditorViewState} from "@shared-types/files";
-import {Page} from "@shared-types/ui";
+import {useAppDispatch, useAppSelector} from "@redux/hooks";
+import {setActiveDiffFile} from "@redux/reducers/files";
+import {addNotification} from "@redux/reducers/notifications";
+
+import {NotificationType} from "@shared-types/notifications";
 
 import fs from "fs";
 // @ts-ignore
 import {languages} from "monaco-editor";
+import path from "path";
 
 import "./diff-editor.css";
 
@@ -53,59 +56,32 @@ window.MonacoEnvironment = {
     },
 };
 
-const convertFromViewState = (viewState: monaco.editor.ICodeEditorViewState | null): CodeEditorViewState | null => {
-    if (!viewState) {
-        return null;
-    }
-    return {
-        ...viewState,
-        viewState: {
-            ...viewState.viewState,
-            firstPosition: {
-                column: viewState.viewState.firstPosition.column,
-                lineNumber: viewState.viewState.firstPosition.lineNumber,
-            },
-        },
-    };
-};
-
 // @ts-ignore
 const {yaml} = languages || {};
 
-type EditorProps = {
-    file: string | null;
-    onClose: () => void;
-};
-
-export const DiffEditor: React.FC<EditorProps> = props => {
+export const DiffEditor: React.VFC = () => {
     const [visible, setVisible] = React.useState<boolean>(false);
-    const [noModels, setNoModels] = React.useState<boolean>(false);
-    const [selection, setSelection] = React.useState<monaco.ISelection | null>(null);
-    const [lineDecorations, setLineDecorations] = React.useState<string[]>([]);
-    const [markers, setMarkers] = React.useState<monaco.editor.IMarker[]>([]);
-    const parserTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-    const [models, setModels] = React.useState<monaco.editor.ITextModel[]>([]);
+    const [originalFilePath, setOriginalFilePath] = React.useState<string | null>(null);
+    const [userFilePath, setUserFilePath] = React.useState<string | null>(null);
+    const [originalEditorWidth, setOriginalEditorWidth] = React.useState<number>(0);
 
-    const monacoEditorRef = React.useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const monacoDiffEditorRef = React.useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
-    const editorRef = React.useRef<HTMLDivElement | null>(null);
     const diffEditorRef = React.useRef<HTMLDivElement | null>(null);
-    const monacoRef = React.useRef<typeof monaco | null>(null);
     const monacoDiffRef = React.useRef<typeof monaco | null>(null);
 
-    const [editorTotalWidth, editorTotalHeight] = useSize(editorRef);
     const [diffEditorTotalWidth, diffEditorTotalHeight] = useSize(diffEditorRef);
 
     const timeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const theme = useTheme();
-    const dispatch = useAppDispatch();
 
-    const files = useAppSelector(state => state.files.files);
-    const activeFile = useAppSelector(state => state.files.activeFile);
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
-    const editorMode = useAppSelector(state => state.ui.page);
-    const fileManager = useFileManager();
+    const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
+    const currentCommit = useAppSelector(state => state.ui.currentCommit);
+    const currentDirectory = useAppSelector(state => state.files.directory);
+    const dispatch = useAppDispatch();
+    const {fileManager} = useFileManager();
+    const globalSettings = useGlobalSettings();
 
     useYamlSchemas(yaml);
 
@@ -118,147 +94,71 @@ export const DiffEditor: React.FC<EditorProps> = props => {
         };
     }, [timeout]);
 
-    /*
-
-    const handleCursorPositionChange = (e: monaco.editor.ICursorPositionChangedEvent): void => {
-        if (
-            selection === null ||
-            selection.selectionStartLineNumber !== e.position.lineNumber ||
-            selection.positionLineNumber !== e.position.lineNumber ||
-            selection.selectionStartColumn !== e.position.column ||
-            selection.positionColumn !== e.position.column
-        ) {
-            setSelection(
-                new monaco.Selection(e.position.lineNumber, e.position.column, e.position.lineNumber, e.position.column)
-            );
-            if (e.reason === monaco.editor.CursorChangeReason.ContentFlush) {
-                return;
-            }
-            yamlParser.updateSelection(
-                new monaco.Selection(
-                    e.position.lineNumber,
-                    e.position.column,
-                    e.position.lineNumber,
-                    e.position.column
-                ),
-                EventSource.Editor
-            );
-            if (monacoEditorRef.current) {
-                dispatch(setEditorViewState(convertFromViewState(monacoEditorRef.current.saveViewState())));
-            }
-        }
-    };
-
-    const handleCursorSelectionChange = (e: monaco.editor.ICursorSelectionChangedEvent): void => {
-        if (
-            selection === null ||
-            selection.selectionStartLineNumber !== e.selection.selectionStartLineNumber ||
-            selection.positionLineNumber !== e.selection.positionLineNumber ||
-            selection.selectionStartColumn !== e.selection.selectionStartColumn ||
-            selection.positionColumn !== e.selection.positionColumn
-        ) {
-            setSelection(e.selection);
-            if (e.reason === monaco.editor.CursorChangeReason.ContentFlush) {
-                return;
-            }
-            yamlParser.updateSelection(e.selection, EventSource.Editor);
-            if (monacoEditorRef.current) {
-                dispatch(setEditorViewState(convertFromViewState(monacoEditorRef.current.saveViewState())));
-            }
-        }
-    };
-
-    const updateLineDecorations = React.useCallback(
-        (newDecorations: monaco.editor.IModelDeltaDecoration[]) => {
-            if (!monacoEditorRef.current) {
-                return;
-            }
-            setLineDecorations(monacoEditorRef.current.deltaDecorations(lineDecorations, newDecorations));
-        },
-        [lineDecorations]
-    );
-
-    */
-
-    const handleFileChange = (filePath: string) => {
-        if (monacoEditorRef.current) {
-            dispatch(
-                setActiveFile({
-                    filePath,
-                    viewState:
-                        editorMode === Page.Editor
-                            ? convertFromViewState(monacoEditorRef.current.saveViewState())
-                            : null,
-                })
-            );
-        }
-        // setTimeout(handleMarkersChange, 2000);
-    };
-
-    const handleEditorValueChange = (e: monaco.editor.IModelContentChangedEvent) => {
-        if (e.isFlush) {
-            return;
-        }
-        const model = monacoEditorRef.current?.getModel();
-        if (model) {
-            dispatch(setValue(model.getValue()));
-        }
-    };
-
-    /*
-
-    const handleMarkersChange = () => {
-        if (!monacoRef.current || !monacoEditorRef.current) {
-            return;
-        }
-        setMarkers(
-            monacoRef.current.editor.getModelMarkers({
-                resource: monacoEditorRef.current.getModel()?.uri,
-            })
-        );
-    };
-
-    const handleEditorViewStateChanged = () => {
-        if (monacoEditorRef.current) {
-            dispatch(setEditorViewState(convertFromViewState(monacoEditorRef.current.saveViewState())));
-        }
-    };
-    */
-
     const handleDiffEditorDidMount: DiffEditorDidMount = (editor, monacoInstance) => {
         monacoDiffEditorRef.current = editor;
         monacoDiffRef.current = monacoInstance;
+        editor.getOriginalEditor().onDidLayoutChange(handleLayoutChange);
     };
 
     React.useEffect(() => {
-        if (!monacoEditorRef || !monacoEditorRef.current) {
+        if (!monacoDiffEditorRef || !monacoDiffEditorRef.current) {
             return;
         }
-        monacoEditorRef.current.updateOptions({fontSize: 12 * fontSize});
-    }, [fontSize, monacoEditorRef]);
+        monacoDiffEditorRef.current.updateOptions({fontSize: 12 * fontSize});
+    }, [fontSize, monacoDiffEditorRef]);
 
     React.useEffect(() => {
-        const file = props.file;
-        if (file === null) {
-            setNoModels(true);
+        if (activeDiffFile) {
+            if (currentCommit) {
+                setUserFilePath(fileManager.makeOriginalFilePath(activeDiffFile, currentCommit.snapshotPath));
+                if (currentCommit.compareSnapshotPath) {
+                    setOriginalFilePath(
+                        fileManager.makeOriginalFilePath(activeDiffFile, currentCommit.compareSnapshotPath)
+                    );
+                } else {
+                    setOriginalFilePath(fileManager.makeOriginalFilePath(activeDiffFile, currentCommit.snapshotPath));
+                }
+            } else {
+                setUserFilePath(fileManager.getUserFileIfExists(path.join(currentDirectory, activeDiffFile)));
+                setOriginalFilePath(fileManager.getOriginalFileIfExists(path.join(currentDirectory, activeDiffFile)));
+            }
+        }
+    }, [activeDiffFile, currentCommit, currentDirectory, fileManager]);
+
+    React.useEffect(() => {
+        if (!activeDiffFile || !globalSettings.supportedFileExtensions.includes(path.extname(activeDiffFile))) {
             monacoDiffEditorRef.current?.setModel({
                 original: monaco.editor.createModel("", "yaml"),
                 modified: monaco.editor.createModel("", "yaml"),
             });
             setVisible(false);
+            if (activeDiffFile && !globalSettings.supportedFileExtensions.includes(path.extname(activeDiffFile))) {
+                dispatch(
+                    addNotification({
+                        type: NotificationType.INFORMATION,
+                        message: `You can only use the diff editor for files with the following extensions: ${globalSettings.supportedFileExtensions.join(
+                            ", "
+                        )}`,
+                    })
+                );
+            }
             return;
         }
 
         setVisible(true);
 
-        if (file) {
-            let userModel = monaco.editor.getModel(monaco.Uri.file(file));
+        if (userFilePath && originalFilePath) {
+            let userModel = monaco.editor.getModel(monaco.Uri.file(userFilePath));
             if (!userModel) {
-                userModel = monaco.editor.createModel(fs.readFileSync(file).toString(), "yaml", monaco.Uri.file(file));
+                userModel = monaco.editor.createModel(
+                    fs.readFileSync(userFilePath).toString(),
+                    "yaml",
+                    monaco.Uri.file(userFilePath)
+                );
             } else {
-                userModel.setValue(fs.readFileSync(file).toString());
+                userModel.setValue(fs.readFileSync(userFilePath).toString());
             }
-            const originalFilePath = fileManager.fileManager.getOriginalFileIfExists(file);
+
             let diffModel = monaco.editor.getModel(monaco.Uri.file(originalFilePath));
             if (!diffModel) {
                 diffModel = monaco.editor.createModel(
@@ -279,46 +179,48 @@ export const DiffEditor: React.FC<EditorProps> = props => {
                 }
             }
         }
+    }, [
+        activeDiffFile,
+        currentCommit,
+        currentDirectory,
+        dispatch,
+        fileManager,
+        globalSettings.supportedFileExtensions,
+        originalFilePath,
+        userFilePath,
+    ]);
 
-        setNoModels(false);
-    }, [props.file, fileManager]);
+    const handleClose = () => {
+        dispatch(setActiveDiffFile({relativeFilePath: null}));
+        setVisible(false);
+    };
 
-    React.useEffect(() => {
-        if (noModels) {
-            ipcRenderer.send("disable-save-actions");
-        } else {
-            ipcRenderer.send("enable-save-actions");
-        }
-    });
+    const handleLayoutChange = (layout: monaco.editor.EditorLayoutInfo) => {
+        setOriginalEditorWidth(layout.contentWidth);
+    };
 
     return (
-        <div
-            className="EditorWrapper"
-            style={{
-                backgroundColor: theme.palette.mode === "dark" ? "#1E1E1E" : theme.palette.background.default,
-            }}
-        >
+        <div className="EditorWrapper">
             <div
-                className="Editor__NoModels"
                 style={{
-                    visibility: !visible ? "visible" : "hidden",
+                    display: !visible ? "block" : "none",
+                    height: "100%",
                 }}
             >
-                <Typography variant="h6">FMU Editor</Typography>
-                <Typography variant="body1">Please select a file...</Typography>
+                <CommitBrowser />
             </div>
             <div ref={diffEditorRef} className="EditorContainer" style={{display: visible ? "block" : "none"}}>
-                <div className="DiffEditorHeader">
-                    {props.file}
-                    <IconButton
-                        onClick={() => {
-                            props.onClose();
-                            setVisible(false);
-                        }}
-                    >
+                <Surface elevation="raised" className="DiffEditorHeader">
+                    <div style={{width: originalEditorWidth}}>
+                        <strong>Original</strong> <i>({fileManager.relativeFilePath(originalFilePath || "")})</i>
+                    </div>
+                    <div style={{width: `calc(100% - 130px - ${originalEditorWidth}px)`}}>
+                        <strong>Modified</strong> <i>({fileManager.relativeFilePath(userFilePath || "")})</i>
+                    </div>
+                    <IconButton onClick={() => handleClose()}>
                         <Close />
                     </IconButton>
-                </div>
+                </Surface>
                 <MonacoDiffEditor
                     language="yaml"
                     defaultValue=""

@@ -42,3 +42,9 @@ webworker.on(ChangelogWatcherRequestTypes.GET_CHANGES_FOR_FILE, ({filePath}) => 
         changes: changelog.getChangesForFile(filePath),
     });
 });
+
+webworker.on(ChangelogWatcherRequestTypes.GET_ALL_CHANGES, () => {
+    webworker.postMessage(ChangelogWatcherResponseTypes.ALL_CHANGES, {
+        changes: changelog.getAllChanges(),
+    });
+});

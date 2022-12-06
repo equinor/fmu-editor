@@ -63,5 +63,6 @@ export type FilesState = {
     fileTreeStates: {[key: string]: FileTreeStates};
     files: File[];
     activeFile: string;
+    activeDiffFile: string | null;
     eventSource: EventSource;
 };

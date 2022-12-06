@@ -1,3 +1,5 @@
+import {ICommitExtended} from "./changelog";
+
 export enum Themes {
     Dark = "dark",
     Light = "light",
@@ -20,4 +22,5 @@ export type UiState = {
         editorFontSize: number;
     };
     paneConfiguration: PaneConfiguration[];
+    currentCommit?: ICommitExtended;
 };

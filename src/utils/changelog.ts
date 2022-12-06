@@ -142,9 +142,7 @@ export class Changelog {
             if (!fs.existsSync(snapshotPath)) {
                 return;
             }
-            const snapshotChangelog = JSON.parse(
-                fs.readFileSync(path.join(snapshotPath, ".changelog.json")).toString()
-            );
+            const snapshotChangelog = JSON.parse(fs.readFileSync(snapshotPath).toString());
             snapshots.push({
                 snapshotPath: path.join(this.snapshotsPath(), folder),
                 modified: fs.statSync(snapshotPath).mtime,
@@ -221,7 +219,9 @@ export class Changelog {
         const bundles: ISnapshotCommitBundle[] = [];
 
         this.changelog.log.forEach(bundle => {
-            const commits = bundle.commits.filter(commit => commit.files.includes(this.getRelativeFilePath(filePath)));
+            const commits = bundle.commits.filter(commit =>
+                commit.files.some(el => el.path === this.getRelativeFilePath(filePath))
+            );
             if (commits.length > 0) {
                 bundles.push({
                     snapshotPath: bundle.snapshotPath,
@@ -236,6 +236,37 @@ export class Changelog {
             }
         });
 
-        return bundles;
+        return bundles.sort((a, b) => b.modified.getTime() - a.modified.getTime());
+    }
+
+    public getAllChanges(): ISnapshotCommitBundle[] {
+        if (!this.directory) {
+            return [];
+        }
+
+        this.createLocalChangelogFileIfNotExists();
+        if (!this.changelog) {
+            return [];
+        }
+
+        const bundles: ISnapshotCommitBundle[] = [];
+
+        this.changelog.log.forEach(bundle => {
+            const commits = bundle.commits;
+            if (commits.length > 0) {
+                bundles.push({
+                    snapshotPath: bundle.snapshotPath,
+                    modified: bundle.modified,
+                    commits: [
+                        ...commits.map(commit => ({
+                            ...commit,
+                            datetime: new Date(commit.datetime),
+                        })),
+                    ],
+                });
+            }
+        });
+
+        return bundles.sort((a, b) => b.modified.getTime() - a.modified.getTime());
     }
 }

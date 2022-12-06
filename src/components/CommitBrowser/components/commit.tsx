@@ -1,36 +1,37 @@
-import {Avatar, ListItem, ListItemAvatar, ListItemText, Typography} from "@mui/material";
+import {Avatar, ListItem, ListItemAvatar} from "@mui/material";
 
 import React from "react";
 
+import {useAppSelector} from "@redux/hooks";
+
+import uniqolor from "uniqolor";
+
 export type CommitProps = {
+    id: string;
     message: string;
     user: string;
-    timestamp: number;
+    onClick?: () => void;
 };
 
 export const Commit: React.FC<CommitProps> = props => {
     const split = props.message.split("\n");
     const summary = split[0];
-    let description = "";
-    if (split.length > 1) description = split.slice(1).join("\n");
+    const currentCommit = useAppSelector(state => state.ui.currentCommit);
     return (
-        <ListItem alignItems="flex-start">
+        <ListItem
+            alignItems="center"
+            className={`CommitItem${currentCommit?.id === props.id ? " CommitItem--selected" : ""}`}
+            onClick={() => props.onClick !== undefined && props.onClick()}
+        >
             <ListItemAvatar>
-                <Avatar alt={props.user} title={props.user} src="/static/images/avatar/1.jpg" />
+                <Avatar
+                    alt={props.user}
+                    title={props.user}
+                    src="/static/images/avatar/1.jpg"
+                    sx={{width: 24, height: 24, backgroundColor: uniqolor(props.user).color}}
+                />
             </ListItemAvatar>
-            <ListItemText
-                primary={summary}
-                secondary={
-                    <>
-                        <Typography sx={{display: "inline"}} component="span" variant="body2" color="text.primary">
-                            {`${new Date(props.timestamp).getHours()}:${new Date(
-                                props.timestamp
-                            ).getMinutes()}:${new Date(props.timestamp).getSeconds()} — `}
-                        </Typography>
-                        {description}
-                    </>
-                }
-            />
+            {summary}
         </ListItem>
     );
 };

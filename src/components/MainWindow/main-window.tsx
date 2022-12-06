@@ -23,8 +23,6 @@ export const MainWindow: React.FC = () => {
     const files = useAppSelector(state => state.files);
     const page = useAppSelector(state => state.ui.page);
 
-    const [selectedFile, setSelectedFile] = React.useState<string | null>(null);
-
     React.useEffect(() => {
         if (!files || files.activeFile === "") {
             document.title = "FMU Editor";
@@ -45,8 +43,8 @@ export const MainWindow: React.FC = () => {
                 )}
                 {page === "source-control" && (
                     <ResizablePanels direction="horizontal" id="source-control">
-                        <ChangesBrowser selectedFile={selectedFile} onFileSelect={file => setSelectedFile(file)} />
-                        <DiffEditor file={selectedFile} onClose={() => setSelectedFile(null)} />
+                        <ChangesBrowser />
+                        <DiffEditor />
                     </ResizablePanels>
                 )}
             </div>

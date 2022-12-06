@@ -1,13 +1,14 @@
-import {Divider, List, ListSubheader} from "@mui/material";
+import {List, ListSubheader} from "@mui/material";
 import {useChangelogWatcher} from "@services/changelog-service";
 
 import React from "react";
 
 import {Surface} from "@components/Surface";
 
-import {useAppSelector} from "@redux/hooks";
+import {useAppDispatch} from "@redux/hooks";
+import {setCurrentCommit} from "@redux/reducers/ui";
 
-import {ISnapshotCommitBundle} from "@shared-types/changelog";
+import {ICommit, ISnapshotCommitBundle} from "@shared-types/changelog";
 
 import "./commit-browser.css";
 import {Commit} from "./components/commit";
@@ -16,56 +17,63 @@ export const CommitBrowser: React.FC = () => {
     const [commitBundles, setCommitBundles] = React.useState<ISnapshotCommitBundle[]>([]);
 
     const changelogWatcher = useChangelogWatcher();
-    const activeFile = useAppSelector(state => state.files.activeFile);
+    const dispatch = useAppDispatch();
 
     React.useEffect(() => {
-        changelogWatcher.getChangesForFile(activeFile);
-    }, [activeFile, changelogWatcher]);
-
-    React.useEffect(() => {
+        changelogWatcher.getAllChanges();
         const handleChangelogModified = () => {
-            changelogWatcher.getChangesForFile(activeFile);
+            changelogWatcher.getAllChanges();
         };
         document.addEventListener("changelog-modified", handleChangelogModified);
 
         return () => {
             document.removeEventListener("changelog-modified", handleChangelogModified);
         };
-    }, [activeFile, changelogWatcher]);
+    }, [changelogWatcher]);
 
     React.useEffect(() => {
-        setCommitBundles(changelogWatcher.changesForFile);
-    }, [changelogWatcher.changesForFile]);
+        setCommitBundles(changelogWatcher.allChanges);
+    }, [changelogWatcher.allChanges]);
+
+    const handleCommitClick = (commit: ICommit, snapshotPath: string | null, compareSnapshotPath: string | null) => {
+        dispatch(setCurrentCommit({...commit, snapshotPath, compareSnapshotPath}));
+    };
 
     return (
-        <Surface elevation="raised" className="CommitBrowser">
-            <Surface elevation="raised" className="CommitBrowserHeader">
-                Commits
-            </Surface>
+        <Surface elevation="none" className="CommitBrowser">
             <div className="CommitBrowserContent">
                 <List sx={{width: "100%"}} subheader={<li />}>
-                    {commitBundles.map(bundle => (
-                        <li key={`section-${bundle.snapshotPath}`}>
-                            <ul className="CommitSnapshotBundle">
-                                <ListSubheader style={{backgroundColor: "transparent"}}>
-                                    {bundle.modified.toDateString()}
-                                </ListSubheader>
-                                {bundle.commits.map((commit, index) => (
-                                    <React.Fragment key={commit.id}>
-                                        {index > 0 && <Divider variant="inset" component="li" />}
-                                        <Commit
-                                            key={commit.id}
-                                            message={commit.message}
-                                            user={commit.author}
-                                            timestamp={commit.datetime.getTime()}
-                                        />
-                                    </React.Fragment>
-                                ))}
-                            </ul>
-                        </li>
-                    ))}
+                    {commitBundles.map((bundle, index) => {
+                        const lastBundle = commitBundles[index + 1];
+                        return (
+                            <li key={`section-${bundle.snapshotPath}`}>
+                                <ul className="CommitSnapshotBundle">
+                                    <ListSubheader className="CommitSnapshotBundleHeader">
+                                        {bundle.modified.toDateString()}
+                                    </ListSubheader>
+                                    {bundle.commits.map(commit => (
+                                        <React.Fragment key={commit.id}>
+                                            <Commit
+                                                id={commit.id}
+                                                key={commit.id}
+                                                message={commit.message}
+                                                user={commit.author}
+                                                onClick={() =>
+                                                    handleCommitClick(
+                                                        commit,
+                                                        bundle.snapshotPath,
+                                                        lastBundle?.snapshotPath ?? null
+                                                    )
+                                                }
+                                            />
+                                        </React.Fragment>
+                                    ))}
+                                </ul>
+                            </li>
+                        );
+                    })}
                 </List>
-                {commitBundles.length === 0 && "No Commits"}
+                {commitBundles.length === 0 && <div className="CommitBrowserContent__NoCommits">No Commits</div>}
             </div>
         </Surface>
     );

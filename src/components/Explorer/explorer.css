@@ -87,6 +87,7 @@
 }
 
 .DirectoryDrawer {
-    background-color: #414141;
+    background-color: var(--primary);
+    color: var(--text-on-primary);
     height: 100%;
 }

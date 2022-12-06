@@ -4,6 +4,7 @@ import electronStore from "@utils/electron-store";
 
 import initialState from "@redux/initial-state";
 
+import {ICommitExtended} from "@shared-types/changelog";
 import {Page, PaneConfiguration, Themes, UiState} from "@shared-types/ui";
 
 export const uiSlice = createSlice({
@@ -33,8 +34,11 @@ export const uiSlice = createSlice({
             electronStore.set("ui.settings.editorFontSize", action.payload);
             state.settings.editorFontSize = action.payload;
         },
+        setCurrentCommit: (state: Draft<UiState>, action: PayloadAction<ICommitExtended | undefined>) => {
+            state.currentCommit = action.payload;
+        },
     },
 });
 
-export const {setEditorMode, setTheme, setPaneConfiguration, setEditorFontSize} = uiSlice.actions;
+export const {setEditorMode, setTheme, setPaneConfiguration, setEditorFontSize, setCurrentCommit} = uiSlice.actions;
 export default uiSlice.reducer;

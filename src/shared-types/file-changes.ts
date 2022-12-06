@@ -8,9 +8,9 @@ export enum FileChangesWatcherResponseType {
 }
 
 export enum FileChangeType {
-    MODIFIED,
-    ADDED,
-    DELETED
+    MODIFIED = "modified",
+    ADDED = "added",
+    DELETED = "deleted",
 }
 
 export type FileChange = {

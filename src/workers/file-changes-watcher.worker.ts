@@ -1,10 +1,10 @@
 import {
     FileChange,
+    FileChangeType,
     FileChangesRequests,
     FileChangesResponses,
     FileChangesWatcherRequestType,
     FileChangesWatcherResponseType,
-    FileChangeType,
 } from "@shared-types/file-changes";
 import {FileTree, FileTreeItem} from "@shared-types/file-tree";
 
@@ -71,22 +71,22 @@ const compareDirectory = (directory: string, user: string, mainDirectory: string
     }
 
     const combinedDirContent = deduplicate([
-        ...userDirContent.map(el => ({origin: "user", file: el})), 
-        ...originalDirContent.map(el => ({origin: "original", file: el}))
+        ...userDirContent.map(el => ({origin: "user", file: el})),
+        ...originalDirContent.map(el => ({origin: "original", file: el})),
     ] as FileMap[]);
 
     combinedDirContent.forEach(file => {
-        const filePath = file.origin === "user" ? path.join(directory, file.file) : path.join(originalDirectory, file.file);
+        const filePath =
+            file.origin === "user" ? path.join(directory, file.file) : path.join(originalDirectory, file.file);
         const stats = fs.statSync(filePath);
         if (stats.isDirectory() && file.origin === "user") {
             fileChanges.push(...compareDirectory(filePath, user, mainDirectory));
-        }
-        else if (stats.isFile()) {
+        } else if (stats.isFile()) {
             if (file.origin === "user") {
                 const originalFilePath = makeOriginalFilePath(filePath, mainDirectory);
                 if (fs.existsSync(originalFilePath)) {
                     const originalFileStats = fs.statSync(originalFilePath);
-                    if (originalFileStats.size !== stats.size) {
+                    if (originalFileStats.size !== stats.size || originalFileStats.mtimeMs < stats.mtimeMs) {
                         fileChanges.push({
                             user,
                             type: FileChangeType.MODIFIED,
@@ -94,8 +94,7 @@ const compareDirectory = (directory: string, user: string, mainDirectory: string
                             modified: stats.mtime,
                         });
                     }
-                }
-                else {
+                } else {
                     fileChanges.push({
                         user,
                         type: FileChangeType.ADDED,
@@ -103,8 +102,7 @@ const compareDirectory = (directory: string, user: string, mainDirectory: string
                         modified: stats.mtime,
                     });
                 }
-            }
-            else {
+            } else {
                 const userFilePath = makeUserFilePath(directory, filePath, mainDirectory);
                 fileChanges.push({
                     user,

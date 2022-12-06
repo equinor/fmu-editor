@@ -1,15 +1,15 @@
 import {
     FileOperationsRequestType,
+    FileOperationsRequests,
     FileOperationsResponseType,
     FileOperationsResponses,
     FileOperationsStatus,
-    FileOperationsRequests,
 } from "@shared-types/file-operations";
 
 import fs from "fs";
 import path from "path";
 
-import { Webworker } from "./worker-utils";
+import {Webworker} from "./worker-utils";
 
 // eslint-disable-next-line no-restricted-globals
 const webworker = new Webworker<FileOperationsResponses, FileOperationsRequests>({self});
@@ -26,7 +26,7 @@ const countFilesInDirectory = (directory: string, mtime: Date): number => {
         const stats = fs.statSync(filePath);
         if (stats.isDirectory()) {
             count += countFilesInDirectory(filePath, mtime);
-        } else if (stats.isFile() && (stats.mtime > mtime || stats.ctime > mtime)) {
+        } else if (stats.isFile() && stats.mtime > mtime) {
             count++;
         }
     });
@@ -49,8 +49,8 @@ function copyFilesRecursively(source: string, destination: string, callback: () 
         } else {
             if (!fs.existsSync(destinationPath)) {
                 fs.copyFileSync(sourcePath, destinationPath);
-            }
-            else if (stats.mtime > lastUpdated) {
+                fs.utimesSync(destinationPath, new Date(), stats.mtime);
+            } else if (stats.mtime > lastUpdated) {
                 mergeFiles.push(sourcePath);
             }
             callback();
@@ -119,7 +119,7 @@ self.setInterval(() => {
         const files = checkForFileChanges(currrentDirectory, currentUsername);
         if (files.length > 0) {
             webworker.postMessage(FileOperationsResponseType.FILES_REQUIRING_MERGING, {
-                files
+                files,
             });
         }
     }
@@ -133,5 +133,3 @@ webworker.on(FileOperationsRequestType.SET_USER_DIRECTORY, ({directory, username
     currentUsername = username;
     currrentDirectory = directory;
 });
-
-

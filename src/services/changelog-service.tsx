@@ -27,7 +27,9 @@ const changelogWatcherWorker = new Webworker<ChangelogWatcherRequests, Changelog
 export type Context = {
     appendCommit: (commit: ICommit) => void;
     getChangesForFile: (filePath: string) => void;
+    getAllChanges: () => void;
     changesForFile: ISnapshotCommitBundle[];
+    allChanges: ISnapshotCommitBundle[];
 };
 
 const [useChangelogWatcherServiceContext, ChangelogWatcherServiceContextProvider] = createGenericContext<Context>();
@@ -37,6 +39,7 @@ export const ChangelogWatcherService: React.FC = props => {
     const dispatch = useAppDispatch();
 
     const [changesForFile, setChangesForFile] = React.useState<ISnapshotCommitBundle[]>([]);
+    const [allChanges, setAllChanges] = React.useState<ISnapshotCommitBundle[]>([]);
 
     const appendCommit = React.useCallback((commit: ICommit) => {
         if (changelogWatcherWorker) {
@@ -47,6 +50,12 @@ export const ChangelogWatcherService: React.FC = props => {
     const getChangesForFile = React.useCallback((filePath: string) => {
         if (changelogWatcherWorker) {
             changelogWatcherWorker.postMessage(ChangelogWatcherRequestTypes.GET_CHANGES_FOR_FILE, {filePath});
+        }
+    }, []);
+
+    const getAllChanges = React.useCallback(() => {
+        if (changelogWatcherWorker) {
+            changelogWatcherWorker.postMessage(ChangelogWatcherRequestTypes.GET_ALL_CHANGES);
         }
     }, []);
 
@@ -66,6 +75,9 @@ export const ChangelogWatcherService: React.FC = props => {
             changelogWatcherWorker.on(ChangelogWatcherResponseTypes.CHANGES_FOR_FILE, ({changes}) => {
                 setChangesForFile(changes);
             });
+            changelogWatcherWorker.on(ChangelogWatcherResponseTypes.ALL_CHANGES, ({changes}) => {
+                setAllChanges(changes);
+            });
         }
     }, [dispatch]);
 
@@ -81,6 +93,8 @@ export const ChangelogWatcherService: React.FC = props => {
                 appendCommit,
                 getChangesForFile,
                 changesForFile,
+                getAllChanges,
+                allChanges,
             }}
         >
             {props.children}

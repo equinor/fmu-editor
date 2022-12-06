@@ -42,6 +42,7 @@ const initialFilesState: FilesState = {
     directory: electronStore.get("files.directory") || "",
     fileTreeStates: electronStore.get("ui.fileTreeStates") || {},
     activeFile: electronStore.get("files.activeFile"),
+    activeDiffFile: electronStore.get("files.activeDiffFile"),
     eventSource: EventSource.Editor,
     files:
         electronStore.get("files.files")?.map((file: any): File => {

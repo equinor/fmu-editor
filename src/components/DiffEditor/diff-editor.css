@@ -114,11 +114,30 @@
 }
 
 .DiffEditorHeader {
+    font-weight: 800;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding: var(--spacing-s);
     gap: var(--spacing-s);
     background-color: var(--background-light);
+    text-transform: uppercase;
+    height: 38px;
+}
+
+.DiffEditorHeader > div {
+    padding: var(--spacing-s);
+    padding-left: var(--spacing-m);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.DiffEditorHeader > div i {
+    text-transform: none;
+    font-weight: 400;
+}
+
+.DiffEditorHeader > div:nth-child(2){
+    border-left: 1px var(--background-medium) solid;
 }

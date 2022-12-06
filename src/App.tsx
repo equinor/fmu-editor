@@ -12,6 +12,7 @@ import {IpcService} from "@services/ipc-service";
 
 import React from "react";
 
+import {GlobalSettingsProvider} from "@components/GlobalSettingsProvider";
 import {MainProcessDataProvider} from "@components/MainProcessDataProvider";
 import {MainWindow} from "@components/MainWindow";
 import {NotificationsProvider} from "@components/Notifications";
@@ -51,25 +52,27 @@ function App(): JSX.Element {
     }, [mode]);
 
     return (
-        <MainProcessDataProvider>
-            <ColorModeContext.Provider value={colorMode}>
-                <ThemeProvider theme={Theme(mode)}>
-                    <NotificationsProvider>
-                        <EnvironmentService>
-                            <FileManagerService>
-                                <ChangelogWatcherService>
-                                    <FileChangesWatcherService>
-                                        <IpcService>
-                                            <MainWindow />
-                                        </IpcService>
-                                    </FileChangesWatcherService>
-                                </ChangelogWatcherService>
-                            </FileManagerService>
-                        </EnvironmentService>
-                    </NotificationsProvider>
-                </ThemeProvider>
-            </ColorModeContext.Provider>
-        </MainProcessDataProvider>
+        <GlobalSettingsProvider>
+            <MainProcessDataProvider>
+                <ColorModeContext.Provider value={colorMode}>
+                    <ThemeProvider theme={Theme(mode)}>
+                        <NotificationsProvider>
+                            <EnvironmentService>
+                                <FileManagerService>
+                                    <ChangelogWatcherService>
+                                        <FileChangesWatcherService>
+                                            <IpcService>
+                                                <MainWindow />
+                                            </IpcService>
+                                        </FileChangesWatcherService>
+                                    </ChangelogWatcherService>
+                                </FileManagerService>
+                            </EnvironmentService>
+                        </NotificationsProvider>
+                    </ThemeProvider>
+                </ColorModeContext.Provider>
+            </MainProcessDataProvider>
+        </GlobalSettingsProvider>
     );
 }
 

@@ -22,14 +22,24 @@
     font-size: var(--h6-font-size);
     line-height: var(--h6-line-height);
     text-transform: uppercase;
+    display: flex;
+    gap: var(--spacing-s);
+    justify-content: space-between;
+    align-items: center;
 }
 
-.ChangesBrowserList {
+.ChangesBrowserList, .ChangesBrowserText {
     background-color: var(--background-light);
     height: 20vh;
     min-height: 100px;
     overflow: auto;
     padding: var(--spacing-xx);
+}
+
+.ChangesBrowserText {
+    padding: var(--spacing-s);
+    height: auto;
+    min-height: auto;
 }
 
 .ChangesBrowserListItem {
@@ -71,4 +81,20 @@
 
 .ChangesBrowserListItem > button {
     white-space: nowrap;
+}
+
+.ChangesBrowserUser {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-s);
+    font-size: var(--h6-font-size);
+    line-height: var(--h6-line-height);
+    font-weight: var(--h6-font-weight);
+}
+
+.ChangesBrowserDate {
+    font-size: var(--body-short-font-size);
+    line-height: var(--body-short-line-height);
+    color: var(--text-secondary);
+    font-weight: var(--body-short-font-weight);
 }
