@@ -1,9 +1,10 @@
-import {Circle, Close} from "@mui/icons-material";
-import {Tooltip, useTheme} from "@mui/material";
+import {Close} from "@mui/icons-material";
+import {useTheme} from "@mui/material";
 import {useEnvironment} from "@services/environment-service";
 import {useFileChangesWatcher} from "@services/file-changes-service";
 
 import React from "react";
+import {VscEdit} from "react-icons/vsc";
 
 import {generateHashCode} from "@utils/hash";
 
@@ -63,21 +64,16 @@ export const FileTab: React.FC<FileTabProps> = props => {
     };
 
     return (
-        <Tooltip title={props.filePath}>
-            <div
-                className={`FileTab${active ? " FileTab--active" : ""}${modified ? " FileTab--modified" : ""}`}
-                onClick={() => handleClickEvent()}
-            >
-                {filename}
-                {uncommitted && (
-                    <Tooltip title="Uncommitted changes">
-                        <Circle fontSize="inherit" style={{color: theme.palette.info.light}} />
-                    </Tooltip>
-                )}
-                <div className="FileTab__CloseButton" onClick={e => handleCloseEvent(e)}>
-                    <Close fontSize="inherit" />
-                </div>
+        <div
+            className={`FileTab${active ? " FileTab--active" : ""}${modified ? " FileTab--modified" : ""}`}
+            onClick={() => handleClickEvent()}
+            title={props.filePath}
+        >
+            {filename}
+            {uncommitted && <VscEdit fontSize="inherit" style={{color: theme.palette.info.light}} />}
+            <div className="FileTab__CloseButton" onClick={e => handleCloseEvent(e)}>
+                <Close fontSize="inherit" />
             </div>
-        </Tooltip>
+        </div>
     );
 };

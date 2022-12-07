@@ -1,7 +1,5 @@
 import {SelectionDirection, editor} from "monaco-editor/esm/vs/editor/editor.api";
 
-import {FileTreeStates} from "./file-tree";
-
 export type CodeEditorViewState = {
     cursorState: editor.ICursorState[];
     viewState: {
@@ -60,7 +58,7 @@ export type Selection = {
 export type FilesState = {
     fmuDirectory: string;
     directory: string;
-    fileTreeStates: {[key: string]: FileTreeStates};
+    fileTreeStates: {[key: string]: string[]};
     files: File[];
     activeFile: string;
     activeDiffFile: string | null;

@@ -86,7 +86,7 @@ const compareDirectory = (directory: string, user: string, mainDirectory: string
                 const originalFilePath = makeOriginalFilePath(filePath, mainDirectory);
                 if (fs.existsSync(originalFilePath)) {
                     const originalFileStats = fs.statSync(originalFilePath);
-                    if (originalFileStats.size !== stats.size || originalFileStats.mtimeMs < stats.mtimeMs) {
+                    if (originalFileStats.size !== stats.size || originalFileStats.mtime < stats.mtime) {
                         fileChanges.push({
                             user,
                             type: FileChangeType.MODIFIED,

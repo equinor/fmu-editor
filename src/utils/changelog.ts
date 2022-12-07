@@ -34,7 +34,7 @@ export class Changelog {
             return 0;
         }
 
-        return this.changelog.modified.getTime();
+        return this.changelog.modified;
     }
 
     public setDirectory(directory: string) {
@@ -88,10 +88,12 @@ export class Changelog {
             }
         }
 
+        const currentTimestamp = new Date().getTime();
+
         const currentChangelog: ILocalChangelog = {
-            created: new Date(),
+            created: currentTimestamp,
             directory: this.directory,
-            modified: new Date(),
+            modified: currentTimestamp,
             log: [],
         };
         fs.writeFileSync(this.localChangelogPath(), JSON.stringify(currentChangelog));
@@ -108,14 +110,14 @@ export class Changelog {
         const content = JSON.parse(fs.readFileSync(this.localChangelogPath()).toString());
 
         this.changelog = {
-            created: new Date(content.created),
+            created: content.created,
             directory: content.directory,
-            modified: new Date(content.modified),
+            modified: content.modified,
             log: [
                 ...this.getSnapshotCommits(),
                 {
                     snapshotPath: null,
-                    modified: new Date(content.modified),
+                    modified: content.modified,
                     commits: content.log,
                 },
             ],
@@ -145,11 +147,8 @@ export class Changelog {
             const snapshotChangelog = JSON.parse(fs.readFileSync(snapshotPath).toString());
             snapshots.push({
                 snapshotPath: path.join(this.snapshotsPath(), folder),
-                modified: fs.statSync(snapshotPath).mtime,
-                commits: snapshotChangelog.log.map((commit: ICommit) => ({
-                    ...commit,
-                    datetime: new Date(commit.datetime),
-                })),
+                modified: fs.statSync(snapshotPath).mtime.getTime(),
+                commits: snapshotChangelog.log,
             });
         });
 
@@ -168,7 +167,7 @@ export class Changelog {
         const localChangelog: ILocalChangelog = {
             created: this.changelog.created,
             directory: this.changelog.directory,
-            modified: new Date(),
+            modified: new Date().getTime(),
             log: this.changelog.log
                 .filter(bundle => bundle.snapshotPath === null)
                 .map(bundle => bundle.commits)
@@ -199,7 +198,7 @@ export class Changelog {
         }
 
         localChangelog.commits.push(commit);
-        this.changelog.modified = new Date();
+        this.changelog.modified = new Date().getTime();
         return this.saveLocalChangelog();
     }
 
@@ -227,16 +226,13 @@ export class Changelog {
                     snapshotPath: bundle.snapshotPath,
                     modified: bundle.modified,
                     commits: [
-                        ...commits.map(commit => ({
-                            ...commit,
-                            datetime: new Date(commit.datetime),
-                        })),
-                    ],
+                        ...commits,
+                    ].reverse(),
                 });
             }
         });
 
-        return bundles.sort((a, b) => b.modified.getTime() - a.modified.getTime());
+        return bundles.sort((a, b) => b.modified - a.modified);
     }
 
     public getAllChanges(): ISnapshotCommitBundle[] {
@@ -258,15 +254,12 @@ export class Changelog {
                     snapshotPath: bundle.snapshotPath,
                     modified: bundle.modified,
                     commits: [
-                        ...commits.map(commit => ({
-                            ...commit,
-                            datetime: new Date(commit.datetime),
-                        })),
-                    ],
+                        ...commits,
+                    ].reverse(),
                 });
             }
         });
 
-        return bundles.sort((a, b) => b.modified.getTime() - a.modified.getTime());
+        return bundles.sort((a, b) => b.modified - a.modified);
     }
 }

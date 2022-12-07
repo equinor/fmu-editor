@@ -35,18 +35,20 @@ export const MainWindow: React.FC = () => {
         <div className="MainWindow" ref={mainWindowRef} style={{backgroundColor: theme.palette.background.default}}>
             <div className="ContentWrapper">
                 <Views />
-                {page === "editor" && (
-                    <ResizablePanels direction="horizontal" id="file-explorer">
-                        <Explorer />
-                        <Editor />
-                    </ResizablePanels>
-                )}
-                {page === "source-control" && (
-                    <ResizablePanels direction="horizontal" id="source-control">
-                        <ChangesBrowser />
-                        <DiffEditor />
-                    </ResizablePanels>
-                )}
+                <div className="InnerContentWrapper">
+                    {page === "editor" && (
+                        <ResizablePanels direction="horizontal" id="file-explorer">
+                            <Explorer />
+                            <Editor />
+                        </ResizablePanels>
+                    )}
+                    {page === "source-control" && (
+                        <ResizablePanels direction="horizontal" id="source-control">
+                            <ChangesBrowser />
+                            <DiffEditor />
+                        </ResizablePanels>
+                    )}
+                </div>
             </div>
             <Toolbar />
         </div>

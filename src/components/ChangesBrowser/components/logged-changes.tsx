@@ -17,9 +17,6 @@ import path from "path";
 import uniqolor from "uniqolor";
 
 export const LoggedChanges: React.VFC = () => {
-    const [stagedFiles, setStagedFiles] = React.useState<string[]>([]);
-    const [commitSummary, setCommitSummary] = React.useState<string>("");
-    const [commitDescription, setCommitDescription] = React.useState<string>("");
     const [summarizedActions, setSummarizedActions] = React.useState<{[key: string]: number}>({
         [FileChangeType.ADDED]: 0,
         [FileChangeType.MODIFIED]: 0,
@@ -36,17 +33,18 @@ export const LoggedChanges: React.VFC = () => {
     const changelog = useChangelogWatcher();
 
     React.useEffect(() => {
-        setStagedFiles(prev => prev.filter(el => userFileChanges.some(change => change.filePath === el)));
         const counts = {
             [FileChangeType.ADDED]: 0,
             [FileChangeType.MODIFIED]: 0,
             [FileChangeType.DELETED]: 0,
         };
-        userFileChanges.forEach(change => {
-            counts[change.type]++;
-        });
+        if (currentCommit) {
+            currentCommit.files.forEach(change => {
+                counts[change.action]++;
+            });
+        }
         setSummarizedActions(counts);
-    }, [userFileChanges, environment]);
+    }, [currentCommit, environment]);
 
     const adjustFilePath = React.useCallback(
         (filePath: string) => {
@@ -80,9 +78,9 @@ export const LoggedChanges: React.VFC = () => {
                                 {currentCommit.author}
                                 <br />
                                 <span className="ChangesBrowserDate">
-                                    authored {currentCommit.datetime.toLocaleDateString()}
+                                    authored {new Date(currentCommit.datetime).toLocaleDateString()}
                                     {" @ "}
-                                    {currentCommit.datetime.toLocaleTimeString()}
+                                    {new Date(currentCommit.datetime).toLocaleTimeString()}
                                 </span>
                             </div>
                         </div>

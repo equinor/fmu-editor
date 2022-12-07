@@ -8,7 +8,7 @@ export interface IFile {
 export interface ICommit {
     id: string;
     author: string;
-    datetime: Date;
+    datetime: number;
     message: string;
     files: IFile[];
 }
@@ -20,26 +20,26 @@ export interface ICommitExtended extends ICommit {
 
 export type ISnapshotCommitBundle = {
     snapshotPath: string | null;
-    modified: Date;
+    modified: number;
     commits: ICommit[];
 };
 
 export interface ISnapshot {
     path: string;
-    modified: Date;
+    modified: number;
 }
 
 export interface IGlobalChangelog {
     directory: string;
-    created: Date;
-    modified: Date;
+    created: number;
+    modified: number;
     log: ISnapshotCommitBundle[];
 }
 
 export interface ILocalChangelog {
     directory: string;
-    created: Date;
-    modified: Date;
+    created: number;
+    modified: number;
     log: ICommit[];
 }
 

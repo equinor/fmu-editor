@@ -7,7 +7,6 @@ import {generateHashCode} from "@utils/hash";
 
 import initialState from "@redux/initial-state";
 
-import {FileTreeStates} from "@shared-types/file-tree";
 import {CodeEditorViewState, DiffEditorViewState, File, FilesState} from "@shared-types/files";
 
 import {SelectionDirection} from "monaco-editor";
@@ -46,13 +45,8 @@ export const filesSlice = createSlice({
             state.fileTreeStates = {...state.fileTreeStates, [action.payload.path]: []};
             electronStore.set("files.directory", action.payload.path);
         },
-        setFileTreeStates: (state: Draft<FilesState>, action: PayloadAction<FileTreeStates>) => {
+        setFileTreeStates: (state: Draft<FilesState>, action: PayloadAction<string[]>) => {
             const newState = {...state.fileTreeStates, [state.directory]: action.payload};
-            state.fileTreeStates = newState;
-            electronStore.set(`ui.fileTreeStates`, newState);
-        },
-        resetFileTreeStates: (state: Draft<FilesState>) => {
-            const newState = {...state.fileTreeStates, [state.directory]: []};
             state.fileTreeStates = newState;
             electronStore.set(`ui.fileTreeStates`, newState);
         },
@@ -202,7 +196,6 @@ export const {
     setFmuDirectory,
     setDirectory,
     setFileTreeStates,
-    resetFileTreeStates,
     setActiveFile,
     setActiveDiffFile,
     addFile,

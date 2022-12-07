@@ -3,7 +3,7 @@ import {useEnvironment} from "@services/environment-service";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
-import {VscAccount, VscFolderActive, VscGlobe, VscPerson} from "react-icons/vsc";
+import {VscAccount, VscFileSymlinkDirectory, VscFolderActive, VscGlobe} from "react-icons/vsc";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {addNotification} from "@redux/reducers/notifications";
@@ -99,11 +99,11 @@ export const Toolbar: React.FC = () => {
         <div className="Toolbar">
             <Button size="small" onClick={handleOpenDirectoryClick} title="Current FMU directory. Click to change.">
                 <VscFolderActive />
-                {fmuDirectory === "" ? <i>No FMU directory selected</i> : fmuDirectory}
+                <span>{fmuDirectory === "" ? <i>No FMU directory selected</i> : fmuDirectory}</span>
             </Button>
             <Button size="small" onClick={handleUsernameClick} title="Current user. Click for more information.">
                 <VscAccount />
-                {environment.username}
+                <span>{environment.username}</span>
             </Button>
             <Button
                 size="small"
@@ -112,7 +112,7 @@ export const Toolbar: React.FC = () => {
                 className={environment.environmentPath ? undefined : "error"}
             >
                 <VscGlobe />
-                {environment.environmentPath || <i>No environment detected</i>}
+                <span>{environment.environmentPath || <i>No environment detected</i>}</span>
             </Button>
             <Button
                 size="small"
@@ -121,13 +121,17 @@ export const Toolbar: React.FC = () => {
                     fileManager.userDirectoryExists() ? "Current user directory" : "Click here to create user directory"
                 }
             >
-                <VscPerson />
+                <VscFileSymlinkDirectory />
                 {progress < 100 ? (
-                    <i>Copying...</i>
+                    <span>
+                        <i>Copying...</i>
+                    </span>
                 ) : fileManager.userDirectoryExists() ? (
-                    path.relative(fileManager.getFmuDirectory(), fileManager.userDirectory())
+                    <span>{path.relative(fileManager.getFmuDirectory(), fileManager.userDirectory())}</span>
                 ) : (
-                    <i>User directory no created yet</i>
+                    <span>
+                        <i>User directory no created yet</i>
+                    </span>
                 )}
             </Button>
             <div style={{width: 50, display: progress < 100 ? "block" : "none"}}>

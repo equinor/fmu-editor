@@ -49,7 +49,7 @@ export const CommitBrowser: React.FC = () => {
                             <li key={`section-${bundle.snapshotPath}`}>
                                 <ul className="CommitSnapshotBundle">
                                     <ListSubheader className="CommitSnapshotBundleHeader">
-                                        {bundle.modified.toDateString()}
+                                        {new Date(bundle.modified).toDateString()}
                                     </ListSubheader>
                                     {bundle.commits.map(commit => (
                                         <React.Fragment key={commit.id}>

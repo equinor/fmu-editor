@@ -36,7 +36,7 @@ export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
     }, [props.children.length]);
 
     const startResize = React.useCallback(
-        (event: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
+        (index: number) => {
             window.addEventListener("selectstart", e => e.preventDefault());
             setCurrentIndex(index);
             setIsDragging(true);
@@ -45,9 +45,9 @@ export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
     );
 
     React.useEffect(() => {
-        let resize: ((e: MouseEvent) => void) | undefined;
+        let resize: ((e: PointerEvent) => void) | undefined;
         if (props.direction === "horizontal") {
-            resize = (event: MouseEvent) => {
+            resize = (event: PointerEvent) => {
                 if (!isDragging) {
                     return;
                 }
@@ -70,7 +70,7 @@ export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
                 }
             };
         } else if (props.direction === "vertical") {
-            resize = (event: MouseEvent) => {
+            resize = (event: PointerEvent) => {
                 if (!isDragging) {
                     return;
                 }
@@ -105,14 +105,14 @@ export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
             }
             setIsDragging(false);
         };
-        document.addEventListener("mousemove", resize);
-        document.addEventListener("mouseup", stopResize);
+        document.addEventListener("pointermove", resize);
+        document.addEventListener("pointerup", stopResize);
 
         return () => {
             if (resize) {
-                document.removeEventListener("mousemove", resize);
+                document.removeEventListener("pointermove", resize);
             }
-            document.removeEventListener("mouseup", stopResize);
+            document.removeEventListener("pointerup", stopResize);
         };
     }, [isDragging, setIsDragging, sizes, setSizes, props.direction, currentIndex, props.id, dispatch]);
 
@@ -149,7 +149,7 @@ export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
                             className={`ResizeDragBar ResizeDragBar__${props.direction}${
                                 isDragging ? " ResizeDragBar--active" : ""
                             }`}
-                            onMouseDown={e => startResize(e, index)}
+                            onPointerDown={e => startResize(index)}
                         />
                     )}
                 </React.Fragment>

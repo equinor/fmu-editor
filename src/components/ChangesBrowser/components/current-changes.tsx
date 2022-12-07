@@ -61,7 +61,7 @@ export const CurrentChanges: React.VFC = () => {
                 id: v4(),
                 author: environment.username,
                 message: [commitSummary, commitDescription].join("\n"),
-                datetime: new Date(),
+                datetime: new Date().getTime(),
                 files: stagedFiles.map(el => ({
                     path: adjustFilePath(el),
                     action: userFileChanges.find(change => change.filePath === el)?.type || FileChangeType.MODIFIED,
@@ -71,6 +71,7 @@ export const CurrentChanges: React.VFC = () => {
             setCommitSummary("");
             setCommitDescription("");
             setStagedFiles([]);
+            dispatch(setActiveDiffFile({relativeFilePath: null}));
         }
     }, [
         stagedFiles,
@@ -81,6 +82,7 @@ export const CurrentChanges: React.VFC = () => {
         commitDescription,
         adjustFilePath,
         userFileChanges,
+        dispatch,
     ]);
 
     const handleFileSelected = React.useCallback(
@@ -108,7 +110,13 @@ export const CurrentChanges: React.VFC = () => {
             <Stack direction="column" className="ChangesBrowserContent" spacing={2}>
                 <div className="ChangesBrowserContentHeader">
                     Unstaged Files ({userFileChanges.filter(el => !stagedFiles.includes(el.filePath)).length})
-                    <Button variant="contained" onClick={() => handleStageAll()} color="success" size="small">
+                    <Button
+                        variant="contained"
+                        onClick={() => handleStageAll()}
+                        disabled={stagedFiles.length === userFileChanges.length}
+                        color="success"
+                        size="small"
+                    >
                         Stage all
                     </Button>
                 </div>
@@ -149,7 +157,13 @@ export const CurrentChanges: React.VFC = () => {
                 </div>
                 <div className="ChangesBrowserContentHeader">
                     Staged Files ({stagedFiles.length})
-                    <Button variant="contained" onClick={() => handleUnstageAll()} color="error" size="small">
+                    <Button
+                        variant="contained"
+                        onClick={() => handleUnstageAll()}
+                        color="error"
+                        size="small"
+                        disabled={stagedFiles.length === 0}
+                    >
                         Unstage all
                     </Button>
                 </div>

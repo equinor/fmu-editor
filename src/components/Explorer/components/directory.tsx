@@ -5,19 +5,21 @@ import {VscChevronDown, VscChevronRight} from "react-icons/vsc";
 
 import {getFileIcon} from "@src/file-icons";
 
+import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
+
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
+import {setFileTreeStates} from "@redux/reducers/files";
 import {openFile} from "@redux/thunks";
 
-import {FileTree, FileTreeStates} from "@shared-types/file-tree";
+import {FileTree} from "@shared-types/file-tree";
 
+import path from "path";
 import {v4} from "uuid";
 
 export type DirectoryProps = {
     name: string;
     level: number;
-    onDirStateChange: (indices: number[], isExpanded: boolean) => void;
-    indices: number[];
-    collapsed?: number;
+    path: string;
     content?: FileTree;
 };
 
@@ -29,35 +31,34 @@ export const Directory: React.VFC<DirectoryProps> = props => {
 
     const dispatch = useAppDispatch();
     const {fileManager} = useFileManager();
+    const globalSettings = useGlobalSettings();
 
     React.useLayoutEffect(() => {
-        if (props.collapsed !== undefined) {
-            setExpanded(false);
-        }
-    }, [props.collapsed]);
-
-    React.useLayoutEffect(() => {
-        if (!fileTreeStates || fileTreeStates.length === 0) {
+        if (fileTreeStates && fileTreeStates.includes(props.path)) {
+            setExpanded(true);
             return;
         }
-        let current = fileTreeStates;
-        props.indices.forEach((index, i) => {
-            if (i < props.indices.length - 1 && current?.at(index)?.children !== undefined) {
-                current = fileTreeStates[index]?.children as FileTreeStates;
-            } else if (current?.at(index)) {
-                setExpanded(current[index].expanded);
+        setExpanded(false);
+    }, [fileTreeStates, props.path]);
+
+    const handleDirStateChange = React.useCallback(
+        (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+            let newFileTreeStates = [...fileTreeStates];
+
+            if (props.path in fileTreeStates && expanded) {
+                newFileTreeStates = [...newFileTreeStates.filter(el => el !== props.path)];
+            } else if (!expanded) {
+                newFileTreeStates = [...newFileTreeStates, props.path];
             }
-        });
-    }, [fileTreeStates, props.indices]);
 
-    const handleDirStateChange = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-        setExpanded(prev => !prev);
-        props.onDirStateChange(props.indices, !expanded);
-        e.preventDefault();
-    };
+            dispatch(setFileTreeStates(newFileTreeStates));
+            e.preventDefault();
+        },
+        [fileTreeStates, dispatch, expanded, props.path]
+    );
 
-    const handleFileClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, path: string) => {
-        openFile(path, fileManager, dispatch);
+    const handleFileClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, filePath: string) => {
+        openFile(filePath, fileManager, dispatch, globalSettings);
         e.preventDefault();
     };
 
@@ -102,10 +103,8 @@ export const Directory: React.VFC<DirectoryProps> = props => {
                                 level={props.level + 1}
                                 name={item.name}
                                 content={item.children}
-                                collapsed={props.collapsed}
                                 key={item.name}
-                                indices={[...props.indices, index]}
-                                onDirStateChange={props.onDirStateChange}
+                                path={path.join(props.path, item.name)}
                             />
                         );
                     })}

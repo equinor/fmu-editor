@@ -8,9 +8,10 @@ import {ipcRenderer} from "electron";
 
 import React from "react";
 import {VscError, VscInfo, VscLightbulb, VscWarning} from "react-icons/vsc";
-import MonacoEditor, {EditorDidMount, monaco} from "react-monaco-editor";
+import MonacoEditor, {EditorDidMount, EditorWillUnmount, monaco} from "react-monaco-editor";
 
 import {FileTabs} from "@components/FileTabs";
+import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
 import {ResizablePanels} from "@components/ResizablePanels";
 import {Surface} from "@components/Surface";
 
@@ -25,15 +26,10 @@ import FmuLogo from "@assets/fmu-logo.svg";
 import fs from "fs";
 // @ts-ignore
 import {languages} from "monaco-editor";
+import path from "path";
 // @ts-ignore
 import {v4} from "uuid";
 
-// @ts-ignore
-// eslint-disable-next-line import/no-webpack-loader-syntax
-// import EditorWorker from "worker-loader!monaco-editor/esm/vs/editor/editor.worker";
-// @ts-ignore
-// eslint-disable-next-line import/no-webpack-loader-syntax
-// import YamlWorker from "worker-loader!monaco-yaml/yaml.worker";
 import "./editor.css";
 
 declare global {
@@ -116,6 +112,7 @@ export const Editor: React.FC<EditorProps> = () => {
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
     const editorMode = useAppSelector(state => state.ui.page);
     const fileManager = useFileManager();
+    const globalSettings = useGlobalSettings();
 
     useYamlSchemas(yaml);
 
@@ -127,47 +124,6 @@ export const Editor: React.FC<EditorProps> = () => {
             }
         };
     }, [timeout]);
-
-    /*
-    const handleCursorPositionChange = (e: monaco.editor.ICursorPositionChangedEvent): void => {
-        if (
-            selection === null ||
-            selection.selectionStartLineNumber !== e.position.lineNumber ||
-            selection.positionLineNumber !== e.position.lineNumber ||
-            selection.selectionStartColumn !== e.position.column ||
-            selection.positionColumn !== e.position.column
-        ) {
-            setSelection(
-                new monaco.Selection(e.position.lineNumber, e.position.column, e.position.lineNumber, e.position.column)
-            );
-            if (e.reason === monaco.editor.CursorChangeReason.ContentFlush) {
-                return;
-            }
-            if (monacoEditorRef.current) {
-                dispatch(setEditorViewState(convertFromViewState(monacoEditorRef.current.saveViewState())));
-            }
-        }
-    };
-
-    const handleCursorSelectionChange = (e: monaco.editor.ICursorSelectionChangedEvent): void => {
-        if (
-            selection === null ||
-            selection.selectionStartLineNumber !== e.selection.selectionStartLineNumber ||
-            selection.positionLineNumber !== e.selection.positionLineNumber ||
-            selection.selectionStartColumn !== e.selection.selectionStartColumn ||
-            selection.positionColumn !== e.selection.positionColumn
-        ) {
-            setSelection(e.selection);
-            if (e.reason === monaco.editor.CursorChangeReason.ContentFlush) {
-                return;
-            }
-
-            if (monacoEditorRef.current) {
-                dispatch(setEditorViewState(convertFromViewState(monacoEditorRef.current.saveViewState())));
-            }
-        }
-    };
-    */
 
     const handleFileChange = (filePath: string) => {
         if (monacoEditorRef.current) {
@@ -223,6 +179,12 @@ export const Editor: React.FC<EditorProps> = () => {
         // monacoEditorRef.current.onDidScrollChange(handleEditorViewStateChanged);
     };
 
+    const handleEditorWillUnmount: EditorWillUnmount = () => {
+        monacoEditorRef.current?.dispose();
+        monacoEditorRef.current = null;
+        monacoRef.current = null;
+    };
+
     React.useEffect(() => {
         if (!monacoEditorRef || !monacoEditorRef.current) {
             return;
@@ -243,7 +205,7 @@ export const Editor: React.FC<EditorProps> = () => {
             if (!userModel) {
                 userModel = monaco.editor.createModel(
                     fs.readFileSync(userFilePath).toString(),
-                    "yaml",
+                    globalSettings.languageForFileExtension(path.extname(userFilePath)),
                     monaco.Uri.file(userFilePath)
                 );
             }
@@ -259,7 +221,7 @@ export const Editor: React.FC<EditorProps> = () => {
         }
 
         setNoModels(false);
-    }, [activeFile, files, editorMode, fileManager]);
+    }, [activeFile, files, editorMode, fileManager, globalSettings]);
 
     const selectMarker = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, marker: monaco.editor.IMarker) => {
         if (monacoEditorRef.current) {
@@ -306,6 +268,7 @@ export const Editor: React.FC<EditorProps> = () => {
                                 defaultValue=""
                                 className="YamlEditor"
                                 editorDidMount={handleEditorDidMount}
+                                editorWillUnmount={handleEditorWillUnmount}
                                 theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
                                 options={{
                                     tabSize: 2,

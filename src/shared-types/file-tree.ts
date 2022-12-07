@@ -8,8 +8,3 @@ export type FileTreeItem = {
 };
 
 export type FileTree = FileTreeItem[];
-
-export type FileTreeStates = {
-    expanded: boolean;
-    children?: FileTreeStates;
-}[];

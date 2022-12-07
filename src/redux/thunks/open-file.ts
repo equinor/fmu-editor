@@ -1,17 +1,18 @@
 import {addFile} from "@redux/reducers/files";
 import {addNotification} from "@redux/reducers/notifications";
 import {AppDispatch} from "@redux/store";
+import { GlobalSettings } from "@shared-types/global-settings";
 
 import {Notification, NotificationType} from "@shared-types/notifications";
 import { FileManager } from "@utils/file-manager";
 
 import path from "path";
 
-export function openFile(filePath: string, fileManager: FileManager, dispatch: AppDispatch) {
-    if (![".yaml", ".yml"].includes(path.extname(filePath))) {
+export function openFile(filePath: string, fileManager: FileManager, dispatch: AppDispatch, globalSettings: GlobalSettings) {
+    if (!globalSettings.supportedFileExtensions.includes(path.extname(filePath))) {
         dispatch(addNotification({
             type: NotificationType.WARNING,
-            message: "Can only open yaml configuration files."
+            message: `Can only open files with the following extensions: ${globalSettings.supportedFileExtensions.join(", ")}.`
         } as Notification));
         return;
     }

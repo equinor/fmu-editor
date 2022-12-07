@@ -24,6 +24,16 @@
     max-height: 100vh;
 }
 
+.InnerContentWrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    height: calc(100vh - 30px);
+    width: calc(100vw - 52px);
+    max-width: 100vw;
+    max-height: 100vh;
+}
+
 .Content {
     display: flex;
     flex-grow: 4;

@@ -20,11 +20,11 @@ import {checkIfWritable, readFileTree} from "@utils/file-operations";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {resetFileTreeStates, setDirectory, setFileTreeStates} from "@redux/reducers/files";
+import {setDirectory, setFileTreeStates} from "@redux/reducers/files";
 import {addNotification} from "@redux/reducers/notifications";
 import {selectFmuDirectory} from "@redux/thunks";
 
-import {FileTree, FileTreeItem, FileTreeStates} from "@shared-types/file-tree";
+import {FileTree} from "@shared-types/file-tree";
 import {Notification, NotificationType} from "@shared-types/notifications";
 
 import fs from "fs";
@@ -86,73 +86,12 @@ export const Explorer: React.FC = () => {
     };
 
     const handleCollapseAll = () => {
-        setAllCollapsed(prev => prev + 1);
-        dispatch(resetFileTreeStates());
-    };
-
-    const mapFileTree = (fileTreeElement: FileTree): FileTreeStates => {
-        return fileTreeElement.map(el => ({
-            expanded: false,
-            children: el.children ? mapFileTree(el.children) : undefined,
-        }));
+        dispatch(setFileTreeStates([]));
     };
 
     const handleDirectoryChange = (dir: string) => {
         dispatch(setDirectory({path: `${fmuDirectory}/${dir}`}));
         setDrawerOpen(false);
-    };
-
-    const compareFileTreeStates = (states: FileTreeStates, tree: FileTree): boolean => {
-        if (fileTreeStates.length !== fileTree.length) {
-            return false;
-        }
-        let fileTreeItem: FileTreeItem | undefined;
-        let equal = true;
-        states.every((state, index) => {
-            fileTreeItem = tree.at(index);
-
-            if (fileTreeItem === undefined) {
-                equal = false;
-                return false;
-            }
-
-            if (state.children?.length !== fileTreeItem.children?.length) {
-                equal = false;
-                return false;
-            }
-
-            if (state.children && fileTreeItem.children) {
-                if (!compareFileTreeStates(state.children, fileTreeItem.children)) {
-                    equal = false;
-                    return false;
-                }
-            }
-
-            return true;
-        });
-        return equal;
-    };
-
-    const handleDirStateChange = (indices: number[], isExpanded: boolean) => {
-        let newFileTreeStates: FileTreeStates | null = null;
-
-        if (fileTreeStates) {
-            newFileTreeStates = JSON.parse(JSON.stringify(fileTreeStates));
-        }
-
-        if (newFileTreeStates === null || !compareFileTreeStates(newFileTreeStates, fileTree)) {
-            newFileTreeStates = mapFileTree(fileTree);
-        }
-
-        let current = newFileTreeStates;
-        indices.forEach((index, i) => {
-            if (i < indices.length - 1 && current[index].children !== undefined) {
-                current = current[index].children as FileTreeStates;
-            } else {
-                current[index].expanded = isExpanded;
-            }
-        });
-        dispatch(setFileTreeStates(newFileTreeStates));
     };
 
     const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
@@ -174,7 +113,9 @@ export const Explorer: React.FC = () => {
                         <ListItem key={el} disablePadding>
                             <ListItemButton onClick={() => handleDirectoryChange(el)}>
                                 <ListItemIcon>
-                                    {`${fmuDirectory}/${el}` === directory && <VscCheck fontSize="small" />}
+                                    {`${fmuDirectory}/${el}` === directory && (
+                                        <VscCheck fontSize="small" color="var(--text-on-primary)" />
+                                    )}
                                 </ListItemIcon>
                                 <ListItemText>{el}</ListItemText>
                             </ListItemButton>
@@ -228,13 +169,11 @@ export const Explorer: React.FC = () => {
                             }
                             return (
                                 <Directory
-                                    collapsed={allCollapsed}
                                     level={1}
+                                    path={item.name}
                                     name={item.name}
                                     content={item.children}
                                     key={item.name}
-                                    onDirStateChange={handleDirStateChange}
-                                    indices={[index]}
                                 />
                             );
                         })}

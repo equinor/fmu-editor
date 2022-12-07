@@ -121,7 +121,7 @@ export class FileManager {
 
                 if (fs.existsSync(file) && fs.existsSync(originalFilePath)) {
                     fs.unlinkSync(originalFilePath);
-                    fs.renameSync(file, originalFilePath);
+                    fs.copyFileSync(file, originalFilePath);
                 }
             });
         } catch (e) {
