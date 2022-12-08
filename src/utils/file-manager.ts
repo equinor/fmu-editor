@@ -70,7 +70,12 @@ export class FileManager {
     unmodifyFilePath(originalFilePath: string): string {
         if (!this.currentDirectory) return originalFilePath;
 
-        const newFilePath = originalFilePath.replace(this.userDirectory(), this.currentDirectory);
+        const [userDir, user, ...filePathParts] = path
+            .relative(this.currentDirectory, originalFilePath)
+            .split(path.sep);
+
+        const newFilePath = path.join(this.currentDirectory, ...filePathParts);
+
         return newFilePath;
     }
 

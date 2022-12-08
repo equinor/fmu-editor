@@ -1,4 +1,3 @@
-import {useTheme} from "@mui/material";
 import useSize from "@react-hook/size";
 
 import React from "react";
@@ -12,9 +11,14 @@ type ResizablePanelsProps = {
     id: string;
     direction: "horizontal" | "vertical";
     children: React.ReactNode[];
+    minSizes?: number[];
 };
 
 export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
+    if (props.minSizes && props.minSizes.length !== props.children.length) {
+        throw new Error("minSizes must have the same length as children");
+    }
+
     const [isDragging, setIsDragging] = React.useState<boolean>();
     const [currentIndex, setCurrentIndex] = React.useState<number>(0);
     const [sizes, setSizes] = React.useState<number[]>(
@@ -26,7 +30,6 @@ export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
     );
     const resizablePanelsRef = React.useRef<HTMLDivElement | null>(null);
     const resizablePanelRefs = React.useRef<(HTMLDivElement | null)[]>([]);
-    const theme = useTheme();
 
     const [totalWidth, totalHeight] = useSize(resizablePanelsRef);
     const dispatch = useAppDispatch();
@@ -116,6 +119,8 @@ export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
         };
     }, [isDragging, setIsDragging, sizes, setSizes, props.direction, currentIndex, props.id, dispatch]);
 
+    const minSizesToggleVisibilityValue = 100 * (props.direction === "horizontal" ? 50 / totalWidth : 50 / totalHeight);
+
     return (
         <div
             className={`ResizablePanelsWrapper${props.direction === "horizontal" ? "Horizontal" : "Vertical"}`}
@@ -138,8 +143,28 @@ export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
                         ref={element => (resizablePanelRefs.current[index] = element)}
                         style={
                             props.direction === "horizontal"
-                                ? {width: `calc(${sizes[index]}% - 3px)`}
-                                : {height: `calc(${sizes[index]}% - 3px)`}
+                                ? {
+                                      width: `calc(${sizes[index]}% - 3px)`,
+                                      minWidth:
+                                          sizes[index] > minSizesToggleVisibilityValue
+                                              ? props.minSizes?.at(index) || 0
+                                              : 0,
+                                      maxWidth:
+                                          sizes[index] < minSizesToggleVisibilityValue && props.minSizes?.at(index)
+                                              ? 0
+                                              : undefined,
+                                  }
+                                : {
+                                      height: `calc(${sizes[index]}% - 3px)`,
+                                      minHeight:
+                                          sizes[index] > minSizesToggleVisibilityValue
+                                              ? props.minSizes?.at(index) || 0
+                                              : 0,
+                                      maxHeight:
+                                          sizes[index] < minSizesToggleVisibilityValue && props.minSizes?.at(index)
+                                              ? 0
+                                              : undefined,
+                                  }
                         }
                     >
                         {el}
@@ -149,7 +174,7 @@ export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
                             className={`ResizeDragBar ResizeDragBar__${props.direction}${
                                 isDragging ? " ResizeDragBar--active" : ""
                             }`}
-                            onPointerDown={e => startResize(index)}
+                            onPointerDown={() => startResize(index)}
                         />
                     )}
                 </React.Fragment>

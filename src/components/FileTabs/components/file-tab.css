@@ -9,6 +9,16 @@
     white-space: nowrap;
     gap: 8px;
     font-size: 0.8rem;
+    border-right: 1px solid var(--background-semi-transparent);
+}
+
+.FileTab > span {
+    font-size: 1.6em;
+    line-height: 0.8em;
+}
+
+.FileTab:last-child {
+    border-right: 0px;
 }
 
 .FileTab--active {
@@ -21,6 +31,7 @@
     align-items: center;
     padding: 1px;
     min-width: 16px;
+    min-height: 16px;
 }
 
 .FileTab .FileTab__CloseButton * {
@@ -38,7 +49,8 @@
 .FileTab:hover .FileTab__CloseButton:hover,
 .FileTab--active .FileTab__CloseButton:hover {
     border-radius: 4px;
-    color: var(--primary-hover);
+    color: var(--primary);
+    background-color: var(--background-light);
 }
 
 .FileTab--modified {

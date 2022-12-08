@@ -1,3 +1,5 @@
+import {FileManager} from "@utils/file-manager";
+
 import {
     FileChange,
     FileChangeType,
@@ -6,7 +8,6 @@ import {
     FileChangesWatcherRequestType,
     FileChangesWatcherResponseType,
 } from "@shared-types/file-changes";
-import {FileTree, FileTreeItem} from "@shared-types/file-tree";
 
 import fs from "fs";
 import path from "path";
@@ -15,25 +16,9 @@ import {Webworker} from "./worker-utils";
 
 // eslint-disable-next-line no-restricted-globals
 const webworker = new Webworker<FileChangesResponses, FileChangesRequests>({self});
+const fileManager = new FileManager();
 
 let currentDirectory: string | null = null;
-
-const flattenFileTree = (userFolder: string, fileTree: FileTree): FileChange[] => {
-    const fileChanges: FileChange[] = [];
-    fileTree.forEach((file: FileTreeItem) => {
-        if (file.type === "directory" && file.children) {
-            fileChanges.push(...flattenFileTree(userFolder, file.children));
-        } else {
-            fileChanges.push({
-                user: userFolder,
-                type: FileChangeType.MODIFIED,
-                filePath: file.path,
-                modified: file.modified,
-            });
-        }
-    });
-    return fileChanges;
-};
 
 const makeOriginalFilePath = (userFilePath: string, mainDirectory: string): string => {
     const relativePath = path.relative(mainDirectory, userFilePath);
@@ -90,7 +75,7 @@ const compareDirectory = (directory: string, user: string, mainDirectory: string
                         fileChanges.push({
                             user,
                             type: FileChangeType.MODIFIED,
-                            filePath,
+                            filePath: path.relative(mainDirectory, fileManager.getOriginalFileIfExists(filePath)),
                             modified: stats.mtime,
                         });
                     }
@@ -98,7 +83,7 @@ const compareDirectory = (directory: string, user: string, mainDirectory: string
                     fileChanges.push({
                         user,
                         type: FileChangeType.ADDED,
-                        filePath,
+                        filePath: path.relative(mainDirectory, fileManager.getOriginalFileIfExists(filePath)),
                         modified: stats.mtime,
                     });
                 }
@@ -142,4 +127,5 @@ self.setInterval(checkForFileChanges, 3000);
 
 webworker.on(FileChangesWatcherRequestType.SET_DIRECTORY, ({directory}) => {
     currentDirectory = directory;
+    fileManager.setCurrentDirectory(directory);
 });

@@ -260,7 +260,7 @@ export const Editor: React.FC<EditorProps> = () => {
                     <Typography variant="body1">Please select a file...</Typography>
                 </div>
                 <div className="EditorContainer" style={{display: !noModels ? "flex" : "none"}}>
-                    <ResizablePanels direction="vertical" id="Editor-Issues">
+                    <ResizablePanels direction="vertical" id="Editor-Issues" minSizes={[0, 80]}>
                         <div ref={editorRef} className="Editor">
                             <FileTabs onFileChange={handleFileChange} />
                             <MonacoEditor

@@ -2,6 +2,8 @@ import {useTheme} from "@mui/material";
 
 import React from "react";
 
+import {Surface} from "@components/Surface";
+
 import {useAppSelector} from "@redux/hooks";
 
 import {FileTab} from "./components/file-tab";
@@ -16,7 +18,7 @@ export const FileTabs: React.FC<FileTabsProps> = props => {
     const files = useAppSelector(state => state.files.files);
 
     return (
-        <div className="FileTabs">
+        <Surface elevation="raised" className="FileTabs">
             {files.map(file => (
                 <FileTab
                     key={file.filePath}
@@ -24,6 +26,6 @@ export const FileTabs: React.FC<FileTabsProps> = props => {
                     onSelect={(filePath: string) => props.onFileChange(filePath)}
                 />
             ))}
-        </div>
+        </Surface>
     );
 };

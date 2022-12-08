@@ -37,13 +37,13 @@ export const MainWindow: React.FC = () => {
                 <Views />
                 <div className="InnerContentWrapper">
                     {page === "editor" && (
-                        <ResizablePanels direction="horizontal" id="file-explorer">
+                        <ResizablePanels direction="horizontal" id="file-explorer" minSizes={[250, 0]}>
                             <Explorer />
                             <Editor />
                         </ResizablePanels>
                     )}
                     {page === "source-control" && (
-                        <ResizablePanels direction="horizontal" id="source-control">
+                        <ResizablePanels direction="horizontal" id="source-control" minSizes={[250, 0]}>
                             <ChangesBrowser />
                             <DiffEditor />
                         </ResizablePanels>

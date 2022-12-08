@@ -1,4 +1,5 @@
 import {useUserFileChanges} from "@hooks/useUserFileChanges";
+import {Login} from "@microsoft/mgt-react";
 import {Badge, Tab, Tabs} from "@mui/material";
 
 import React from "react";
@@ -52,6 +53,7 @@ export const Views: React.VFC = () => {
                     className="MenuTab"
                 />
             </Tabs>
+            <Login />
             <div className="GlobalSettings">
                 <ThemeSwitch />
             </div>

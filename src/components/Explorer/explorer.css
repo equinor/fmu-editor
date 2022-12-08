@@ -38,10 +38,19 @@
 }
 
 .ExplorerItemText {
-    padding: 4px 16px 4px 0px;
+    padding: 4px 16px 4px 4px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    flex-grow: 4;
+    line-height: 0.5rem;
+}
+
+.ExplorerItemIcon {
+    width: 16px;
     display: flex;
-    gap: 4px;
     align-items: center;
+    justify-content: center;
 }
 
 .ExplorerNoDirectory {
@@ -49,7 +58,6 @@
 }
 
 .ExplorerContent {
-    overflow: hidden;
     overflow-y: auto;
     padding: var(--spacing-s);
 }
@@ -60,13 +68,11 @@
     justify-content: start;
     align-items: center;
     height: 24px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
     padding-left: calc(2 * var(--spacing-s));
     user-select: none;
     text-decoration: none;
     color: var(--text-color);
+    flex-wrap: nowrap;
 }
 
 .ExplorerItem:hover {

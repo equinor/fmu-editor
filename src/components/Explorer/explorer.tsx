@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 
 import React from "react";
-import {VscCheck, VscCollapseAll, VscFolderActive, VscLock} from "react-icons/vsc";
+import {VscCheck, VscChevronDown, VscCollapseAll, VscLock} from "react-icons/vsc";
 
 import {checkIfWritable, readFileTree} from "@utils/file-operations";
 
@@ -43,9 +43,7 @@ export const Explorer: React.FC = () => {
     const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
     const directory = useAppSelector(state => state.files.directory);
     const [writeable, setWriteable] = React.useState<boolean>(false);
-    const fileTreeStates = useAppSelector(state => state.files.fileTreeStates[state.files.directory]);
     const [fileTree, setFileTree] = React.useState<FileTree>([]);
-    const [allCollapsed, setAllCollapsed] = React.useState<number>(0);
     const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
     const [directories, setDirectories] = React.useState<string[]>([]);
 
@@ -149,17 +147,17 @@ export const Explorer: React.FC = () => {
                                         title="You don't have write access for this folder."
                                     />
                                 )}
+                                <IconButton size="small" title="Change working directory" onClick={toggleDrawer(true)}>
+                                    <VscChevronDown />
+                                </IconButton>
                             </div>
-                            <IconButton size="small" title="Change directory" onClick={toggleDrawer(true)}>
-                                <VscFolderActive />
-                            </IconButton>
                             <IconButton size="small" title="Collapse all" onClick={() => handleCollapseAll()}>
                                 <VscCollapseAll />
                             </IconButton>
                         </Stack>
                     </Surface>
                     <div className="ExplorerContent">
-                        {fileTree.map((item, index) => {
+                        {fileTree.map(item => {
                             if (item.type === "file") {
                                 return (
                                     <div className="ExplorerItem" key={item.name} style={{paddingLeft: 16}}>

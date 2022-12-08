@@ -4,7 +4,7 @@ import {useEnvironment} from "@services/environment-service";
 import {useFileChangesWatcher} from "@services/file-changes-service";
 
 import React from "react";
-import {VscEdit} from "react-icons/vsc";
+import {VscCircleFilled} from "react-icons/vsc";
 
 import {generateHashCode} from "@utils/hash";
 
@@ -29,6 +29,7 @@ export const FileTab: React.FC<FileTabProps> = props => {
     const theme = useTheme();
     const dispatch = useAppDispatch();
     const file = useAppSelector(state => state.files.files.find(el => el.filePath === props.filePath));
+    const directory = useAppSelector(state => state.files.directory);
     const activeFilePath = useAppSelector(state => state.files.activeFile);
     const fileChangesWatcher = useFileChangesWatcher();
     const environment = useEnvironment();
@@ -45,9 +46,9 @@ export const FileTab: React.FC<FileTabProps> = props => {
         setUncommitted(
             fileChangesWatcher.fileChanges
                 .filter(change => change.user === environment.username)
-                .some(change => change.filePath === file?.userFilePath)
+                .some(change => change.filePath === path.relative(directory, file?.filePath || ""))
         );
-    }, [fileChangesWatcher.fileChanges, file?.filePath, environment.username, file?.userFilePath]);
+    }, [fileChangesWatcher.fileChanges, file?.filePath, environment.username, directory]);
 
     React.useEffect(() => {
         setActive(props.filePath === activeFilePath);
@@ -70,7 +71,11 @@ export const FileTab: React.FC<FileTabProps> = props => {
             title={props.filePath}
         >
             {filename}
-            {uncommitted && <VscEdit fontSize="inherit" style={{color: theme.palette.info.light}} />}
+            {uncommitted && (
+                <span title="Uncommitted changes">
+                    <VscCircleFilled fontSize="inherit" style={{color: theme.palette.info.light}} />
+                </span>
+            )}
             <div className="FileTab__CloseButton" onClick={e => handleCloseEvent(e)}>
                 <Close fontSize="inherit" />
             </div>
