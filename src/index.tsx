@@ -20,6 +20,7 @@ import reportWebVitals from "./reportWebVitals";
 
 Providers.globalProvider = new Msal2Provider({
     clientId: "6f2755e8-06e5-4f2e-8129-029c1c71d347",
+    authority: "https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0",
     scopes: ["user.read", "openid", "profile", "people.read", "user.readbasic.all"],
 });
 
