@@ -2,18 +2,14 @@
 
 /* eslint-disable import/first */
 import terminal from "../cli/terminal";
+import {ElectronAuthenticator, MsalElectronConfig} from "@microsoft/mgt-electron-provider/dist/Authenticator";
 
 import {BrowserWindow, app, ipcMain} from "electron";
-import installExtension, {
-    REACT_DEVELOPER_TOOLS,
-} from "electron-devtools-installer";
+import installExtension, {REACT_DEVELOPER_TOOLS} from "electron-devtools-installer";
 import * as ElectronLog from "electron-log";
 import ElectronStore from "electron-store";
 
-import {
-    FileExplorerOptions,
-    FileOptions,
-} from "@shared-types/file-explorer-options";
+import {FileExplorerOptions, FileOptions} from "@shared-types/file-explorer-options";
 
 import fs from "fs";
 import moduleAlias from "module-alias";
@@ -90,10 +86,7 @@ ipcMain.on("find-python-interpreters", event => {
 });
 
 ipcMain.on("check-if-python-interpreter", (event, pythonPath) => {
-    event.reply(
-        "python-interpreter-check",
-        checkIfPythonInterpreter(pythonPath)
-    );
+    event.reply("python-interpreter-check", checkIfPythonInterpreter(pythonPath));
 });
 
 ipcMain.on("get-webviz-themes", (event, pythonInterpreter) => {
@@ -130,6 +123,14 @@ function createWindow() {
         },
     });
 
+    const config: MsalElectronConfig = {
+        clientId: "6f2755e8-06e5-4f2e-8129-029c1c71d347",
+        authority: "https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0",
+        mainWindow: win,
+        scopes: ["user.readbasic.all"],
+    };
+    ElectronAuthenticator.initialize(config);
+
     if (isDev) {
         win.loadURL("http://localhost:3000");
     } else {
@@ -142,14 +143,7 @@ function createWindow() {
         // 'node_modules/.bin/electronPath'
         /* eslint-disable global-require */
         require("electron-reload")(__dirname, {
-            electron: path.join(
-                __dirname,
-                "..",
-                "..",
-                "node_modules",
-                ".bin",
-                "electron"
-            ),
+            electron: path.join(__dirname, "..", "..", "node_modules", ".bin", "electron"),
             forceHardReset: true,
             hardResetMethod: "exit",
         });
@@ -182,10 +176,7 @@ const openApplication = async () => {
         try {
             let legacyTempFiles: string[] = [];
             if (fs.existsSync(tempFilesPath)) {
-                legacyTempFiles = fs
-                    .readFileSync(tempFilesPath)
-                    .toString()
-                    .split("\n");
+                legacyTempFiles = fs.readFileSync(tempFilesPath).toString().split("\n");
                 fs.rmSync(tempFilesPath);
             }
             legacyTempFiles.forEach(file => {
@@ -215,7 +206,7 @@ const openApplication = async () => {
 
 openApplication();
 
-if (process.platform === 'darwin') {
+if (process.platform === "darwin") {
     terminal()
         // eslint-disable-next-line no-console
         .catch(e => console.log(e));

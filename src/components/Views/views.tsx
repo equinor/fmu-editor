@@ -1,5 +1,4 @@
 import {useUserFileChanges} from "@hooks/useUserFileChanges";
-import {Login} from "@microsoft/mgt-react";
 import {Badge, Tab, Tabs} from "@mui/material";
 
 import React from "react";
@@ -13,6 +12,7 @@ import {setEditorMode} from "@redux/reducers/ui";
 
 import {Page} from "@shared-types/ui";
 
+import {Login} from "./components/login";
 import "./views.css";
 
 export const Views: React.VFC = () => {

@@ -1,18 +1,17 @@
 import {useUserChangesForFile} from "@hooks/useUserChangesForFile";
-import {Avatar} from "@mui/material";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
 
 import {getFileIcon} from "@src/file-icons";
 
+import {Avatar} from "@components/Avatar";
 import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {openFile} from "@redux/thunks";
 
 import path from "path";
-import uniqolor from "uniqolor";
 import {v4} from "uuid";
 
 export type FileProps = {
@@ -52,15 +51,8 @@ export const File: React.FC<FileProps> = props => {
                 {userChanges.map(change => (
                     <Avatar
                         key={change.user}
-                        sx={{
-                            width: 16,
-                            height: 16,
-                            fontSize: 10,
-                            marginRight: "4px",
-                            backgroundColor: uniqolor(change.user).color,
-                        }}
-                        alt={change.user[0]}
-                        src="/static/images/avatar/1.jpg"
+                        user={change.user}
+                        size={14}
                         title={`This file has been modified by '${change.user}'. Merging might be required.`}
                     />
                 ))}

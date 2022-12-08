@@ -25,6 +25,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable import/first */
 const terminal_1 = __importDefault(require("../cli/terminal"));
+const Authenticator_1 = require("@microsoft/mgt-electron-provider/dist/Authenticator");
 const electron_1 = require("electron");
 const electron_devtools_installer_1 = __importStar(require("electron-devtools-installer"));
 const ElectronLog = __importStar(require("electron-log"));
@@ -119,6 +120,13 @@ function createWindow() {
             webSecurity: false,
         },
     });
+    const config = {
+        clientId: "6f2755e8-06e5-4f2e-8129-029c1c71d347",
+        authority: "https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0",
+        mainWindow: win,
+        scopes: ["user.readbasic.all"],
+    };
+    Authenticator_1.ElectronAuthenticator.initialize(config);
     if (isDev) {
         win.loadURL("http://localhost:3000");
     }
@@ -158,10 +166,7 @@ const openApplication = async () => {
         try {
             let legacyTempFiles = [];
             if (fs_1.default.existsSync(tempFilesPath)) {
-                legacyTempFiles = fs_1.default
-                    .readFileSync(tempFilesPath)
-                    .toString()
-                    .split("\n");
+                legacyTempFiles = fs_1.default.readFileSync(tempFilesPath).toString().split("\n");
                 fs_1.default.rmSync(tempFilesPath);
             }
             legacyTempFiles.forEach(file => {
@@ -190,7 +195,7 @@ const openApplication = async () => {
     });
 };
 openApplication();
-if (process.platform === 'darwin') {
+if (process.platform === "darwin") {
     terminal_1.default()
         // eslint-disable-next-line no-console
         .catch(e => console.log(e));

@@ -1,10 +1,10 @@
-import {Avatar, ListItem, ListItemAvatar} from "@mui/material";
+import {ListItem, ListItemAvatar} from "@mui/material";
 
 import React from "react";
 
-import {useAppSelector} from "@redux/hooks";
+import {Avatar} from "@components/Avatar";
 
-import uniqolor from "uniqolor";
+import {useAppSelector} from "@redux/hooks";
 
 export type CommitProps = {
     id: string;
@@ -24,12 +24,7 @@ export const Commit: React.FC<CommitProps> = props => {
             onClick={() => props.onClick !== undefined && props.onClick()}
         >
             <ListItemAvatar>
-                <Avatar
-                    alt={props.user}
-                    title={props.user}
-                    src="/static/images/avatar/1.jpg"
-                    sx={{width: 24, height: 24, backgroundColor: uniqolor(props.user).color}}
-                />
+                <Avatar user={props.user} />
             </ListItemAvatar>
             {summary}
         </ListItem>

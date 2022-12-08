@@ -1,14 +1,15 @@
 {
-  "compilerOptions": {
-    "target": "es2017",
-    "module": "commonjs",
-    "sourceMap": true,
-    "strict": true,
-    "outDir": "../build",
-    "rootDir": "../",
-    "baseUrl": "../",
-    "noEmitOnError": true,
-    "resolveJsonModule": true
-  },
-  "extends": "../paths.json"
+    "compilerOptions": {
+        "target": "es2017",
+        "module": "commonjs",
+        "sourceMap": true,
+        "strict": true,
+        "outDir": "../build",
+        "rootDir": "../",
+        "baseUrl": "../",
+        "noEmitOnError": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true
+    },
+    "extends": "../paths.json"
 }
