@@ -2,7 +2,7 @@ import {ProviderState, Providers} from "@microsoft/mgt-element";
 
 import React from "react";
 
-export const useIsSignedIn = (): [boolean] => {
+export const useIsSignedIn = (): boolean => {
     const [isSignedIn, setIsSignedIn] = React.useState(false);
 
     React.useEffect(() => {
@@ -19,5 +19,5 @@ export const useIsSignedIn = (): [boolean] => {
         };
     }, []);
 
-    return [isSignedIn];
+    return isSignedIn;
 };

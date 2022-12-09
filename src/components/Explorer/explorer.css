@@ -43,7 +43,6 @@
     overflow: hidden;
     white-space: nowrap;
     flex-grow: 4;
-    line-height: 0.5rem;
 }
 
 .ExplorerItemIcon {

@@ -4,19 +4,19 @@ import {Badge, Tab, Tabs} from "@mui/material";
 import React from "react";
 import {VscEdit, VscSourceControl} from "react-icons/vsc";
 
+import {Login} from "@components/MicrosoftGraph/Login/login";
 import {Surface} from "@components/Surface";
 import {ThemeSwitch} from "@components/ThemeSwitch";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setEditorMode} from "@redux/reducers/ui";
+import {setPage} from "@redux/reducers/ui";
 
 import {Page} from "@shared-types/ui";
 
-import {Login} from "./components/login";
 import "./views.css";
 
 export const Views: React.VFC = () => {
-    const editorMode = useAppSelector(state => state.ui.page);
+    const page = useAppSelector(state => state.ui.page);
 
     const dispatch = useAppDispatch();
     const userFileChanges = useUserFileChanges();
@@ -25,10 +25,10 @@ export const Views: React.VFC = () => {
         <Surface className="TabMenu" elevation="raised">
             <Tabs
                 orientation="vertical"
-                value={editorMode}
+                value={page}
                 color="inherit"
                 onChange={(event: React.SyntheticEvent<Element, Event>, newValue: string) =>
-                    dispatch(setEditorMode(newValue as Page))
+                    dispatch(setPage(newValue as Page))
                 }
             >
                 <Tab
@@ -49,12 +49,12 @@ export const Views: React.VFC = () => {
                             <VscSourceControl color="inherit" size={24} title="Source control" />
                         </Badge>
                     }
-                    value={Page.DiffEditor}
+                    value={Page.SourceControl}
                     className="MenuTab"
                 />
             </Tabs>
-            <Login />
             <div className="GlobalSettings">
+                <Login />
                 <ThemeSwitch />
             </div>
         </Surface>

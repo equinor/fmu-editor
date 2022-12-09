@@ -35,11 +35,11 @@ export class FileManager {
         this.currentDirectory = currentDirectory;
     }
 
-    userDirectory(): string {
+    userDirectory(user?: string): string {
         if (!this.currentDirectory) {
             return "";
         }
-        return path.join(this.currentDirectory, ".users", this.username);
+        return path.join(this.currentDirectory, ".users", user || this.username);
     }
 
     userDirectoryExists(): boolean {
@@ -60,10 +60,10 @@ export class FileManager {
         }
     }
 
-    modifyFilePath(originalFilePath: string): string {
+    modifyFilePath(originalFilePath: string, user?: string): string {
         if (!this.currentDirectory) return originalFilePath;
 
-        const newFilePath = originalFilePath.replace(this.currentDirectory, this.userDirectory());
+        const newFilePath = originalFilePath.replace(this.currentDirectory, this.userDirectory(user));
         return newFilePath;
     }
 
@@ -136,8 +136,8 @@ export class FileManager {
         return true;
     }
 
-    getUserFileIfExists(filePath: string): string {
-        const newFilePath = this.modifyFilePath(filePath);
+    getUserFileIfExists(filePath: string, user?: string): string {
+        const newFilePath = this.modifyFilePath(filePath, user);
         if (fs.existsSync(newFilePath)) {
             return newFilePath;
         }

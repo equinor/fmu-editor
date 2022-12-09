@@ -7,13 +7,13 @@ import {useFileManager} from "@services/file-manager";
 import React from "react";
 import {DiffEditorDidMount, MonacoDiffEditor, monaco} from "react-monaco-editor";
 
-import {CommitBrowser} from "@components/CommitBrowser";
 import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setActiveDiffFile} from "@redux/reducers/files";
 import {addNotification} from "@redux/reducers/notifications";
+import {setUserChangesFile} from "@redux/reducers/ui";
 
 import {NotificationType} from "@shared-types/notifications";
 
@@ -79,6 +79,7 @@ export const DiffEditor: React.VFC = () => {
     const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
     const currentCommit = useAppSelector(state => state.ui.currentCommit);
     const currentDirectory = useAppSelector(state => state.files.directory);
+    const userChangesFile = useAppSelector(state => state.ui.userChangesFile);
     const dispatch = useAppDispatch();
     const {fileManager} = useFileManager();
     const globalSettings = useGlobalSettings();
@@ -118,12 +119,15 @@ export const DiffEditor: React.VFC = () => {
                 } else {
                     setOriginalFilePath(fileManager.makeOriginalFilePath(activeDiffFile, currentCommit.snapshotPath));
                 }
+            } else if (userChangesFile) {
+                setUserFilePath(activeDiffFile);
+                setOriginalFilePath(fileManager.getOriginalFileIfExists(activeDiffFile));
             } else {
                 setUserFilePath(fileManager.getUserFileIfExists(path.join(currentDirectory, activeDiffFile)));
                 setOriginalFilePath(fileManager.getOriginalFileIfExists(path.join(currentDirectory, activeDiffFile)));
             }
         }
-    }, [activeDiffFile, currentCommit, currentDirectory, fileManager]);
+    }, [activeDiffFile, currentCommit, currentDirectory, fileManager, userChangesFile]);
 
     React.useEffect(() => {
         if (!activeDiffFile || !globalSettings.supportedFileExtensions.includes(path.extname(activeDiffFile))) {
@@ -152,7 +156,7 @@ export const DiffEditor: React.VFC = () => {
             if (!userModel) {
                 userModel = monaco.editor.createModel(
                     fs.readFileSync(userFilePath).toString(),
-                    "yaml",
+                    globalSettings.languageForFileExtension(path.extname(userFilePath)),
                     monaco.Uri.file(userFilePath)
                 );
             } else {
@@ -163,7 +167,7 @@ export const DiffEditor: React.VFC = () => {
             if (!diffModel) {
                 diffModel = monaco.editor.createModel(
                     fs.readFileSync(originalFilePath).toString(),
-                    "yaml",
+                    globalSettings.languageForFileExtension(path.extname(userFilePath)),
                     monaco.Uri.file(originalFilePath)
                 );
             } else {
@@ -188,10 +192,12 @@ export const DiffEditor: React.VFC = () => {
         globalSettings.supportedFileExtensions,
         originalFilePath,
         userFilePath,
+        globalSettings,
     ]);
 
     const handleClose = () => {
         dispatch(setActiveDiffFile({relativeFilePath: null}));
+        dispatch(setUserChangesFile(undefined));
         setVisible(false);
     };
 
@@ -201,14 +207,6 @@ export const DiffEditor: React.VFC = () => {
 
     return (
         <div className="EditorWrapper">
-            <div
-                style={{
-                    display: !visible ? "block" : "none",
-                    height: "100%",
-                }}
-            >
-                <CommitBrowser />
-            </div>
             <div ref={diffEditorRef} className="EditorContainer" style={{display: visible ? "block" : "none"}}>
                 <Surface elevation="raised" className="DiffEditorHeader">
                     <div style={{width: originalEditorWidth}}>

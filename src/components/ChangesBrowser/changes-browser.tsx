@@ -6,40 +6,42 @@ import React from "react";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setCurrentCommit} from "@redux/reducers/ui";
+import {setChangesBrowserView, setCurrentCommit} from "@redux/reducers/ui";
+
+import {ChangesBrowserView} from "@shared-types/ui";
 
 import "./changes-browser.css";
 import {CurrentChanges} from "./components/current-changes";
 import {LoggedChanges} from "./components/logged-changes";
 
 export const ChangesBrowser: React.VFC = () => {
-    const [view, setView] = React.useState<"current" | "logged">("logged");
+    const view = useAppSelector(state => state.ui.changesBrowserView);
 
     const userFileChanges = useUserFileChanges();
     const currentCommit = useAppSelector(state => state.ui.currentCommit);
     const dispatch = useAppDispatch();
 
     const handleViewChange = React.useCallback(
-        (value: "current" | "logged") => {
-            setView(value);
+        (value: ChangesBrowserView) => {
+            dispatch(setChangesBrowserView(value));
             dispatch(setCurrentCommit(undefined));
         },
         [dispatch]
     );
 
     React.useEffect(() => {
-        if (currentCommit && view === "current") {
-            setView("logged");
+        if (currentCommit && view === ChangesBrowserView.CurrentChanges) {
+            dispatch(setChangesBrowserView(ChangesBrowserView.LoggedChanges));
         }
-    }, [currentCommit, view]);
+    }, [currentCommit, view, dispatch]);
 
     return (
         <Surface elevation="raised" className="ChangesBrowser">
-            {view === "logged" && (
+            {view === ChangesBrowserView.LoggedChanges && (
                 <>
                     {userFileChanges.length > 0 && (
                         <Button
-                            onClick={() => handleViewChange("current")}
+                            onClick={() => handleViewChange(ChangesBrowserView.CurrentChanges)}
                             sx={{width: "100%", borderRadius: 0}}
                             variant="contained"
                         >
@@ -49,7 +51,7 @@ export const ChangesBrowser: React.VFC = () => {
                     <LoggedChanges />
                 </>
             )}
-            {view === "current" && <CurrentChanges />}
+            {view === ChangesBrowserView.CurrentChanges && <CurrentChanges />}
         </Surface>
     );
 };

@@ -1,13 +1,13 @@
 import {useYamlSchemas} from "@hooks/useYamlSchema";
 import {Error as ErrorIcon} from "@mui/icons-material";
-import {Badge, Grid, Typography, useTheme} from "@mui/material";
+import {Badge, Grid, IconButton, Typography, useTheme} from "@mui/material";
 import useSize from "@react-hook/size";
 import {useFileManager} from "@services/file-manager";
 
 import {ipcRenderer} from "electron";
 
 import React from "react";
-import {VscError, VscInfo, VscLightbulb, VscWarning} from "react-icons/vsc";
+import {VscError, VscInfo, VscLightbulb, VscPreview, VscWarning} from "react-icons/vsc";
 import MonacoEditor, {EditorDidMount, EditorWillUnmount, monaco} from "react-monaco-editor";
 
 import {FileTabs} from "@components/FileTabs";
@@ -30,6 +30,7 @@ import path from "path";
 // @ts-ignore
 import {v4} from "uuid";
 
+import {EditorPreview} from "./components/editor-preview";
 import "./editor.css";
 
 declare global {
@@ -94,6 +95,7 @@ type EditorProps = {};
 
 export const Editor: React.FC<EditorProps> = () => {
     const [noModels, setNoModels] = React.useState<boolean>(false);
+    const [previewVisible, setPreviewVisible] = React.useState<boolean>(false);
     const [markers, setMarkers] = React.useState<monaco.editor.IMarker[]>([]);
 
     const monacoEditorRef = React.useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -262,21 +264,37 @@ export const Editor: React.FC<EditorProps> = () => {
                 <div className="EditorContainer" style={{display: !noModels ? "flex" : "none"}}>
                     <ResizablePanels direction="vertical" id="Editor-Issues" minSizes={[0, 80]}>
                         <div ref={editorRef} className="Editor">
-                            <FileTabs onFileChange={handleFileChange} />
-                            <MonacoEditor
-                                language="yaml"
-                                defaultValue=""
-                                className="YamlEditor"
-                                editorDidMount={handleEditorDidMount}
-                                editorWillUnmount={handleEditorWillUnmount}
-                                theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
-                                options={{
-                                    tabSize: 2,
-                                    insertSpaces: true,
-                                    quickSuggestions: {other: true, strings: true},
-                                }}
-                                width={editorTotalWidth}
-                                height={editorTotalHeight - 56}
+                            <FileTabs
+                                onFileChange={handleFileChange}
+                                actions={
+                                    <IconButton
+                                        color={previewVisible ? "primary" : "inherit"}
+                                        onClick={() => setPreviewVisible(!previewVisible)}
+                                    >
+                                        <VscPreview />
+                                    </IconButton>
+                                }
+                            />
+                            <EditorPreview
+                                previewVisible={previewVisible}
+                                editor={
+                                    <MonacoEditor
+                                        language="yaml"
+                                        defaultValue=""
+                                        className="YamlEditor"
+                                        editorDidMount={handleEditorDidMount}
+                                        editorWillUnmount={handleEditorWillUnmount}
+                                        theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
+                                        options={{
+                                            tabSize: 2,
+                                            insertSpaces: true,
+                                            quickSuggestions: {other: true, strings: true},
+                                        }}
+                                        width={editorTotalWidth}
+                                        height={editorTotalHeight - 56}
+                                    />
+                                }
+                                preview={<></>}
                             />
                         </div>
                         <div className="Issues">

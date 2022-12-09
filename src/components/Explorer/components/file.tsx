@@ -1,14 +1,17 @@
 import {useUserChangesForFile} from "@hooks/useUserChangesForFile";
+import {AvatarGroup} from "@mui/material";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
 
 import {getFileIcon} from "@src/file-icons";
 
-import {Avatar} from "@components/Avatar";
 import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
+import {Avatar} from "@components/MicrosoftGraph/Avatar";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
+import {setActiveDiffFile} from "@redux/reducers/files";
+import {setUserChangesFile} from "@redux/reducers/ui";
 import {openFile} from "@redux/thunks";
 
 import path from "path";
@@ -33,10 +36,26 @@ export const File: React.FC<FileProps> = props => {
         e.preventDefault();
     };
 
+    const handleUserChangesClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        dispatch(
+            setActiveDiffFile({
+                relativeFilePath: fileManager.getUserFileIfExists(
+                    path.join(directory, props.path),
+                    userChanges[0].user
+                ),
+            })
+        );
+        dispatch(setUserChangesFile(props.path));
+        e.stopPropagation();
+        e.preventDefault();
+    };
+
     return (
         <a
             href="#"
-            className={`ExplorerItem${activeFile === props.path ? " ExplorerItem--active" : ""}`}
+            className={`ExplorerItem${
+                path.relative(directory, activeFile) === props.path ? " ExplorerItem--active" : ""
+            }`}
             onClick={e => handleFileClick(e)}
             title={props.path}
         >
@@ -48,14 +67,17 @@ export const File: React.FC<FileProps> = props => {
             <div className="ExplorerItemIcon">{getFileIcon(path.relative(directory, props.path))}</div>
             <div className="ExplorerItemText">{props.name}</div>
             <div className="ExplorerItemStatus">
-                {userChanges.map(change => (
-                    <Avatar
-                        key={change.user}
-                        user={change.user}
-                        size={14}
-                        title={`This file has been modified by '${change.user}'. Merging might be required.`}
-                    />
-                ))}
+                <AvatarGroup
+                    max={3}
+                    sx={{
+                        "& .MuiAvatar-root": {width: 16, height: 16, fontSize: "0.6rem"},
+                    }}
+                    onClick={handleUserChangesClick}
+                >
+                    {userChanges.map(change => (
+                        <Avatar key={change.user} user={change.user} size={16} />
+                    ))}
+                </AvatarGroup>
             </div>
         </a>
     );

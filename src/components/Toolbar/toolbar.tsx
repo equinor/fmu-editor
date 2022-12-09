@@ -11,8 +11,6 @@ import {selectFmuDirectory} from "@redux/thunks";
 
 import {Notification, NotificationType} from "@shared-types/notifications";
 
-import path from "path";
-
 import "./toolbar.css";
 
 export const Toolbar: React.FC = () => {
@@ -21,7 +19,7 @@ export const Toolbar: React.FC = () => {
     const [progress, setProgress] = React.useState<number>(100);
 
     const dispatch = useAppDispatch();
-    const {fileManager, copyUserDirectory} = useFileManager();
+    const {fileManager, copyUserDirectory, changedFiles} = useFileManager();
 
     const handleOpenDirectoryClick = () => {
         selectFmuDirectory(fmuDirectory, dispatch);
@@ -120,17 +118,18 @@ export const Toolbar: React.FC = () => {
                 title={
                     fileManager.userDirectoryExists() ? "Current user directory" : "Click here to create user directory"
                 }
+                sx={{backgroundColor: changedFiles.length > 0 ? "var(--warning)" : "var(--success)"}}
             >
                 <VscFileSymlinkDirectory />
                 {progress < 100 ? (
                     <span>
                         <i>Copying...</i>
                     </span>
-                ) : fileManager.userDirectoryExists() ? (
-                    <span>{path.relative(fileManager.getFmuDirectory(), fileManager.userDirectory())}</span>
+                ) : changedFiles.length === 0 ? (
+                    <span>User directory up to date</span>
                 ) : (
                     <span>
-                        <i>User directory no created yet</i>
+                        {changedFiles.length} file{changedFiles.length > 1 ? "s" : ""} changed in main
                     </span>
                 )}
             </Button>

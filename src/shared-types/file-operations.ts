@@ -5,7 +5,7 @@ export enum FileOperationsRequestType {
 
 export enum FileOperationsResponseType {
     COPY_USER_DIRECTORY_PROGRESS,
-    FILES_REQUIRING_MERGING,
+    CHANGED_FILES,
 }
 
 export enum FileOperationsStatus {
@@ -13,6 +13,11 @@ export enum FileOperationsStatus {
     ERROR,
     IN_PROGRESS,
 }
+
+export type ChangedFile = {
+    filePath: string;
+    mergingRequired: boolean;
+};
 
 export type FileOperationsRequests = {
     [FileOperationsRequestType.COPY_USER_DIRECTORY]: {
@@ -31,7 +36,7 @@ export type FileOperationsResponses = {
         status: FileOperationsStatus;
         message?: string;
     };
-    [FileOperationsResponseType.FILES_REQUIRING_MERGING]: {
-        files: string[];
+    [FileOperationsResponseType.CHANGED_FILES]: {
+        changedFiles: ChangedFile[];
     };
 };

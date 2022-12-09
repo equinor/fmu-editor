@@ -5,13 +5,13 @@ import electronStore from "@utils/electron-store";
 import initialState from "@redux/initial-state";
 
 import {ICommitExtended} from "@shared-types/changelog";
-import {Page, PaneConfiguration, Themes, UiState} from "@shared-types/ui";
+import {ChangesBrowserView, Page, PaneConfiguration, Themes, UiState} from "@shared-types/ui";
 
 export const uiSlice = createSlice({
     name: "ui",
     initialState: initialState.ui,
     reducers: {
-        setEditorMode: (state: Draft<UiState>, action: PayloadAction<Page>) => {
+        setPage: (state: Draft<UiState>, action: PayloadAction<Page>) => {
             state.page = action.payload;
         },
         setTheme: (state: Draft<UiState>, action: PayloadAction<Themes>) => {
@@ -37,8 +37,22 @@ export const uiSlice = createSlice({
         setCurrentCommit: (state: Draft<UiState>, action: PayloadAction<ICommitExtended | undefined>) => {
             state.currentCommit = action.payload;
         },
+        setUserChangesFile: (state: Draft<UiState>, action: PayloadAction<string>) => {
+            state.userChangesFile = action.payload;
+        },
+        setChangesBrowserView: (state: Draft<UiState>, action: PayloadAction<ChangesBrowserView>) => {
+            state.changesBrowserView = action.payload;
+        },
     },
 });
 
-export const {setEditorMode, setTheme, setPaneConfiguration, setEditorFontSize, setCurrentCommit} = uiSlice.actions;
+export const {
+    setPage,
+    setTheme,
+    setPaneConfiguration,
+    setEditorFontSize,
+    setCurrentCommit,
+    setUserChangesFile,
+    setChangesBrowserView,
+} = uiSlice.actions;
 export default uiSlice.reducer;

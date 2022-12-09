@@ -80,6 +80,7 @@
         "@emotion/styled": "^11.3.0",
         "@equinor/eds-core-react": "^0.26.0",
         "@equinor/eds-icons": "^0.10.0",
+        "@microsoft/mgt-components": "^2.8.0",
         "@microsoft/mgt-electron-provider": "^2.8.0",
         "@microsoft/mgt-element": "^2.8.0",
         "@microsoft/mgt-react": "^2.8.0",

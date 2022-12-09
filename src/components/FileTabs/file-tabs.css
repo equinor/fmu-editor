@@ -3,8 +3,25 @@
     flex-direction: row;
     min-height: 38px;
     height: 38px;
-    overflow: auto;
     background-color: var(--background);
+}
+
+.FileTabsContent {
+    display: flex;
+    flex-direction: row;
+    min-height: 38px;
+    height: 38px;
+    overflow: auto;
+    flex-grow: 4;
+}
+
+.FileTabsActions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-s);
+    padding: var(--spacing-s);
 }
 
 .FileTabs::-webkit-scrollbar {

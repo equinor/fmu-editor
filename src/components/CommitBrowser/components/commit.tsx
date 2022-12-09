@@ -2,7 +2,7 @@ import {ListItem, ListItemAvatar} from "@mui/material";
 
 import React from "react";
 
-import {Avatar} from "@components/Avatar";
+import {Avatar} from "@components/MicrosoftGraph/Avatar";
 
 import {useAppSelector} from "@redux/hooks";
 
@@ -24,7 +24,7 @@ export const Commit: React.FC<CommitProps> = props => {
             onClick={() => props.onClick !== undefined && props.onClick()}
         >
             <ListItemAvatar>
-                <Avatar user={props.user} />
+                <Avatar user={props.user} size={24} />
             </ListItemAvatar>
             {summary}
         </ListItem>

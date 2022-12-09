@@ -7,7 +7,7 @@ import {generateHashCode} from "@utils/hash";
 import {EventSource, File, FilesState} from "@shared-types/files";
 import {NotificationsState} from "@shared-types/notifications";
 import {PreferencesState} from "@shared-types/preferences";
-import {Page, Themes, UiState} from "@shared-types/ui";
+import {ChangesBrowserView, Page, Themes, UiState} from "@shared-types/ui";
 import {UiCoachState} from "@shared-types/ui-coach";
 
 import fs from "fs";
@@ -25,6 +25,9 @@ const initialUiState: UiState = {
         name: key,
         sizes: paneConfiguration[key],
     })),
+    currentCommit: undefined,
+    userChangesFile: undefined,
+    changesBrowserView: ChangesBrowserView.LoggedChanges,
 };
 
 const initialPreferencesState: PreferencesState = {

@@ -16,7 +16,6 @@ import {setActiveDiffFile} from "@redux/reducers/files";
 import {ICommit} from "@shared-types/changelog";
 import {FileChangeType} from "@shared-types/file-changes";
 
-import path from "path";
 import {v4} from "uuid";
 
 export const CurrentChanges: React.VFC = () => {
@@ -35,13 +34,6 @@ export const CurrentChanges: React.VFC = () => {
     React.useEffect(() => {
         setStagedFiles(prev => prev.filter(el => userFileChanges.some(change => change.filePath === el)));
     }, [userFileChanges, environment]);
-
-    const adjustFilePath = React.useCallback(
-        (filePath: string) => {
-            return path.relative(path.join(directory, ".users", environment.username || ""), filePath);
-        },
-        [environment.username, directory]
-    );
 
     const handleCommitChange = React.useCallback(
         (e, filePath: string) => {
@@ -63,7 +55,7 @@ export const CurrentChanges: React.VFC = () => {
                 message: [commitSummary, commitDescription].join("\n"),
                 datetime: new Date().getTime(),
                 files: stagedFiles.map(el => ({
-                    path: adjustFilePath(el),
+                    path: el,
                     action: userFileChanges.find(change => change.filePath === el)?.type || FileChangeType.MODIFIED,
                 })),
             };
@@ -73,23 +65,17 @@ export const CurrentChanges: React.VFC = () => {
             setStagedFiles([]);
             dispatch(setActiveDiffFile({relativeFilePath: null}));
         }
-    }, [
-        stagedFiles,
-        fileManager,
-        environment,
-        changelog,
-        commitSummary,
-        commitDescription,
-        adjustFilePath,
-        userFileChanges,
-        dispatch,
-    ]);
+    }, [stagedFiles, fileManager, environment, changelog, commitSummary, commitDescription, userFileChanges, dispatch]);
 
     const handleFileSelected = React.useCallback(
         (file: string) => {
-            dispatch(setActiveDiffFile({relativeFilePath: adjustFilePath(file)}));
+            dispatch(
+                setActiveDiffFile({
+                    relativeFilePath: file,
+                })
+            );
         },
-        [dispatch, adjustFilePath]
+        [dispatch]
     );
 
     const handleStageAll = React.useCallback(() => {
@@ -141,9 +127,7 @@ export const CurrentChanges: React.VFC = () => {
                                     {fileChange.type === FileChangeType.DELETED && (
                                         <Remove color="error" fontSize="small" />
                                     )}
-                                    <span title={adjustFilePath(fileChange.filePath)}>
-                                        {adjustFilePath(fileChange.filePath)}
-                                    </span>
+                                    <span title={fileChange.filePath}>{fileChange.filePath}</span>
                                 </div>
                                 <Button
                                     variant="text"
@@ -188,9 +172,7 @@ export const CurrentChanges: React.VFC = () => {
                                     {fileChange.type === FileChangeType.DELETED && (
                                         <Remove color="error" fontSize="small" />
                                     )}
-                                    <span title={adjustFilePath(fileChange.filePath)}>
-                                        {adjustFilePath(fileChange.filePath)}
-                                    </span>
+                                    <span title={fileChange.filePath}>{fileChange.filePath}</span>
                                 </div>
                                 <Button
                                     variant="text"

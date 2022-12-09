@@ -1,11 +1,11 @@
-import {useUserFileChanges} from "@hooks/useUserFileChanges";
+import {IDynamicPerson} from "@microsoft/mgt-react";
 import {Add, Edit, Remove} from "@mui/icons-material";
-import {Avatar, Stack} from "@mui/material";
-import {useChangelogWatcher} from "@services/changelog-service";
+import {Stack} from "@mui/material";
 import {useEnvironment} from "@services/environment-service";
-import {useFileManager} from "@services/file-manager";
 
 import React from "react";
+
+import {Avatar} from "@components/MicrosoftGraph/Avatar";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setActiveDiffFile} from "@redux/reducers/files";
@@ -13,24 +13,18 @@ import {setActiveDiffFile} from "@redux/reducers/files";
 // import {ICommit} from "@shared-types/changelog";
 import {FileChangeType} from "@shared-types/file-changes";
 
-import path from "path";
-import uniqolor from "uniqolor";
-
 export const LoggedChanges: React.VFC = () => {
     const [summarizedActions, setSummarizedActions] = React.useState<{[key: string]: number}>({
         [FileChangeType.ADDED]: 0,
         [FileChangeType.MODIFIED]: 0,
         [FileChangeType.DELETED]: 0,
     });
+    const [userDetails, setUserDetails] = React.useState<IDynamicPerson | null>(null);
 
-    const userFileChanges = useUserFileChanges();
-    const directory = useAppSelector(state => state.files.directory);
     const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
     const currentCommit = useAppSelector(state => state.ui.currentCommit);
     const dispatch = useAppDispatch();
     const environment = useEnvironment();
-    const fileManager = useFileManager();
-    const changelog = useChangelogWatcher();
 
     React.useEffect(() => {
         const counts = {
@@ -46,13 +40,6 @@ export const LoggedChanges: React.VFC = () => {
         setSummarizedActions(counts);
     }, [currentCommit, environment]);
 
-    const adjustFilePath = React.useCallback(
-        (filePath: string) => {
-            return path.relative(path.join(directory, ".users", environment.username || ""), filePath);
-        },
-        [environment.username, directory]
-    );
-
     const handleFileSelected = React.useCallback(
         (file: string) => {
             dispatch(setActiveDiffFile({relativeFilePath: file}));
@@ -65,23 +52,25 @@ export const LoggedChanges: React.VFC = () => {
             {currentCommit && (
                 <>
                     <Stack direction="column" className="ChangesBrowserContent" spacing={2}>
-                        <div className="ChangesBrowserContentHeader">Commit: {currentCommit.id}</div>
+                        <div className="ChangesBrowserContentHeader" title={currentCommit.id}>
+                            Commit: {currentCommit.id}
+                        </div>
                         <div className="ChangesBrowserText">{currentCommit.message}</div>
                         <div className="ChangesBrowserUser">
                             <Avatar
-                                alt={currentCommit.author}
-                                title={currentCommit.author}
-                                src="/static/images/avatar/1.jpg"
-                                sx={{width: 40, height: 40, backgroundColor: uniqolor(currentCommit.author).color}}
+                                user={currentCommit.author}
+                                size={40}
+                                getDetails={(_, details) => setUserDetails(details)}
                             />
                             <div>
-                                {currentCommit.author}
-                                <br />
-                                <span className="ChangesBrowserDate">
+                                <div className="TextOverflow" title={userDetails?.displayName || currentCommit.author}>
+                                    {userDetails?.displayName || currentCommit.author}
+                                </div>
+                                <div className="ChangesBrowserDate">
                                     authored {new Date(currentCommit.datetime).toLocaleDateString()}
                                     {" @ "}
                                     {new Date(currentCommit.datetime).toLocaleTimeString()}
-                                </span>
+                                </div>
                             </div>
                         </div>
                         <Stack direction="row" spacing={1}>

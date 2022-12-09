@@ -12,7 +12,12 @@ export type PaneConfiguration = {
 
 export enum Page {
     Editor = "editor",
-    DiffEditor = "source-control",
+    SourceControl = "source-control",
+}
+
+export enum ChangesBrowserView {
+    CurrentChanges = "current-changes",
+    LoggedChanges = "logged-changes",
 }
 
 export type UiState = {
@@ -23,4 +28,6 @@ export type UiState = {
     };
     paneConfiguration: PaneConfiguration[];
     currentCommit?: ICommitExtended;
+    userChangesFile?: string;
+    changesBrowserView: ChangesBrowserView;
 };

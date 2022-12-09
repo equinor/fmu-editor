@@ -18,14 +18,18 @@
 }
 
 .ChangesBrowserContentHeader {
+    display: flex;
     font-weight: var(--h6-font-weight);
     font-size: var(--h6-font-size);
     line-height: var(--h6-line-height);
     text-transform: uppercase;
-    display: flex;
-    gap: var(--spacing-s);
     justify-content: space-between;
     align-items: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    min-width: 0;
+    width: 100%;
 }
 
 .ChangesBrowserList, .ChangesBrowserText {
@@ -90,6 +94,27 @@
     font-size: var(--h6-font-size);
     line-height: var(--h6-line-height);
     font-weight: var(--h6-font-weight);
+    overflow: hidden;
+    min-width: 0;
+}
+
+.ChangesBrowserUser > div:nth-child(2) {
+    display: flex;
+    align-items: left;
+    justify-content: center;
+    flex-direction: column;
+    flex-grow: 4;
+    min-width: 0;
+}
+
+.TextOverflow {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+    overflow: hidden;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .ChangesBrowserDate {

@@ -8,6 +8,7 @@ import {Webworker} from "@workers/worker-utils";
 import {useAppSelector} from "@redux/hooks";
 
 import {
+    ChangedFile,
     FileOperationsRequestType,
     FileOperationsRequests,
     FileOperationsResponseType,
@@ -27,11 +28,13 @@ const fileOperationsWorker = new Webworker<FileOperationsRequests, FileOperation
 export type Context = {
     fileManager: FileManager;
     copyUserDirectory: () => void;
+    changedFiles: ChangedFile[];
 };
 
 const [useFileManagerContext, FileManagerContextProvider] = createGenericContext<Context>();
 
 export const FileManagerService: React.FC = props => {
+    const [changedFiles, setChangedFiles] = React.useState<ChangedFile[]>([]);
     const environment = useEnvironment();
     const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
     const currentDirectory = useAppSelector(state => state.files.directory);
@@ -65,6 +68,10 @@ export const FileManagerService: React.FC = props => {
             fileOperationsWorker.on(FileOperationsResponseType.COPY_USER_DIRECTORY_PROGRESS, payload => {
                 document.dispatchEvent(new CustomEvent("copyUserDirectoryProgress", {detail: payload}));
             });
+
+            fileOperationsWorker.on(FileOperationsResponseType.CHANGED_FILES, payload => {
+                setChangedFiles(payload.changedFiles);
+            });
         }
     }, []);
 
@@ -73,6 +80,7 @@ export const FileManagerService: React.FC = props => {
             value={{
                 fileManager: fileManager.current,
                 copyUserDirectory,
+                changedFiles,
             }}
         >
             {props.children}

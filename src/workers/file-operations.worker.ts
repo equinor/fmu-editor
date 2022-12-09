@@ -1,4 +1,5 @@
 import {
+    ChangedFile,
     FileOperationsRequestType,
     FileOperationsRequests,
     FileOperationsResponseType,
@@ -59,6 +60,27 @@ function copyFilesRecursively(source: string, destination: string, callback: () 
     return mergeFiles;
 }
 
+function checkFilesRecursively(source: string, destination: string, lastUpdated: Date): ChangedFile[] {
+    const files = fs.readdirSync(source).filter(item => !/(^|\/)\.[^\/\.]/g.test(item));
+    const changedFiles: ChangedFile[] = [];
+    files.forEach(file => {
+        const sourcePath = path.join(source, file);
+        const destinationPath = path.join(destination, file);
+        const stats = fs.statSync(sourcePath);
+        if (stats.isDirectory()) {
+            changedFiles.push(...checkFilesRecursively(sourcePath, destinationPath, lastUpdated));
+        } else if (!fs.existsSync(destinationPath)) {
+            changedFiles.push({filePath: sourcePath, mergingRequired: false});
+        } else {
+            const destinationStats = fs.statSync(destinationPath);
+            if (stats.mtime > lastUpdated) {
+                changedFiles.push({filePath: sourcePath, mergingRequired: destinationStats.mtime > lastUpdated});
+            }
+        }
+    });
+    return changedFiles;
+}
+
 const readCacheFile = (directory: string): Date => {
     const cacheFile = path.join(directory, ".cache");
     let lastUpdated: Date = new Date(0);
@@ -101,16 +123,11 @@ const copyToUserDirectory = (directory: string, user: string): string[] => {
     return copyFilesRecursively(directory, userDirectory, callback, lastUpdated);
 };
 
-const checkForFileChanges = (directory: string, user: string): string[] => {
+const checkForFileChanges = (directory: string, user: string): ChangedFile[] => {
     const userDirectory = path.join(directory, ".users", user);
     const lastUpdated = readCacheFile(userDirectory);
 
-    const totalNumFiles = countFilesInDirectory(directory, lastUpdated);
-    if (totalNumFiles === 0) {
-        return [];
-    }
-
-    return copyToUserDirectory(directory, user);
+    return checkFilesRecursively(directory, userDirectory, lastUpdated);
 };
 
 // eslint-disable-next-line no-restricted-globals
@@ -118,8 +135,8 @@ self.setInterval(() => {
     if (currentUsername && currrentDirectory) {
         const files = checkForFileChanges(currrentDirectory, currentUsername);
         if (files.length > 0) {
-            webworker.postMessage(FileOperationsResponseType.FILES_REQUIRING_MERGING, {
-                files,
+            webworker.postMessage(FileOperationsResponseType.CHANGED_FILES, {
+                changedFiles: files,
             });
         }
     }
