@@ -26,6 +26,29 @@ const commands_1 = require("./commands");
 const env_1 = require("./env");
 const recent_files_1 = require("./recent-files");
 const isDev = env_1.PROCESS_ENV.NODE_ENV === "development";
+function createPreviewWindow() {
+    const win = new electron_1.BrowserWindow({
+        title: "Preview",
+        width: 1280,
+        height: 800,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            nodeIntegrationInWorker: true,
+            nodeIntegrationInSubFrames: true,
+            webSecurity: false,
+            webviewTag: true
+        },
+    });
+    if (isDev) {
+        win.loadURL("http://localhost:3000/preview.html");
+    }
+    else {
+        // 'build/index.html'
+        win.loadURL(`file://${__dirname}/../preview.html`);
+    }
+    return win;
+}
 const createMenu = (disabledSaveActions = false) => {
     const isMac = process.platform === "darwin";
     const listOfRecentDocuments = recent_files_1.RecentFiles.getRecentFiles();
@@ -176,6 +199,12 @@ const createMenu = (disabledSaveActions = false) => {
                                 browserWindow.webContents.send("debug:reset-init");
                             },
                         },
+                        {
+                            label: "Open Preview",
+                            click(_, browserWindow) {
+                                createPreviewWindow();
+                            },
+                        }
                     ],
                 },
             ]

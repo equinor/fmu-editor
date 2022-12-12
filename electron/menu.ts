@@ -8,6 +8,31 @@ import {RecentFiles, RecentFilesManager} from "./recent-files";
 
 const isDev = PROCESS_ENV.NODE_ENV === "development";
 
+function createPreviewWindow() {
+    const win = new BrowserWindow({
+        title: "Preview",
+        width: 1280,
+        height: 800,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            nodeIntegrationInWorker: true,
+            nodeIntegrationInSubFrames: true,
+            webSecurity: false,
+            webviewTag: true 
+        },
+    });
+
+    if (isDev) {
+        win.loadURL("http://localhost:3000/preview.html");
+    } else {
+        // 'build/index.html'
+        win.loadURL(`file://${__dirname}/../preview.html`);
+    }
+
+    return win;
+}
+
 export const createMenu = (disabledSaveActions = false) => {
     const isMac = process.platform === "darwin";
 
@@ -166,6 +191,12 @@ export const createMenu = (disabledSaveActions = false) => {
                                   );
                               },
                           },
+                          {
+                                label: "Open Preview",
+                                click(_: any, browserWindow: BrowserWindow) {
+                                    createPreviewWindow();
+                                },
+                          } 
                       ],
                   },
               ]

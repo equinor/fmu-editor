@@ -117,7 +117,9 @@ function createWindow() {
             nodeIntegration: true,
             contextIsolation: false,
             nodeIntegrationInWorker: true,
+            nodeIntegrationInSubFrames: true,
             webSecurity: false,
+            webviewTag: true
         },
     });
     const config = {

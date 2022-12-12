@@ -23,7 +23,9 @@
             "@src/*": ["src/*"],
             "@src": ["src/"],
             "@root/*": ["./*"],
-            "@root": ["./"]
+            "@root": ["./"],
+            "@preview": ["src/preview"],
+            "@preview/*": ["src/preview/*"]
         }
     }
 }

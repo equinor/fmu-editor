@@ -12,6 +12,7 @@ import MonacoEditor, {EditorDidMount, EditorWillUnmount, monaco} from "react-mon
 
 import {FileTabs} from "@components/FileTabs";
 import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
+import {Preview} from "@components/Preview";
 import {ResizablePanels} from "@components/ResizablePanels";
 import {Surface} from "@components/Surface";
 
@@ -30,7 +31,6 @@ import path from "path";
 // @ts-ignore
 import {v4} from "uuid";
 
-import {EditorPreview} from "./components/editor-preview";
 import "./editor.css";
 
 declare global {
@@ -97,6 +97,7 @@ export const Editor: React.FC<EditorProps> = () => {
     const [noModels, setNoModels] = React.useState<boolean>(false);
     const [previewVisible, setPreviewVisible] = React.useState<boolean>(false);
     const [markers, setMarkers] = React.useState<monaco.editor.IMarker[]>([]);
+    const [userFilePath, setUserFilePath] = React.useState<string | null>(null);
 
     const monacoEditorRef = React.useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const editorRef = React.useRef<HTMLDivElement | null>(null);
@@ -202,13 +203,14 @@ export const Editor: React.FC<EditorProps> = () => {
         }
 
         if (file) {
-            const userFilePath = fileManager.fileManager.getUserFileIfExists(file.filePath);
-            let userModel = monaco.editor.getModel(monaco.Uri.file(userFilePath));
+            const newUserFilePath = fileManager.fileManager.getUserFileIfExists(file.filePath);
+            setUserFilePath(newUserFilePath);
+            let userModel = monaco.editor.getModel(monaco.Uri.file(newUserFilePath));
             if (!userModel) {
                 userModel = monaco.editor.createModel(
-                    fs.readFileSync(userFilePath).toString(),
-                    globalSettings.languageForFileExtension(path.extname(userFilePath)),
-                    monaco.Uri.file(userFilePath)
+                    fs.readFileSync(newUserFilePath).toString(),
+                    globalSettings.languageForFileExtension(path.extname(newUserFilePath)),
+                    monaco.Uri.file(newUserFilePath)
                 );
             }
             if (userModel) {
@@ -263,7 +265,7 @@ export const Editor: React.FC<EditorProps> = () => {
                 </div>
                 <div className="EditorContainer" style={{display: !noModels ? "flex" : "none"}}>
                     <ResizablePanels direction="vertical" id="Editor-Issues" minSizes={[0, 80]}>
-                        <div ref={editorRef} className="Editor">
+                        <div className="Editor">
                             <FileTabs
                                 onFileChange={handleFileChange}
                                 actions={
@@ -275,9 +277,13 @@ export const Editor: React.FC<EditorProps> = () => {
                                     </IconButton>
                                 }
                             />
-                            <EditorPreview
-                                previewVisible={previewVisible}
-                                editor={
+                            <ResizablePanels
+                                direction="horizontal"
+                                id="Editor-Preview"
+                                minSizes={[100, 200]}
+                                visible={[true, previewVisible]}
+                            >
+                                <div ref={editorRef} className="Editor">
                                     <MonacoEditor
                                         language="yaml"
                                         defaultValue=""
@@ -293,9 +299,9 @@ export const Editor: React.FC<EditorProps> = () => {
                                         width={editorTotalWidth}
                                         height={editorTotalHeight - 56}
                                     />
-                                }
-                                preview={<></>}
-                            />
+                                </div>
+                                <Preview filePath={userFilePath} />
+                            </ResizablePanels>
                         </div>
                         <div className="Issues">
                             <Surface elevation="raised" className="IssuesTitle">

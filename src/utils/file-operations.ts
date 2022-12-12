@@ -24,6 +24,8 @@ export const readFileTree = (dir: string): FileTree => {
                 type: "directory",
                 modified: stats.mtime,
                 children: readFileTree(filePath),
+                fileSize: stats.size,
+                
             });
         } else {
             fileTree.push({

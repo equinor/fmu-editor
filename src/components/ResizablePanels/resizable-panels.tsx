@@ -12,11 +12,16 @@ type ResizablePanelsProps = {
     direction: "horizontal" | "vertical";
     children: React.ReactNode[];
     minSizes?: number[];
+    visible?: boolean[];
 };
 
 export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
     if (props.minSizes && props.minSizes.length !== props.children.length) {
         throw new Error("minSizes must have the same length as children");
+    }
+
+    if (props.visible && props.visible.length !== props.children.length) {
+        throw new Error("visible must have the same length as children");
     }
 
     const [isDragging, setIsDragging] = React.useState<boolean>();
@@ -146,22 +151,28 @@ export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
                                 ? {
                                       width: `calc(${sizes[index]}% - 3px)`,
                                       minWidth:
-                                          sizes[index] > minSizesToggleVisibilityValue
+                                          props.visible?.at(index) === false
+                                              ? 0
+                                              : sizes[index] > minSizesToggleVisibilityValue
                                               ? props.minSizes?.at(index) || 0
                                               : 0,
                                       maxWidth:
-                                          sizes[index] < minSizesToggleVisibilityValue && props.minSizes?.at(index)
+                                          (sizes[index] < minSizesToggleVisibilityValue && props.minSizes?.at(index)) ||
+                                          props.visible?.at(index) === false
                                               ? 0
                                               : undefined,
                                   }
                                 : {
                                       height: `calc(${sizes[index]}% - 3px)`,
                                       minHeight:
-                                          sizes[index] > minSizesToggleVisibilityValue
+                                          props.visible?.at(index) === false
+                                              ? 0
+                                              : sizes[index] > minSizesToggleVisibilityValue
                                               ? props.minSizes?.at(index) || 0
                                               : 0,
                                       maxHeight:
-                                          sizes[index] < minSizesToggleVisibilityValue && props.minSizes?.at(index)
+                                          (sizes[index] < minSizesToggleVisibilityValue && props.minSizes?.at(index)) ||
+                                          props.visible?.at(index) === false
                                               ? 0
                                               : undefined,
                                   }
