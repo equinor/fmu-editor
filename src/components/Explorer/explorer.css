@@ -64,7 +64,7 @@
 .ExplorerItem {
     display: flex;
     flex-direction: row;
-    justify-content: start;
+    justify-content: flex-start;
     align-items: center;
     height: 24px;
     padding-left: calc(2 * var(--spacing-s));

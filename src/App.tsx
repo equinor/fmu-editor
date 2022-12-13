@@ -31,7 +31,7 @@ export const ColorModeContext = React.createContext({
     toggleColorMode: () => {},
 });
 
-function App(): JSX.Element {
+const App = (): JSX.Element => {
     const dispatch = useAppDispatch();
     const [mode, setMode] = React.useState<"light" | "dark">(useAppSelector(state => state.ui.settings.theme));
     const colorMode = React.useMemo(
@@ -74,6 +74,6 @@ function App(): JSX.Element {
             </MainProcessDataProvider>
         </GlobalSettingsProvider>
     );
-}
+};
 
 export default App;

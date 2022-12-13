@@ -37,7 +37,7 @@ function createPreviewWindow() {
             nodeIntegrationInWorker: true,
             nodeIntegrationInSubFrames: true,
             webSecurity: false,
-            webviewTag: true
+            webviewTag: true,
         },
     });
     if (isDev) {
@@ -154,12 +154,7 @@ const createMenu = (disabledSaveActions = false) => {
             submenu: [
                 { role: "minimize" },
                 ...(isMac
-                    ? [
-                        { type: "separator" },
-                        { role: "front" },
-                        { type: "separator" },
-                        { role: "window" },
-                    ]
+                    ? [{ type: "separator" }, { role: "front" }, { type: "separator" }, { role: "window" }]
                     : [{ role: "close" }]),
             ],
         },
@@ -204,7 +199,7 @@ const createMenu = (disabledSaveActions = false) => {
                             click(_, browserWindow) {
                                 createPreviewWindow();
                             },
-                        }
+                        },
                     ],
                 },
             ]

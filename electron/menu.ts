@@ -19,7 +19,7 @@ function createPreviewWindow() {
             nodeIntegrationInWorker: true,
             nodeIntegrationInSubFrames: true,
             webSecurity: false,
-            webviewTag: true 
+            webviewTag: true,
         },
     });
 
@@ -140,12 +140,7 @@ export const createMenu = (disabledSaveActions = false) => {
             submenu: [
                 {role: "minimize"},
                 ...(isMac
-                    ? [
-                          {type: "separator"},
-                          {role: "front"},
-                          {type: "separator"},
-                          {role: "window"},
-                      ]
+                    ? [{type: "separator"}, {role: "front"}, {type: "separator"}, {role: "window"}]
                     : [{role: "close"}]),
             ],
         },
@@ -157,9 +152,7 @@ export const createMenu = (disabledSaveActions = false) => {
                     click: async () => {
                         /* eslint-disable global-require */
                         const {shell} = require("electron");
-                        await shell.openExternal(
-                            "https://equinor.github.io/webviz-subsurface"
-                        );
+                        await shell.openExternal("https://equinor.github.io/webviz-subsurface");
                     },
                 },
                 {
@@ -167,9 +160,7 @@ export const createMenu = (disabledSaveActions = false) => {
                     click: async () => {
                         /* eslint-disable global-require */
                         const {shell} = require("electron");
-                        await shell.openExternal(
-                            "https://github.com/equinor/webviz-config-editor/issues"
-                        );
+                        await shell.openExternal("https://github.com/equinor/webviz-config-editor/issues");
                     },
                 },
             ],
@@ -186,25 +177,21 @@ export const createMenu = (disabledSaveActions = false) => {
                           {
                               label: "Reset Initialization",
                               click(_: any, browserWindow: BrowserWindow) {
-                                  browserWindow.webContents.send(
-                                      "debug:reset-init"
-                                  );
+                                  browserWindow.webContents.send("debug:reset-init");
                               },
                           },
                           {
-                                label: "Open Preview",
-                                click(_: any, browserWindow: BrowserWindow) {
-                                    createPreviewWindow();
-                                },
-                          } 
+                              label: "Open Preview",
+                              click(_: any, browserWindow: BrowserWindow) {
+                                  createPreviewWindow();
+                              },
+                          },
                       ],
                   },
               ]
             : []),
     ];
 
-    const menu = Menu.buildFromTemplate(
-        template as Array<MenuItemConstructorOptions>
-    );
+    const menu = Menu.buildFromTemplate(template as Array<MenuItemConstructorOptions>);
     Menu.setApplicationMenu(menu);
 };

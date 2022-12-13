@@ -1,6 +1,9 @@
 import React, {Suspense, lazy} from "react";
 
 import ModulesMapping from "./mapping.json";
+import "./preview.css";
+
+import "../themes/theme.scss";
 
 const modules = {};
 Object.keys(ModulesMapping).forEach(mapping => {
@@ -17,11 +20,12 @@ export const Preview: React.VFC = () => {
         broadcastChannel.current = new BroadcastChannel("preview");
 
         broadcastChannel.current.onmessage = event => {
-            if (event.data.relativeFilePath === null || event.data.fileContent === null) {
+            if (event.data.relativeFilePath === null || event.data.fileContent === null || event.data.theme === null) {
                 return;
             }
             setRelativeFilePath(event.data.relativeFilePath);
             setFileContent(event.data.fileContent);
+            document.body.setAttribute("data-theme", event.data.theme);
         };
 
         return () => {
@@ -40,5 +44,5 @@ export const Preview: React.VFC = () => {
         }
     }
 
-    return <>blabla</>;
+    return <div className="NoPreview">No preview available</div>;
 };

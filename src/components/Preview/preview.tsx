@@ -1,9 +1,12 @@
+import {useFileManager} from "@services/file-manager";
+
 import React from "react";
 
 import {useAppSelector} from "@redux/hooks";
 
 import fs from "fs";
-import path from "path";
+
+import "./preview.css";
 
 const trueAsStr = "true" as any;
 
@@ -15,6 +18,8 @@ export const Preview: React.VFC<PreviewProps> = props => {
     const broadcastChannel = React.useRef<BroadcastChannel | null>(null);
 
     const directory = useAppSelector(state => state.files.directory);
+    const theme = useAppSelector(state => state.ui.settings.theme);
+    const {fileManager} = useFileManager();
 
     React.useEffect(() => {
         broadcastChannel.current = new BroadcastChannel("preview");
@@ -27,22 +32,21 @@ export const Preview: React.VFC<PreviewProps> = props => {
     React.useEffect(() => {
         if (broadcastChannel.current && directory && props.filePath) {
             broadcastChannel.current.postMessage({
-                relativeFilePath: path.relative(directory, props.filePath),
+                relativeFilePath: fileManager.relativeFilePath(fileManager.getOriginalFileIfExists(props.filePath)),
                 fileContent: fs.readFileSync(props.filePath, "utf8"),
+                theme,
             });
         }
-    }, [props.filePath, directory]);
+    }, [props.filePath, directory, fileManager, theme]);
 
     /* eslint-disable react/no-unknown-property */
     // @ts-ignore
     return (
-        <>
-            {props.filePath}
-            <webview
-                src="http://localhost:3000/preview.html"
-                style={{border: "2px red solid", width: 1000, height: 1000}}
-                nodeintegration={trueAsStr}
-            />
-        </>
+        <webview
+            src="http://localhost:3000/preview.html"
+            nodeintegration={trueAsStr}
+            style={{width: "100%", height: "100%"}}
+            className="Preview"
+        />
     );
 };

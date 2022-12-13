@@ -25,8 +25,20 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Craco",
-            "program": "${workspaceFolder}/node_modules/.bin/craco"
+            "name": "Launch Webpack",
+            "program": "${workspaceFolder}/node_modules/webpack/bin/webpack.js",
+            "env": {
+                "NODE_ENV": "development"
+            }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run start.js",
+            "program": "${workspaceFolder}/scripts/start.js",
+            "env": {
+                "NODE_ENV": "development"
+            }
         }
     ],
     "compounds": [

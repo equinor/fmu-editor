@@ -18,6 +18,13 @@ module.exports = {
         "react/react-in-jsx-scope": "off",
         "react-hooks/rules-of-hooks": "error", // Checks rules of Hooks
         "react-hooks/exhaustive-deps": "warn", // Checks effect dependencies
+        "react/function-component-definition": [
+            "warn",
+            {
+                namedComponents: "arrow-function",
+                unnamedComponents: "arrow-function",
+            },
+        ],
         "no-console": "warn",
         "no-undef": "off",
         semi: "error",
@@ -36,6 +43,7 @@ module.exports = {
         "react/destructuring-assignment": 0,
         "react/jsx-props-no-spreading": 0,
         "react/jsx-max-props-per-line": [1, {maximum: 1, when: "multiline"}],
+        "react/jsx-no-useless-fragment": "off",
         // Disabled old no-shadow rule as seems to be communicated by ESLint while working with TS.
         // https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/no-shadow.md
         "no-shadow": "off",
