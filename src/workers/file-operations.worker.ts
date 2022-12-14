@@ -1,3 +1,4 @@
+import {FileChangeType} from "@shared-types/file-changes";
 import {
     ChangedFile,
     FileOperationsRequestType,
@@ -60,21 +61,51 @@ function copyFilesRecursively(source: string, destination: string, callback: () 
     return mergeFiles;
 }
 
+type FileMap = {
+    origin: "user" | "original";
+    file: string;
+};
+
+const deduplicate = (fileMap: FileMap[]): FileMap[] => {
+    return fileMap.filter(el => {
+        if (el.origin === "original" && fileMap.some(el2 => el2.origin === "user" && el2.file === el.file)) {
+            return false;
+        }
+        return true;
+    });
+};
+
 function checkFilesRecursively(source: string, destination: string, lastUpdated: Date): ChangedFile[] {
-    const files = fs.readdirSync(source).filter(item => !/(^|\/)\.[^\/\.]/g.test(item));
     const changedFiles: ChangedFile[] = [];
-    files.forEach(file => {
-        const sourcePath = path.join(source, file);
-        const destinationPath = path.join(destination, file);
+
+    const sourceFiles = fs.readdirSync(source).filter(item => !/(^|\/)\.[^\/\.]/g.test(item));
+    const destinationFiles = [];
+
+    if (fs.existsSync(destination)) {
+        destinationFiles.push(...fs.readdirSync(destination).filter(item => !/(^|\/)\.[^\/\.]/g.test(item)));
+    }
+
+    const combinedDirContent = deduplicate([
+        ...sourceFiles.map(el => ({origin: "original", file: el})),
+        ...destinationFiles.map(el => ({origin: "user", file: el})),
+    ] as FileMap[]);
+
+    combinedDirContent.forEach(file => {
+        const sourcePath = path.join(source, file.file);
+        const destinationPath = path.join(destination, file.file);
         const stats = fs.statSync(sourcePath);
         if (stats.isDirectory()) {
             changedFiles.push(...checkFilesRecursively(sourcePath, destinationPath, lastUpdated));
         } else if (!fs.existsSync(destinationPath)) {
-            changedFiles.push({filePath: sourcePath, mergingRequired: false});
+            changedFiles.push({filePath: sourcePath, mergingRequired: false, type: FileChangeType.ADDED});
         } else {
             const destinationStats = fs.statSync(destinationPath);
             if (stats.mtime > lastUpdated) {
-                changedFiles.push({filePath: sourcePath, mergingRequired: destinationStats.mtime > lastUpdated});
+                changedFiles.push({
+                    filePath: sourcePath,
+                    mergingRequired: destinationStats.mtime > lastUpdated,
+                    type: FileChangeType.MODIFIED,
+                });
             }
         }
     });

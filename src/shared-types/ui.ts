@@ -15,12 +15,20 @@ export enum Page {
     SourceControl = "source-control",
 }
 
+export enum View {
+    Main = "main",
+    OngoingChanges = "ongoing-changes",
+    SingleFileChanges = "single-file-changes",
+    Merge = "merge",
+}
+
 export enum ChangesBrowserView {
     CurrentChanges = "current-changes",
     LoggedChanges = "logged-changes",
 }
 
 export type UiState = {
+    view: View;
     page: Page;
     settings: {
         theme: Themes;
@@ -28,6 +36,7 @@ export type UiState = {
     };
     paneConfiguration: PaneConfiguration[];
     currentCommit?: ICommitExtended;
-    userChangesFile?: string;
+    ongoingChangesFile?: string;
     changesBrowserView: ChangesBrowserView;
+    previewOpen: boolean;
 };

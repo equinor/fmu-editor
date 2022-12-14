@@ -5,12 +5,15 @@ import electronStore from "@utils/electron-store";
 import initialState from "@redux/initial-state";
 
 import {ICommitExtended} from "@shared-types/changelog";
-import {ChangesBrowserView, Page, PaneConfiguration, Themes, UiState} from "@shared-types/ui";
+import {ChangesBrowserView, Page, PaneConfiguration, Themes, UiState, View} from "@shared-types/ui";
 
 export const uiSlice = createSlice({
     name: "ui",
     initialState: initialState.ui,
     reducers: {
+        setView: (state: Draft<UiState>, action: PayloadAction<View>) => {
+            state.view = action.payload;
+        },
         setPage: (state: Draft<UiState>, action: PayloadAction<Page>) => {
             state.page = action.payload;
         },
@@ -37,22 +40,27 @@ export const uiSlice = createSlice({
         setCurrentCommit: (state: Draft<UiState>, action: PayloadAction<ICommitExtended | undefined>) => {
             state.currentCommit = action.payload;
         },
-        setUserChangesFile: (state: Draft<UiState>, action: PayloadAction<string>) => {
-            state.userChangesFile = action.payload;
+        setOngoingChangesFile: (state: Draft<UiState>, action: PayloadAction<string>) => {
+            state.ongoingChangesFile = action.payload;
         },
         setChangesBrowserView: (state: Draft<UiState>, action: PayloadAction<ChangesBrowserView>) => {
             state.changesBrowserView = action.payload;
+        },
+        setPreviewOpen: (state: Draft<UiState>, action: PayloadAction<boolean>) => {
+            state.previewOpen = action.payload;
         },
     },
 });
 
 export const {
+    setView,
     setPage,
     setTheme,
     setPaneConfiguration,
     setEditorFontSize,
     setCurrentCommit,
-    setUserChangesFile,
+    setOngoingChangesFile,
     setChangesBrowserView,
+    setPreviewOpen,
 } = uiSlice.actions;
 export default uiSlice.reducer;

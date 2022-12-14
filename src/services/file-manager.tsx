@@ -28,13 +28,13 @@ const fileOperationsWorker = new Webworker<FileOperationsRequests, FileOperation
 export type Context = {
     fileManager: FileManager;
     copyUserDirectory: () => void;
-    changedFiles: ChangedFile[];
+    changedFiles: ChangedFile[] | null;
 };
 
 const [useFileManagerContext, FileManagerContextProvider] = createGenericContext<Context>();
 
 export const FileManagerService: React.FC = props => {
-    const [changedFiles, setChangedFiles] = React.useState<ChangedFile[]>([]);
+    const [changedFiles, setChangedFiles] = React.useState<ChangedFile[] | null>(null);
     const environment = useEnvironment();
     const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
     const currentDirectory = useAppSelector(state => state.files.directory);

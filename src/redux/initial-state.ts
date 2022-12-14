@@ -7,7 +7,7 @@ import {generateHashCode} from "@utils/hash";
 import {EventSource, File, FilesState} from "@shared-types/files";
 import {NotificationsState} from "@shared-types/notifications";
 import {PreferencesState} from "@shared-types/preferences";
-import {ChangesBrowserView, Page, Themes, UiState} from "@shared-types/ui";
+import {ChangesBrowserView, Page, Themes, UiState, View} from "@shared-types/ui";
 import {UiCoachState} from "@shared-types/ui-coach";
 
 import fs from "fs";
@@ -16,6 +16,7 @@ import {SelectionDirection} from "monaco-editor";
 const paneConfiguration = electronStore.get("ui.paneConfiguration");
 
 const initialUiState: UiState = {
+    view: View.Main,
     page: Page.Editor,
     settings: {
         theme: electronStore.get("ui.settings.theme") || Themes.Light,
@@ -26,8 +27,9 @@ const initialUiState: UiState = {
         sizes: paneConfiguration[key],
     })),
     currentCommit: undefined,
-    userChangesFile: undefined,
+    ongoingChangesFile: undefined,
     changesBrowserView: ChangesBrowserView.LoggedChanges,
+    previewOpen: electronStore.get("ui.settings.previewOpen") || false,
 };
 
 const initialPreferencesState: PreferencesState = {
@@ -46,6 +48,7 @@ const initialFilesState: FilesState = {
     fileTreeStates: electronStore.get("ui.fileTreeStates") || {},
     activeFile: electronStore.get("files.activeFile"),
     activeDiffFile: electronStore.get("files.activeDiffFile"),
+    activeOngoingChangesDiffFile: electronStore.get("files.activeOngoingChangesDiffFile"),
     eventSource: EventSource.Editor,
     files:
         electronStore.get("files.files")?.map((file: any): File => {

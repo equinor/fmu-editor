@@ -15,6 +15,7 @@ export type PreviewProps = {
 };
 
 export const Preview: React.VFC<PreviewProps> = props => {
+    const [previewAvailable, setPreviewAvailable] = React.useState<boolean>(false);
     const broadcastChannel = React.useRef<BroadcastChannel | null>(null);
 
     const directory = useAppSelector(state => state.files.directory);
@@ -23,6 +24,14 @@ export const Preview: React.VFC<PreviewProps> = props => {
 
     React.useEffect(() => {
         broadcastChannel.current = new BroadcastChannel("preview");
+
+        broadcastChannel.current.onmessage = event => {
+            if (event.data.moduleAvailable) {
+                setPreviewAvailable(true);
+                return;
+            }
+            setPreviewAvailable(false);
+        };
 
         return () => {
             broadcastChannel.current.close();
@@ -40,13 +49,16 @@ export const Preview: React.VFC<PreviewProps> = props => {
     }, [props.filePath, directory, fileManager, theme]);
 
     /* eslint-disable react/no-unknown-property */
-    // @ts-ignore
     return (
-        <webview
-            src="http://localhost:3000/preview.html"
-            nodeintegration={trueAsStr}
-            style={{width: "100%", height: "100%"}}
-            className="Preview"
-        />
+        <div className="Preview">
+            <div className="Preview__NoPreviewOverlay" style={{display: previewAvailable ? "none" : "flex"}}>
+                No preview available
+            </div>
+            <webview
+                src="http://localhost:3000/preview.html"
+                nodeintegration={trueAsStr}
+                className="Preview__Webview"
+            />
+        </div>
     );
 };

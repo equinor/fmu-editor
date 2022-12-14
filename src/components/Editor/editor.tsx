@@ -7,7 +7,7 @@ import {useFileManager} from "@services/file-manager";
 import {ipcRenderer} from "electron";
 
 import React from "react";
-import {VscError, VscInfo, VscLightbulb, VscPreview, VscWarning} from "react-icons/vsc";
+import {VscError, VscInfo, VscLightbulb, VscPreview, VscSourceControl, VscWarning} from "react-icons/vsc";
 import MonacoEditor, {EditorDidMount, EditorWillUnmount, monaco} from "react-monaco-editor";
 
 import {FileTabs} from "@components/FileTabs";
@@ -18,9 +18,10 @@ import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setActiveFile, setEditorViewState, setValue} from "@redux/reducers/files";
+import {setPreviewOpen, setView} from "@redux/reducers/ui";
 
 import {CodeEditorViewState} from "@shared-types/files";
-import {Page} from "@shared-types/ui";
+import {Page, View} from "@shared-types/ui";
 
 import FmuLogo from "@assets/fmu-logo.svg";
 
@@ -95,7 +96,6 @@ type EditorProps = {};
 
 export const Editor: React.FC<EditorProps> = () => {
     const [noModels, setNoModels] = React.useState<boolean>(false);
-    const [previewVisible, setPreviewVisible] = React.useState<boolean>(false);
     const [markers, setMarkers] = React.useState<monaco.editor.IMarker[]>([]);
     const [userFilePath, setUserFilePath] = React.useState<string | null>(null);
 
@@ -114,6 +114,7 @@ export const Editor: React.FC<EditorProps> = () => {
     const activeFile = useAppSelector(state => state.files.activeFile);
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
     const editorMode = useAppSelector(state => state.ui.page);
+    const previewVisible = useAppSelector(state => state.ui.previewOpen);
     const fileManager = useFileManager();
     const globalSettings = useGlobalSettings();
 
@@ -245,6 +246,14 @@ export const Editor: React.FC<EditorProps> = () => {
         }
     });
 
+    const handleFileSourceControlClick = () => {
+        dispatch(setView(View.SingleFileChanges));
+    };
+
+    const handleTogglePreview = () => {
+        dispatch(setPreviewOpen(!previewVisible));
+    };
+
     return (
         <div
             className="EditorWrapper"
@@ -269,12 +278,22 @@ export const Editor: React.FC<EditorProps> = () => {
                             <FileTabs
                                 onFileChange={handleFileChange}
                                 actions={
-                                    <IconButton
-                                        color={previewVisible ? "primary" : "inherit"}
-                                        onClick={() => setPreviewVisible(!previewVisible)}
-                                    >
-                                        <VscPreview />
-                                    </IconButton>
+                                    <>
+                                        <IconButton
+                                            color={previewVisible ? "primary" : "inherit"}
+                                            onClick={() => handleTogglePreview()}
+                                            title="Open preview for current file"
+                                        >
+                                            <VscPreview />
+                                        </IconButton>
+                                        <IconButton
+                                            color="inherit"
+                                            onClick={() => handleFileSourceControlClick()}
+                                            title="Open source control for current file"
+                                        >
+                                            <VscSourceControl />
+                                        </IconButton>
+                                    </>
                                 }
                             />
                             <ResizablePanels

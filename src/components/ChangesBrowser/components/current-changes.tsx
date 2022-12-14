@@ -24,7 +24,6 @@ export const CurrentChanges: React.VFC = () => {
     const [commitDescription, setCommitDescription] = React.useState<string>("");
 
     const userFileChanges = useUserFileChanges();
-    const directory = useAppSelector(state => state.files.directory);
     const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
     const dispatch = useAppDispatch();
     const environment = useEnvironment();

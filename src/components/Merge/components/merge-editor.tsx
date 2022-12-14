@@ -23,7 +23,7 @@ import fs from "fs";
 import {languages} from "monaco-editor";
 import path from "path";
 
-import "./diff-editor.css";
+import "./merge-editor.css";
 
 declare global {
     interface Window {
@@ -60,7 +60,7 @@ window.MonacoEnvironment = {
 // @ts-ignore
 const {yaml} = languages || {};
 
-export const DiffEditor: React.VFC = () => {
+export const MergeEditor: React.VFC = () => {
     const [visible, setVisible] = React.useState<boolean>(false);
     const [originalFilePath, setOriginalFilePath] = React.useState<string | null>(null);
     const [userFilePath, setUserFilePath] = React.useState<string | null>(null);

@@ -7,18 +7,21 @@ import {CommitBrowser} from "@components/CommitBrowser";
 import {DiffEditor} from "@components/DiffEditor";
 import {Editor} from "@components/Editor";
 import {Explorer} from "@components/Explorer/explorer";
+import {Merge} from "@components/Merge";
+import {OngoingChangesBrowser} from "@components/OngoingChangesBrowser";
+import {PageTabs} from "@components/PageTabs";
 import {ResizablePanels} from "@components/ResizablePanels";
 import {Toolbar} from "@components/Toolbar";
-import {UserChangesBrowser} from "@components/UserChangesBrowser";
-import {Views} from "@components/Views";
 
 import {useAppSelector} from "@redux/hooks";
 
-import {Page} from "@shared-types/ui";
+import {Page, View} from "@shared-types/ui";
 
 import path from "path";
 
 import "./main-window.css";
+
+import {SingleFileChangesBrowser} from "../SingleFileChangesBrowser/single-file-changes-browser";
 
 export const MainWindow: React.FC = () => {
     const theme = useTheme();
@@ -27,7 +30,8 @@ export const MainWindow: React.FC = () => {
     const files = useAppSelector(state => state.files);
     const page = useAppSelector(state => state.ui.page);
     const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
-    const userChangesFile = useAppSelector(state => state.ui.userChangesFile);
+    const activeOngoingChangesDiffFile = useAppSelector(state => state.files.activeOngoingChangesDiffFile);
+    const view = useAppSelector(state => state.ui.view);
 
     React.useEffect(() => {
         if (!files || files.activeFile === "") {
@@ -38,14 +42,28 @@ export const MainWindow: React.FC = () => {
     }, [files]);
 
     const makeContent = () => {
-        if (userChangesFile !== undefined && activeDiffFile) {
+        if (view === View.OngoingChanges) {
             return (
                 <ResizablePanels direction="horizontal" id="user-changes" minSizes={[300, 0]}>
-                    <UserChangesBrowser />
+                    <OngoingChangesBrowser />
+                    {activeOngoingChangesDiffFile ? <DiffEditor /> : null}
+                </ResizablePanels>
+            );
+        }
+
+        if (view === View.SingleFileChanges) {
+            return (
+                <ResizablePanels direction="horizontal" id="single-file-changes" minSizes={[300, 0]}>
+                    <SingleFileChangesBrowser />
                     {activeDiffFile ? <DiffEditor /> : null}
                 </ResizablePanels>
             );
         }
+
+        if (view === View.Merge) {
+            return <Merge />;
+        }
+
         return (
             <>
                 {page === Page.Editor && (
@@ -67,7 +85,7 @@ export const MainWindow: React.FC = () => {
     return (
         <div className="MainWindow" ref={mainWindowRef} style={{backgroundColor: theme.palette.background.default}}>
             <div className="ContentWrapper">
-                <Views />
+                <PageTabs />
                 <div className="InnerContentWrapper">{makeContent()}</div>
             </div>
             <Toolbar />

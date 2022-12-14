@@ -1,3 +1,5 @@
+import {FileChangeType} from "./file-changes";
+
 export enum FileOperationsRequestType {
     COPY_USER_DIRECTORY = "COPY_USER_DIRECTORY",
     SET_USER_DIRECTORY = "SET_USER_DIRECTORY",
@@ -15,6 +17,7 @@ export enum FileOperationsStatus {
 }
 
 export type ChangedFile = {
+    type: FileChangeType;
     filePath: string;
     mergingRequired: boolean;
 };

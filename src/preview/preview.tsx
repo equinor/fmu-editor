@@ -1,9 +1,8 @@
+import {CircularProgress} from "@mui/material";
+
 import React, {Suspense, lazy} from "react";
 
 import ModulesMapping from "./mapping.json";
-import "./preview.css";
-
-import "../themes/theme.scss";
 
 const modules = {};
 Object.keys(ModulesMapping).forEach(mapping => {
@@ -12,7 +11,7 @@ Object.keys(ModulesMapping).forEach(mapping => {
 
 export const Preview: React.VFC = () => {
     const [fileContent, setFileContent] = React.useState<string>(null);
-    const [relativeFilePath, setRelativeFilePath] = React.useState<string>(null);
+    const [Module, setModule] = React.useState<React.FC<any> | null>(null);
 
     const broadcastChannel = React.useRef<BroadcastChannel | null>(null);
 
@@ -20,12 +19,23 @@ export const Preview: React.VFC = () => {
         broadcastChannel.current = new BroadcastChannel("preview");
 
         broadcastChannel.current.onmessage = event => {
-            if (event.data.relativeFilePath === null || event.data.fileContent === null || event.data.theme === null) {
+            if (event.data.relativeFilePath === null || event.data.fileContent === null) {
                 return;
             }
-            setRelativeFilePath(event.data.relativeFilePath);
-            setFileContent(event.data.fileContent);
-            document.body.setAttribute("data-theme", event.data.theme);
+
+            const newModule = modules[event.data.relativeFilePath];
+            setModule(newModule);
+            if (newModule) {
+                broadcastChannel.current.postMessage({
+                    moduleAvailable: true,
+                });
+                setFileContent(event.data.fileContent);
+                return;
+            }
+            broadcastChannel.current.postMessage({
+                moduleAvailable: false,
+            });
+            setFileContent(null);
         };
 
         return () => {
@@ -33,16 +43,27 @@ export const Preview: React.VFC = () => {
         };
     }, []);
 
-    if (relativeFilePath) {
-        const Module = modules[relativeFilePath];
-        if (Module) {
-            return (
-                <Suspense fallback={<div>Loading...</div>}>
-                    <Module data={fileContent} />
-                </Suspense>
-            );
-        }
+    if (Module) {
+        return (
+            <Suspense
+                fallback={
+                    <div
+                        style={{
+                            width: "100vw",
+                            height: "100vh",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                        }}
+                    >
+                        <CircularProgress />
+                    </div>
+                }
+            >
+                <Module data={fileContent} />
+            </Suspense>
+        );
     }
 
-    return <div className="NoPreview">No preview available</div>;
+    return null;
 };

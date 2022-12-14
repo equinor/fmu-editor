@@ -9,32 +9,35 @@ import {Surface} from "@components/Surface";
 import {ThemeSwitch} from "@components/ThemeSwitch";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setPage} from "@redux/reducers/ui";
+import {setPage, setView} from "@redux/reducers/ui";
 
-import {Page} from "@shared-types/ui";
+import {Page, View} from "@shared-types/ui";
 
-import "./views.css";
+import "./page-tabs.css";
 
-export const Views: React.VFC = () => {
+export const PageTabs: React.VFC = () => {
     const page = useAppSelector(state => state.ui.page);
 
     const dispatch = useAppDispatch();
     const userFileChanges = useUserFileChanges();
 
+    const handlePageChange = (_, newValue: string) => {
+        dispatch(setPage(newValue as Page));
+        dispatch(setView(View.Main));
+    };
+
+    const handlePageClick = () => {
+        dispatch(setView(View.Main));
+    };
+
     return (
         <Surface className="TabMenu" elevation="raised">
-            <Tabs
-                orientation="vertical"
-                value={page}
-                color="inherit"
-                onChange={(event: React.SyntheticEvent<Element, Event>, newValue: string) =>
-                    dispatch(setPage(newValue as Page))
-                }
-            >
+            <Tabs orientation="vertical" value={page} color="inherit" onChange={handlePageChange}>
                 <Tab
                     icon={<VscEdit color="inherit" size={24} title="Editor" />}
                     value={Page.Editor}
                     className="MenuTab"
+                    onClick={() => handlePageClick()}
                 />
                 <Tab
                     icon={
@@ -51,6 +54,7 @@ export const Views: React.VFC = () => {
                     }
                     value={Page.SourceControl}
                     className="MenuTab"
+                    onClick={() => handlePageClick()}
                 />
             </Tabs>
             <div className="GlobalSettings">

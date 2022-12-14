@@ -6,7 +6,7 @@ import React from "react";
 import {Avatar} from "@components/MicrosoftGraph/Avatar";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setActiveDiffFile} from "@redux/reducers/files";
+import {setActiveOngoingChangesDiffFile} from "@redux/reducers/files";
 
 import {FileChange} from "@shared-types/file-changes";
 
@@ -16,26 +16,28 @@ export type UserChangesBrowserItemProps = {
     change: FileChange;
 };
 
-export const UserChangesBrowserItem: React.FC<UserChangesBrowserItemProps> = props => {
+export const OngoingChangesBrowserItem: React.FC<UserChangesBrowserItemProps> = props => {
     const [userDetails, setUserDetails] = React.useState<IDynamicPerson | null>(null);
     const {fileManager} = useFileManager();
     const directory = useAppSelector(state => state.files.directory);
-    const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
+    const activeDiffFile = useAppSelector(state => state.files.activeOngoingChangesDiffFile);
 
     const dispatch = useAppDispatch();
 
     const handleClick = (filePath: string, user: string) => {
         dispatch(
-            setActiveDiffFile({relativeFilePath: fileManager.getUserFileIfExists(path.join(directory, filePath), user)})
+            setActiveOngoingChangesDiffFile({
+                relativeFilePath: fileManager.getUserFileIfExists(path.join(directory, filePath), user),
+            })
         );
     };
 
     return (
         <a
-            className={`UserChangesBrowserItem${
+            className={`OngoingChangesBrowserItem${
                 fileManager.getUserFileIfExists(path.join(directory, props.change.filePath), props.change.user) ===
                 activeDiffFile
-                    ? " UserChangesBrowserItem--selected"
+                    ? " OngoingChangesBrowserItem--selected"
                     : ""
             }`}
             onClick={() => handleClick(props.change.filePath, props.change.user)}

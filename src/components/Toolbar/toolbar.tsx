@@ -7,9 +7,11 @@ import {VscAccount, VscFileSymlinkDirectory, VscFolderActive, VscGlobe} from "re
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {addNotification} from "@redux/reducers/notifications";
+import {setView} from "@redux/reducers/ui";
 import {selectFmuDirectory} from "@redux/thunks";
 
 import {Notification, NotificationType} from "@shared-types/notifications";
+import {View} from "@shared-types/ui";
 
 import "./toolbar.css";
 
@@ -58,12 +60,17 @@ export const Toolbar: React.FC = () => {
 
     const handleUserDirectoryClick = () => {
         if (fileManager.userDirectoryExists()) {
-            const notification: Notification = {
-                type: NotificationType.INFORMATION,
-                message: `User directory up to date and located at '${fileManager.userDirectory()}'.`,
-            };
-            dispatch(addNotification(notification));
-            return;
+            if (changedFiles === null) {
+                addNotification({type: NotificationType.INFORMATION, message: "Scanning your user directory..."});
+                return;
+            }
+            if (changedFiles.length > 0) {
+                dispatch(setView(View.Merge));
+                return;
+            }
+            dispatch(
+                addNotification({type: NotificationType.INFORMATION, message: "Your user directory is up to date."})
+            );
         }
         dispatch(
             addNotification({
@@ -116,20 +123,33 @@ export const Toolbar: React.FC = () => {
                 size="small"
                 onClick={handleUserDirectoryClick}
                 title={
-                    fileManager.userDirectoryExists() ? "Current user directory" : "Click here to create user directory"
+                    changedFiles === null
+                        ? "Scanning your user directory..."
+                        : changedFiles.length > 0
+                        ? "Main folder has been modified, click here to view changes"
+                        : "Your user directory is up to date"
                 }
-                sx={{backgroundColor: changedFiles.length > 0 ? "var(--warning)" : "var(--success)"}}
+                sx={{
+                    backgroundColor:
+                        changedFiles === null
+                            ? "var(--info)"
+                            : changedFiles.length > 0
+                            ? "var(--warning)"
+                            : "var(--success)",
+                }}
             >
                 <VscFileSymlinkDirectory />
                 {progress < 100 ? (
                     <span>
                         <i>Copying...</i>
                     </span>
+                ) : changedFiles === null ? (
+                    <span>Scanning...</span>
                 ) : changedFiles.length === 0 ? (
                     <span>User directory up to date</span>
                 ) : (
                     <span>
-                        {changedFiles.length} file{changedFiles.length > 1 ? "s" : ""} changed in main
+                        {changedFiles.length} file{changedFiles.length > 1 ? "s" : ""} changed in main folder
                     </span>
                 )}
             </Button>

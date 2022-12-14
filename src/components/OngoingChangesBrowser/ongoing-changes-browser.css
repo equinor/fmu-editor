@@ -1,4 +1,4 @@
-.UserChangesBrowserItem {
+.OngoingChangesBrowserItem {
     display: flex;
     align-items: center;
     gap: var(--spacing-s);
@@ -11,10 +11,10 @@
     padding: var(--spacing-s);
 }
 
-.UserChangesBrowserItem:hover {
+.OngoingChangesBrowserItem:hover {
     background-color: var(--primary-hover-alt);
 }
 
-.UserChangesBrowserItem--selected {
+.OngoingChangesBrowserItem--selected {
     background-color: var(--secondary-highlight);
 }
