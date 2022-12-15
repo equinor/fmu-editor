@@ -91,7 +91,7 @@ export const LoggedChanges: React.VFC = () => {
                             {fileChange.action === FileChangeType.MODIFIED && <Edit color="warning" fontSize="small" />}
                             {fileChange.action === FileChangeType.ADDED && <Add color="success" fontSize="small" />}
                             {fileChange.action === FileChangeType.DELETED && <Remove color="error" fontSize="small" />}
-                            <span title={fileChange.path}>{fileChange.path}</span>
+                            <span title={fileChange.path}>{fileChange.path}&lrm;</span>
                         </div>
                     </div>
                 ))}

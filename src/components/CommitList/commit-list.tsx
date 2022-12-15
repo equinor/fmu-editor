@@ -31,31 +31,33 @@ export const CommitList: React.FC<CommitListProps> = props => {
 
     return (
         <List sx={{width: "100%"}} subheader={<li />}>
-            {props.commitBundles.map((bundle, index) => {
-                const lastBundle = props.commitBundles[index + 1];
-                return (
-                    <li key={`section-${bundle.snapshotPath}`}>
-                        <ul className="CommitSnapshotBundle">
-                            <ListSubheader className="CommitSnapshotBundleHeader">
-                                {new Date(bundle.modified).toDateString()}
-                            </ListSubheader>
-                            {bundle.commits.map(commit => (
-                                <React.Fragment key={commit.id}>
-                                    <Commit
-                                        id={commit.id}
-                                        key={commit.id}
-                                        message={commit.message}
-                                        user={commit.author}
-                                        onClick={() =>
-                                            handleCommitClick(commit, bundle.snapshotPath, lastBundle?.snapshotPath)
-                                        }
-                                    />
-                                </React.Fragment>
-                            ))}
-                        </ul>
-                    </li>
-                );
-            })}
+            {props.commitBundles
+                .filter(bundle => bundle.commits.length > 0)
+                .map((bundle, index) => {
+                    const lastBundle = props.commitBundles[index + 1];
+                    return (
+                        <li key={`section-${bundle.snapshotPath}`}>
+                            <ul className="CommitSnapshotBundle">
+                                <ListSubheader className="CommitSnapshotBundleHeader">
+                                    {new Date(bundle.modified).toDateString()}
+                                </ListSubheader>
+                                {bundle.commits.map(commit => (
+                                    <React.Fragment key={commit.id}>
+                                        <Commit
+                                            id={commit.id}
+                                            key={commit.id}
+                                            message={commit.message}
+                                            user={commit.author}
+                                            onClick={() =>
+                                                handleCommitClick(commit, bundle.snapshotPath, lastBundle?.snapshotPath)
+                                            }
+                                        />
+                                    </React.Fragment>
+                                ))}
+                            </ul>
+                        </li>
+                    );
+                })}
         </List>
     );
 };

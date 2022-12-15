@@ -255,12 +255,7 @@ export const Editor: React.FC<EditorProps> = () => {
     };
 
     return (
-        <div
-            className="EditorWrapper"
-            style={{
-                backgroundColor: theme.palette.mode === "dark" ? "#1E1E1E" : theme.palette.background.default,
-            }}
-        >
+        <div className="EditorWrapper">
             <div className="EditorContainer">
                 <div
                     className="Editor__NoModels"
@@ -316,7 +311,7 @@ export const Editor: React.FC<EditorProps> = () => {
                                             quickSuggestions: {other: true, strings: true},
                                         }}
                                         width={editorTotalWidth}
-                                        height={editorTotalHeight - 56}
+                                        height={editorTotalHeight - 2}
                                     />
                                 </div>
                                 <Preview filePath={userFilePath} />

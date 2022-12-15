@@ -7,6 +7,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
+import "./index.css";
 import {Preview} from "./preview";
 
 ReactDOM.render(

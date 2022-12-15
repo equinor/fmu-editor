@@ -9,6 +9,7 @@ import {Surface} from "@components/Surface";
 import {ThemeSwitch} from "@components/ThemeSwitch";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
+import {setActiveDiffFile} from "@redux/reducers/files";
 import {setPage, setView} from "@redux/reducers/ui";
 
 import {Page, View} from "@shared-types/ui";
@@ -17,6 +18,7 @@ import "./page-tabs.css";
 
 export const PageTabs: React.VFC = () => {
     const page = useAppSelector(state => state.ui.page);
+    const view = useAppSelector(state => state.ui.view);
 
     const dispatch = useAppDispatch();
     const userFileChanges = useUserFileChanges();
@@ -27,6 +29,13 @@ export const PageTabs: React.VFC = () => {
     };
 
     const handlePageClick = () => {
+        if (view !== View.Main) {
+            dispatch(
+                setActiveDiffFile({
+                    relativeFilePath: null,
+                })
+            );
+        }
         dispatch(setView(View.Main));
     };
 

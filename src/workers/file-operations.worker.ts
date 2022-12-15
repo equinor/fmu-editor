@@ -1,3 +1,5 @@
+import {FileManager} from "@utils/file-manager";
+
 import {FileChangeType} from "@shared-types/file-changes";
 import {
     ChangedFile,
@@ -15,6 +17,8 @@ import {Webworker} from "./worker-utils";
 
 // eslint-disable-next-line no-restricted-globals
 const webworker = new Webworker<FileOperationsResponses, FileOperationsRequests>({self});
+
+const fileManager = new FileManager();
 
 let currentUsername: string = "";
 let currrentDirectory: string = "";
@@ -97,12 +101,16 @@ function checkFilesRecursively(source: string, destination: string, lastUpdated:
         if (stats.isDirectory()) {
             changedFiles.push(...checkFilesRecursively(sourcePath, destinationPath, lastUpdated));
         } else if (!fs.existsSync(destinationPath)) {
-            changedFiles.push({filePath: sourcePath, mergingRequired: false, type: FileChangeType.ADDED});
+            changedFiles.push({
+                filePath: fileManager.relativeFilePath(sourcePath),
+                mergingRequired: false,
+                type: FileChangeType.ADDED,
+            });
         } else {
             const destinationStats = fs.statSync(destinationPath);
-            if (stats.mtime > lastUpdated) {
+            if (stats.mtime > lastUpdated && destinationStats.mtime.getTime() > stats.mtime.getTime()) {
                 changedFiles.push({
-                    filePath: sourcePath,
+                    filePath: fileManager.relativeFilePath(sourcePath),
                     mergingRequired: destinationStats.mtime > lastUpdated,
                     type: FileChangeType.MODIFIED,
                 });
@@ -180,4 +188,5 @@ webworker.on(FileOperationsRequestType.COPY_USER_DIRECTORY, ({directory, usernam
 webworker.on(FileOperationsRequestType.SET_USER_DIRECTORY, ({directory, username}) => {
     currentUsername = username;
     currrentDirectory = directory;
+    fileManager.setCurrentDirectory(directory);
 });

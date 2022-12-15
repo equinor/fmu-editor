@@ -46,7 +46,12 @@ const deduplicate = (fileMap: FileMap[]): FileMap[] => {
     });
 };
 
-const compareDirectory = (directory: string, user: string, mainDirectory: string): FileChange[] => {
+const compareDirectory = (
+    directory: string,
+    user: string,
+    mainDirectory: string,
+    lastUpdated: number
+): FileChange[] => {
     const fileChanges: FileChange[] = [];
     const originalDirectory = makeOriginalFilePath(directory, mainDirectory);
     const userDirContent = fs.readdirSync(directory).filter(item => !/(^|\/)\.[^\/\.]/g.test(item));
@@ -65,7 +70,7 @@ const compareDirectory = (directory: string, user: string, mainDirectory: string
             file.origin === "user" ? path.join(directory, file.file) : path.join(originalDirectory, file.file);
         const stats = fs.statSync(filePath);
         if (stats.isDirectory() && file.origin === "user") {
-            fileChanges.push(...compareDirectory(filePath, user, mainDirectory));
+            fileChanges.push(...compareDirectory(filePath, user, mainDirectory, lastUpdated));
         } else if (stats.isFile()) {
             if (file.origin === "user") {
                 const originalFilePath = makeOriginalFilePath(filePath, mainDirectory);
@@ -87,12 +92,12 @@ const compareDirectory = (directory: string, user: string, mainDirectory: string
                         modified: stats.mtime,
                     });
                 }
-            } else {
+            } else if (stats.mtime.getTime() <= lastUpdated && stats.ctime.getTime() <= lastUpdated) {
                 const userFilePath = makeUserFilePath(directory, filePath, mainDirectory);
                 fileChanges.push({
                     user,
                     type: FileChangeType.DELETED,
-                    filePath: userFilePath,
+                    filePath: path.relative(mainDirectory, userFilePath),
                     modified: stats.mtime,
                 });
             }
@@ -113,8 +118,14 @@ const checkForFileChanges = () => {
         const userFolders = fs.readdirSync(userDirectory);
         userFolders.forEach(userFolder => {
             const userPath = path.join(userDirectory, userFolder);
-
-            fileChanges = [...fileChanges, ...compareDirectory(userPath, userFolder, currentDirectory as string)];
+            const lastUpdated = parseInt(
+                JSON.parse(fs.readFileSync(path.join(userPath, ".cache"), "utf-8").toString()).lastUpdated,
+                10
+            );
+            fileChanges = [
+                ...fileChanges,
+                ...compareDirectory(userPath, userFolder, currentDirectory as string, lastUpdated),
+            ];
         });
     }
 

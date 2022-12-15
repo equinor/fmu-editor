@@ -38,6 +38,8 @@
     min-height: 100px;
     overflow: auto;
     padding: var(--spacing-xx);
+    line-height: var(--h1-line-height);
+    white-space: pre-wrap;
 }
 
 .ChangesBrowserText {

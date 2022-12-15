@@ -16,6 +16,7 @@ import {setActiveDiffFile} from "@redux/reducers/files";
 import {ICommit} from "@shared-types/changelog";
 import {FileChangeType} from "@shared-types/file-changes";
 
+import path from "path";
 import {v4} from "uuid";
 
 export const CurrentChanges: React.VFC = () => {
@@ -27,7 +28,7 @@ export const CurrentChanges: React.VFC = () => {
     const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
     const dispatch = useAppDispatch();
     const environment = useEnvironment();
-    const fileManager = useFileManager();
+    const {fileManager} = useFileManager();
     const changelog = useChangelogWatcher();
 
     React.useEffect(() => {
@@ -47,7 +48,14 @@ export const CurrentChanges: React.VFC = () => {
     );
 
     const handleCommit = React.useCallback(() => {
-        if (fileManager.fileManager.commitFileChanges(stagedFiles) && environment.username) {
+        if (
+            fileManager.commitFileChanges(
+                stagedFiles.map(file =>
+                    fileManager.getUserFileIfExists(path.join(fileManager.getCurrentDirectory(), file))
+                )
+            ) &&
+            environment.username
+        ) {
             const commit: ICommit = {
                 id: v4(),
                 author: environment.username,
@@ -126,7 +134,7 @@ export const CurrentChanges: React.VFC = () => {
                                     {fileChange.type === FileChangeType.DELETED && (
                                         <Remove color="error" fontSize="small" />
                                     )}
-                                    <span title={fileChange.filePath}>{fileChange.filePath}</span>
+                                    <span title={fileChange.filePath}>{fileChange.filePath}&lrm;</span>
                                 </div>
                                 <Button
                                     variant="text"
@@ -171,7 +179,7 @@ export const CurrentChanges: React.VFC = () => {
                                     {fileChange.type === FileChangeType.DELETED && (
                                         <Remove color="error" fontSize="small" />
                                     )}
-                                    <span title={fileChange.filePath}>{fileChange.filePath}</span>
+                                    <span title={fileChange.filePath}>{fileChange.filePath}&lrm;</span>
                                 </div>
                                 <Button
                                     variant="text"

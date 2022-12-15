@@ -1,5 +1,5 @@
 import {Add, Edit, Remove} from "@mui/icons-material";
-import {Button, Stack} from "@mui/material";
+import {Button, Stack, Typography} from "@mui/material";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
@@ -29,7 +29,7 @@ export const Merge: React.VFC = () => {
                 })
             );
         },
-        [dispatch]
+        [dispatch, fileManager]
     );
 
     const handleStageFile = React.useCallback(
@@ -96,16 +96,19 @@ export const Merge: React.VFC = () => {
                                         {fileChange.type === FileChangeType.DELETED && (
                                             <Remove color="error" fontSize="small" />
                                         )}
-                                        <span title={fileChange.filePath}>{fileChange.filePath}</span>
+                                        <span title={fileChange.filePath}>{fileChange.filePath}&lrm;</span>
                                     </div>
-                                    <Button
-                                        variant="text"
-                                        onClick={e => handleStageFile(e, fileChange.filePath)}
-                                        size="small"
-                                        disabled={fileChange.mergingRequired}
-                                    >
-                                        Stage File
-                                    </Button>
+                                    {fileChange.mergingRequired ? (
+                                        <Typography color="error">Merging required</Typography>
+                                    ) : (
+                                        <Button
+                                            variant="text"
+                                            onClick={e => handleStageFile(e, fileChange.filePath)}
+                                            size="small"
+                                        >
+                                            Stage File
+                                        </Button>
+                                    )}
                                 </div>
                             ))}
                     </div>
@@ -154,10 +157,10 @@ export const Merge: React.VFC = () => {
                                 </div>
                             ))}
                     </div>
+                    <Button onClick={() => handlePull()} disabled={stagedFiles.length === 0} variant="contained">
+                        Pull changes
+                    </Button>
                 </Stack>
-                <Button onClick={() => handlePull()} disabled={stagedFiles.length === 0} variant="contained">
-                    Pull changes
-                </Button>
             </Surface>
             <MergeEditor />
         </ResizablePanels>

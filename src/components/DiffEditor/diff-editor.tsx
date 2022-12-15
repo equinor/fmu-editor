@@ -179,7 +179,7 @@ export const DiffEditor: React.VFC = () => {
 
         setVisible(true);
 
-        if (userFilePath && originalFilePath) {
+        if (userFilePath && originalFilePath && fs.existsSync(userFilePath) && fs.existsSync(originalFilePath)) {
             let userModel = monaco.editor.getModel(monaco.Uri.file(userFilePath));
             if (!userModel) {
                 userModel = monaco.editor.createModel(

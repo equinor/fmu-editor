@@ -225,9 +225,7 @@ export class Changelog {
                 bundles.push({
                     snapshotPath: bundle.snapshotPath,
                     modified: bundle.modified,
-                    commits: [
-                        ...commits,
-                    ].reverse(),
+                    commits: [...commits].reverse(),
                 });
             }
         });
@@ -249,15 +247,11 @@ export class Changelog {
 
         this.changelog.log.forEach(bundle => {
             const commits = bundle.commits;
-            if (commits.length > 0) {
-                bundles.push({
-                    snapshotPath: bundle.snapshotPath,
-                    modified: bundle.modified,
-                    commits: [
-                        ...commits,
-                    ].reverse(),
-                });
-            }
+            bundles.push({
+                snapshotPath: bundle.snapshotPath,
+                modified: bundle.modified,
+                commits: [...commits].reverse(),
+            });
         });
 
         return bundles.sort((a, b) => b.modified - a.modified);
