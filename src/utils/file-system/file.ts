@@ -1,9 +1,13 @@
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
+import { FileBasic, IFileBasic } from "./basic";
 
-export interface IFile {
-    path(): string;
+export interface IFile extends IFileBasic {
+    hash(): string | null;
+    readString(): string | null;
+    readJson(): any | null;
+    getModifications(): Modification[];
 }
 
 export enum ModificationOwner {
@@ -11,57 +15,27 @@ export enum ModificationOwner {
     User = "User",
 }
 
+type UserVersion = {
+    user: string;
+    path: string;
+}
+
 export type Modification = {
     owner: ModificationOwner;
     user?: string;
-    location: string;
+    path: string;
 };
 
-export class File implements IFile {
-    private _path: string;
-    private _workingDirectory: string;
-    private _modified: number;
-    private _created: number;
+export class File extends FileBasic implements IFile {
     private _hash: string | null;
 
     constructor(filePath: string, workingDirectory: string) {
-        this._path = filePath;
-        this._workingDirectory = workingDirectory;
-        this._modified = 0;
-        this._created = 0;
+        super(filePath, workingDirectory);
         this._hash = null;
     }
 
-    public path(): string {
-        return this._path;
-    }
-
-    public workingDirectory(): string {
-        return this._workingDirectory;
-    }
-
-    public exists(): boolean {
-        return fs.existsSync(this.path());
-    }
-
-    public relativePath(): string {
-        return path.relative(this.path(), this.workingDirectory());
-    }
-
-    public userPath(user: string): string {
-        return path.join(this.workingDirectory(), ".users", user, this.relativePath());
-    }
-
-    public modifiedTime(): number | null {
-        try {
-            return fs.statSync(this.path()).mtimeMs;
-        } catch (e) {
-            return null;
-        }
-    }
-
     public hash(): string | null {
-        if (this.modifiedTime() === this._modified && this._hash) {
+        if (this.modifiedTime() === super._modified && this._hash) {
             return this._hash;
         }
 
@@ -75,25 +49,13 @@ export class File implements IFile {
         }
     }
 
-    private usersDir(): string {
-        return path.join(this.workingDirectory(), ".users");
-    }
-
-    private getAllUserVersions(): string[] {
+    private getAllUserVersions(): UserVersion[] {
         if (!fs.existsSync(this.usersDir())) {
             return [];
         }
 
         const users = fs.readdirSync(this.usersDir());
-        return users.map(user => path.join(this.usersDir(), user, this.relativePath())).filter(p => fs.existsSync(p));
-    }
-
-    private extractUserFromPath(userPath: string): string {
-        const parts = path.relative(this.workingDirectory(), userPath).split(path.sep);
-        if (parts.at(0) === ".users" && parts.length > 2) {
-            return parts.at(1);
-        }
-        return "";
+        return users.map(user => ({path: path.join(this.usersDir(), user, this.relativePath()), user})).filter(p => fs.existsSync(p.path));
     }
 
     public getModifications(): Modification[] {
@@ -101,13 +63,12 @@ export class File implements IFile {
 
         const userVersions = this.getAllUserVersions();
         userVersions.forEach(userVersion => {
-            const user = this.extractUserFromPath(userVersion);
-            const stats = fs.statSync(userVersion);
+            const stats = fs.statSync(userVersion.path);
             if (stats.mtimeMs > this.modifiedTime()) {
                 modifications.push({
                     owner: ModificationOwner.User,
-                    user,
-                    location: userVersion,
+                    user: userVersion.user,
+                    path: userVersion.path,
                 });
             }
         });
@@ -130,15 +91,6 @@ export class File implements IFile {
             return content;
         } catch (e) {
             return null;
-        }
-    }
-
-    public remove(): boolean {
-        try {
-            fs.unlinkSync(this.path());
-            return true;
-        } catch (e) {
-            return false;
         }
     }
 }
