@@ -15,37 +15,26 @@ import {
 import React from "react";
 import {VscCheck, VscChevronDown, VscCollapseAll, VscLock} from "react-icons/vsc";
 
-import {checkIfWritable, readFileTree} from "@utils/file-operations";
+import {Directory} from "@utils/file-system/directory";
 
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setDirectory, setFileTreeStates} from "@redux/reducers/files";
+import {setFileTreeStates, setWorkingDirectoryPath} from "@redux/reducers/files";
 import {addNotification} from "@redux/reducers/notifications";
 import {selectFmuDirectory} from "@redux/thunks";
 
-import {FileTree} from "@shared-types/file-tree";
 import {Notification, NotificationType} from "@shared-types/notifications";
 
-import fs from "fs";
-
-import {Directory} from "./components/directory";
+import {DirectoryComponent} from "./components/directory-component";
 import "./explorer.css";
 
-const readDirectories = (fmuDirectory: string): string[] => {
-    return fs
-        .readdirSync(fmuDirectory)
-        .filter(file => fs.statSync(`${fmuDirectory}/${file}`).isDirectory())
-        .reverse();
-};
-
 export const Explorer: React.FC = () => {
-    const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
-    const directory = useAppSelector(state => state.files.directory);
-    const [writeable, setWriteable] = React.useState<boolean>(false);
-    const [fileTree, setFileTree] = React.useState<FileTree>([]);
+    const fmuDirectoryPath = useAppSelector(state => state.files.fmuDirectory);
+    const workingDirectoryPath = useAppSelector(state => state.files.directory);
+    const [fmuDirectory, setFmuDirectory] = React.useState<Directory | null>(null);
+    const [directory, setDirectory] = React.useState<Directory | null>(null);
     const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
-    const [directories, setDirectories] = React.useState<string[]>([]);
 
     const refreshTimer = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -53,42 +42,41 @@ export const Explorer: React.FC = () => {
     const theme = useTheme();
 
     React.useEffect(() => {
-        if (directory !== undefined && directory !== "") {
+        if (workingDirectoryPath !== undefined && workingDirectoryPath !== "") {
             try {
-                setFileTree(readFileTree(directory));
-                setWriteable(checkIfWritable(directory));
+                setDirectory(new Directory("", workingDirectoryPath));
             } catch (e) {
                 const notification: Notification = {
                     type: NotificationType.ERROR,
-                    message: `Could not read content of '${directory}'. ${e}`,
+                    message: `Could not read content of '${workingDirectoryPath}'. ${e}`,
                 };
                 dispatch(addNotification(notification));
             }
         }
-    }, [directory, dispatch]);
+    }, [workingDirectoryPath, dispatch]);
 
     React.useEffect(() => {
         if (refreshTimer.current) {
             clearInterval(refreshTimer.current);
         }
-        if (fmuDirectory !== undefined && fmuDirectory !== "" && drawerOpen) {
-            setDirectories(readDirectories(fmuDirectory));
+        if (fmuDirectoryPath !== undefined && fmuDirectoryPath !== "" && drawerOpen) {
+            setFmuDirectory(new Directory("", fmuDirectoryPath));
             refreshTimer.current = setInterval(() => {
-                setDirectories(readDirectories(fmuDirectory));
+                setFmuDirectory(new Directory("", fmuDirectoryPath));
             }, 3000);
         }
-    }, [fmuDirectory, drawerOpen]);
+    }, [fmuDirectoryPath, drawerOpen]);
 
     const handleOpenDirectoryClick = () => {
-        selectFmuDirectory(fmuDirectory, dispatch);
+        selectFmuDirectory(fmuDirectoryPath, dispatch);
     };
 
     const handleCollapseAll = () => {
         dispatch(setFileTreeStates([]));
     };
 
-    const handleDirectoryChange = (dir: string) => {
-        dispatch(setDirectory({path: `${fmuDirectory}/${dir}`}));
+    const handleWorkingDirectoryChange = (dir: string) => {
+        dispatch(setWorkingDirectoryPath({path: dir}));
         setDrawerOpen(false);
     };
 
@@ -107,28 +95,29 @@ export const Explorer: React.FC = () => {
         <Surface elevation="raised" className="Explorer">
             <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
                 <List className="DirectoryDrawer">
-                    {directories.map(el => (
-                        <ListItem key={el} disablePadding>
-                            <ListItemButton onClick={() => handleDirectoryChange(el)}>
-                                <ListItemIcon>
-                                    {`${fmuDirectory}/${el}` === directory && (
-                                        <VscCheck fontSize="small" color="var(--text-on-primary)" />
-                                    )}
-                                </ListItemIcon>
-                                <ListItemText>{el}</ListItemText>
-                            </ListItemButton>
-                        </ListItem>
-                    ))}
+                    {fmuDirectory !== null &&
+                        fmuDirectory.getContent().map(el => (
+                            <ListItem key={el.absolutePath()} disablePadding>
+                                <ListItemButton onClick={() => handleWorkingDirectoryChange(el.absolutePath())}>
+                                    <ListItemIcon>
+                                        {directory !== null && el.absolutePath() === directory.absolutePath() && (
+                                            <VscCheck fontSize="small" color="var(--text-on-primary)" />
+                                        )}
+                                    </ListItemIcon>
+                                    <ListItemText>{el.baseName()}</ListItemText>
+                                </ListItemButton>
+                            </ListItem>
+                        ))}
                 </List>
             </Drawer>
-            {fmuDirectory === undefined || fmuDirectory === "" ? (
+            {fmuDirectoryPath === undefined || fmuDirectoryPath === "" ? (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
                     <Button variant="contained" onClick={handleOpenDirectoryClick}>
                         Select FMU Directory
                     </Button>
                     <Typography>In order to start using the editor, please select your FMU directory.</Typography>
                 </Stack>
-            ) : directory === undefined || directory === "" ? (
+            ) : directory === null ? (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
                     <Button variant="contained" onClick={toggleDrawer(true)}>
                         Select Working Directory
@@ -140,8 +129,8 @@ export const Explorer: React.FC = () => {
                     <Surface elevation="raised">
                         <Stack direction="row" alignItems="center" className="ExplorerTitle">
                             <div>
-                                {directory.split("/")[directory.split("/").length - 1]}
-                                {!writeable && (
+                                {directory.baseName()}
+                                {!directory.isWritable() && (
                                     <VscLock
                                         color={theme.palette.warning.main}
                                         title="You don't have write access for this folder."
@@ -157,22 +146,16 @@ export const Explorer: React.FC = () => {
                         </Stack>
                     </Surface>
                     <div className="ExplorerContent">
-                        {fileTree.map(item => {
-                            if (item.type === "file") {
+                        {directory.getContent().map(item => {
+                            if (!item.isDirectory()) {
                                 return (
-                                    <div className="ExplorerItem" key={item.name} style={{paddingLeft: 16}}>
-                                        {item.name}
+                                    <div className="ExplorerItem" key={item.relativePath()} style={{paddingLeft: 16}}>
+                                        {item.baseName()}
                                     </div>
                                 );
                             }
                             return (
-                                <Directory
-                                    level={1}
-                                    path={item.name}
-                                    name={item.name}
-                                    content={item.children}
-                                    key={item.name}
-                                />
+                                <DirectoryComponent level={1} directory={item as Directory} key={item.relativePath()} />
                             );
                         })}
                     </div>

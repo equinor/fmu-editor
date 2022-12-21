@@ -1,17 +1,13 @@
-import {setFmuDirectory} from "@redux/reducers/files";
+import {ipcRenderer} from "electron";
+
+import {setFmuDirectoryPath} from "@redux/reducers/files";
 import {addNotification} from "@redux/reducers/notifications";
 import {AppDispatch} from "@redux/store";
 
+import {FileExplorerOptions} from "@shared-types/file-explorer-options";
 import {Notification, NotificationType} from "@shared-types/notifications";
 
-import {ipcRenderer} from "electron";
-
-import {FileExplorerOptions} from "@shared-types/file-explorer-options";
-
-export function selectFmuDirectory(
-    fmuDirectory: string,
-    dispatch: AppDispatch,
-) {
+export function selectFmuDirectory(fmuDirectory: string, dispatch: AppDispatch) {
     const opts: FileExplorerOptions = {
         isDirectoryExplorer: true,
         title: "Open FMU Directory",
@@ -19,7 +15,7 @@ export function selectFmuDirectory(
     };
     ipcRenderer.invoke("select-file", opts).then(result => {
         if (result) {
-            dispatch(setFmuDirectory({path: result[0]}));
+            dispatch(setFmuDirectoryPath({path: result[0]}));
             const notification: Notification = {
                 type: NotificationType.SUCCESS,
                 message: `FMU directory successfully set to '${result}'.`,

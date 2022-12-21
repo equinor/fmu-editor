@@ -1,4 +1,4 @@
-import {Changelog} from "@utils/changelog";
+import {Changelog} from "@utils/file-system/changelog";
 
 import {
     ChangelogWatcherRequestTypes,

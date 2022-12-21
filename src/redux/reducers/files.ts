@@ -26,7 +26,7 @@ export const filesSlice = createSlice({
     name: "files",
     initialState: initialState.files,
     reducers: {
-        setFmuDirectory: (
+        setFmuDirectoryPath: (
             state: Draft<FilesState>,
             action: PayloadAction<{
                 path: string;
@@ -35,7 +35,7 @@ export const filesSlice = createSlice({
             state.fmuDirectory = action.payload.path;
             electronStore.set("files.fmuDirectory", action.payload.path);
         },
-        setDirectory: (
+        setWorkingDirectoryPath: (
             state: Draft<FilesState>,
             action: PayloadAction<{
                 path: string;
@@ -202,8 +202,8 @@ export const filesSlice = createSlice({
 });
 
 export const {
-    setFmuDirectory,
-    setDirectory,
+    setFmuDirectoryPath,
+    setWorkingDirectoryPath,
     setFileTreeStates,
     setActiveFile,
     setActiveDiffFile,

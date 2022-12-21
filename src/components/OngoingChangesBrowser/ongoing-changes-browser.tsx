@@ -28,7 +28,7 @@ export const OngoingChangesBrowser: React.VFC = () => {
                 <div className="ChangesBrowserContentHeader">Changes</div>
                 <div>
                     {ongoingChanges.map(change => (
-                        <OngoingChangesBrowserItem key={`${change.user}-${change.filePath}`} change={change} />
+                        <OngoingChangesBrowserItem key={`${change.user}-${change.relativePath}`} change={change} />
                     ))}
                 </div>
             </Stack>

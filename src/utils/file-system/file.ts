@@ -1,7 +1,8 @@
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
-import { FileBasic, IFileBasic } from "./basic";
+
+import {FileBasic, IFileBasic} from "./basic";
 
 export interface IFile extends IFileBasic {
     hash(): string | null;
@@ -18,7 +19,7 @@ export enum ModificationOwner {
 type UserVersion = {
     user: string;
     path: string;
-}
+};
 
 export type Modification = {
     owner: ModificationOwner;
@@ -35,16 +36,17 @@ export class File extends FileBasic implements IFile {
     }
 
     public hash(): string | null {
-        if (this.modifiedTime() === super._modified && this._hash) {
+        if (this.modifiedTime() === this._modified && this._hash) {
             return this._hash;
         }
 
         try {
-            const buffer = fs.readFileSync(this.path());
+            const buffer = fs.readFileSync(this.absolutePath());
             const hash = crypto.createHash("sha256").update(buffer).digest("hex");
             this._hash = hash;
             return hash;
         } catch (e) {
+            this._error = e;
             return null;
         }
     }
@@ -55,7 +57,9 @@ export class File extends FileBasic implements IFile {
         }
 
         const users = fs.readdirSync(this.usersDir());
-        return users.map(user => ({path: path.join(this.usersDir(), user, this.relativePath()), user})).filter(p => fs.existsSync(p.path));
+        return users
+            .map(user => ({path: path.join(this.usersDir(), user, this.relativePath()), user}))
+            .filter(p => fs.existsSync(p.path));
     }
 
     public getModifications(): Modification[] {
@@ -78,10 +82,21 @@ export class File extends FileBasic implements IFile {
 
     public readString(): string | null {
         try {
-            const content = fs.readFileSync(this.path()).toString();
+            const content = fs.readFileSync(this.absolutePath(), {encoding: "utf-8"}).toString();
             return content;
         } catch (e) {
+            this._error = e;
             return null;
+        }
+    }
+
+    public writeString(str: string): boolean {
+        try {
+            fs.writeFileSync(this.absolutePath(), str, {encoding: "utf-8"});
+            return true;
+        } catch (e) {
+            this._error = e;
+            return false;
         }
     }
 
@@ -90,7 +105,27 @@ export class File extends FileBasic implements IFile {
             const content = JSON.parse(this.readString());
             return content;
         } catch (e) {
+            this._error = e;
             return null;
         }
+    }
+
+    public writeJson(json: any): boolean {
+        try {
+            this.writeString(JSON.stringify(json));
+            return true;
+        } catch (e) {
+            this._error = e;
+            return false;
+        }
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    public isDirectory(): boolean {
+        return false;
+    }
+
+    public compare(other: File): boolean {
+        return this.hash() === other.hash();
     }
 }

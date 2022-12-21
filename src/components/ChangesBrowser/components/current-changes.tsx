@@ -32,7 +32,7 @@ export const CurrentChanges: React.VFC = () => {
     const changelog = useChangelogWatcher();
 
     React.useEffect(() => {
-        setStagedFiles(prev => prev.filter(el => userFileChanges.some(change => change.filePath === el)));
+        setStagedFiles(prev => prev.filter(el => userFileChanges.some(change => change.relativePath === el)));
     }, [userFileChanges, environment]);
 
     const handleCommitChange = React.useCallback(
@@ -63,7 +63,7 @@ export const CurrentChanges: React.VFC = () => {
                 datetime: new Date().getTime(),
                 files: stagedFiles.map(el => ({
                     path: el,
-                    action: userFileChanges.find(change => change.filePath === el)?.type || FileChangeType.MODIFIED,
+                    action: userFileChanges.find(change => change.relativePath === el)?.type || FileChangeType.MODIFIED,
                 })),
             };
             changelog.appendCommit(commit);
@@ -86,7 +86,7 @@ export const CurrentChanges: React.VFC = () => {
     );
 
     const handleStageAll = React.useCallback(() => {
-        setStagedFiles(userFileChanges.map(el => el.filePath));
+        setStagedFiles(userFileChanges.map(el => el.relativePath));
     }, [userFileChanges]);
 
     const handleUnstageAll = React.useCallback(() => {
@@ -102,7 +102,7 @@ export const CurrentChanges: React.VFC = () => {
             )}
             <Stack direction="column" className="ChangesBrowserContent" spacing={2}>
                 <div className="ChangesBrowserContentHeader">
-                    Unstaged Files ({userFileChanges.filter(el => !stagedFiles.includes(el.filePath)).length})
+                    Unstaged Files ({userFileChanges.filter(el => !stagedFiles.includes(el.relativePath)).length})
                     <Button
                         variant="contained"
                         onClick={() => handleStageAll()}
@@ -115,14 +115,14 @@ export const CurrentChanges: React.VFC = () => {
                 </div>
                 <div className="ChangesBrowserList">
                     {userFileChanges
-                        .filter(el => !stagedFiles.includes(el.filePath))
+                        .filter(el => !stagedFiles.includes(el.relativePath))
                         .map(fileChange => (
                             <div
                                 className={`ChangesBrowserListItem${
-                                    fileChange.filePath === activeDiffFile ? " ChangesBrowserListItemSelected" : ""
+                                    fileChange.relativePath === activeDiffFile ? " ChangesBrowserListItemSelected" : ""
                                 }`}
-                                key={fileChange.filePath}
-                                onClick={() => handleFileSelected(fileChange.filePath)}
+                                key={fileChange.relativePath}
+                                onClick={() => handleFileSelected(fileChange.relativePath)}
                             >
                                 <div>
                                     {fileChange.type === FileChangeType.MODIFIED && (
@@ -134,11 +134,11 @@ export const CurrentChanges: React.VFC = () => {
                                     {fileChange.type === FileChangeType.DELETED && (
                                         <Remove color="error" fontSize="small" />
                                     )}
-                                    <span title={fileChange.filePath}>{fileChange.filePath}&lrm;</span>
+                                    <span title={fileChange.relativePath}>{fileChange.relativePath}&lrm;</span>
                                 </div>
                                 <Button
                                     variant="text"
-                                    onClick={e => handleCommitChange(e, fileChange.filePath)}
+                                    onClick={e => handleCommitChange(e, fileChange.relativePath)}
                                     size="small"
                                 >
                                     Stage File
@@ -160,14 +160,14 @@ export const CurrentChanges: React.VFC = () => {
                 </div>
                 <div className="ChangesBrowserList">
                     {userFileChanges
-                        .filter(el => stagedFiles.includes(el.filePath))
+                        .filter(el => stagedFiles.includes(el.relativePath))
                         .map(fileChange => (
                             <div
                                 className={`ChangesBrowserListItem${
-                                    fileChange.filePath === activeDiffFile ? " ChangesBrowserListItemSelected" : ""
+                                    fileChange.relativePath === activeDiffFile ? " ChangesBrowserListItemSelected" : ""
                                 }`}
-                                key={fileChange.filePath}
-                                onClick={() => handleFileSelected(fileChange.filePath)}
+                                key={fileChange.relativePath}
+                                onClick={() => handleFileSelected(fileChange.relativePath)}
                             >
                                 <div>
                                     {fileChange.type === FileChangeType.MODIFIED && (
@@ -179,11 +179,11 @@ export const CurrentChanges: React.VFC = () => {
                                     {fileChange.type === FileChangeType.DELETED && (
                                         <Remove color="error" fontSize="small" />
                                     )}
-                                    <span title={fileChange.filePath}>{fileChange.filePath}&lrm;</span>
+                                    <span title={fileChange.relativePath}>{fileChange.relativePath}&lrm;</span>
                                 </div>
                                 <Button
                                     variant="text"
-                                    onClick={e => handleCommitChange(e, fileChange.filePath)}
+                                    onClick={e => handleCommitChange(e, fileChange.relativePath)}
                                     size="small"
                                 >
                                     Unstage File

@@ -35,23 +35,25 @@ export const OngoingChangesBrowserItem: React.FC<UserChangesBrowserItemProps> = 
     return (
         <a
             className={`OngoingChangesBrowserItem${
-                fileManager.getUserFileIfExists(path.join(directory, props.change.filePath), props.change.user) ===
+                fileManager.getUserFileIfExists(path.join(directory, props.change.relativePath), props.change.user) ===
                 activeDiffFile
                     ? " OngoingChangesBrowserItem--selected"
                     : ""
             }`}
-            onClick={() => handleClick(props.change.filePath, props.change.user)}
+            onClick={() => handleClick(props.change.relativePath, props.change.user)}
         >
             <Avatar user={props.change.user} size={40} getDetails={(_, details) => setUserDetails(details)} />
             <div>
                 <div className="TextOverflow" title={userDetails?.displayName || props.change.user}>
                     {userDetails?.displayName || props.change.user}
                 </div>
-                <div className="ChangesBrowserDate">
-                    authored {new Date(props.change.modified).toLocaleDateString()}
-                    {" @ "}
-                    {new Date(props.change.modified).toLocaleTimeString()}
-                </div>
+                {props.change.modified && (
+                    <div className="ChangesBrowserDate">
+                        authored {new Date(props.change.modified).toLocaleDateString()}
+                        {" @ "}
+                        {new Date(props.change.modified).toLocaleTimeString()}
+                    </div>
+                )}
             </div>
         </a>
     );

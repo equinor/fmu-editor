@@ -14,10 +14,11 @@ export enum FileChangeType {
 }
 
 export type FileChange = {
-    user: string;
-    filePath: string;
     type: FileChangeType;
-    modified: Date;
+    relativePath: string;
+    user?: string;
+    main: boolean;
+    modified?: number;
 };
 
 export type FileChangesRequests = {

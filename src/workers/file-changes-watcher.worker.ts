@@ -1,16 +1,14 @@
 import {FileManager} from "@utils/file-manager";
+import {compareDirectories} from "@utils/file-system/operations";
+import {WorkingDirectory} from "@utils/file-system/working-directory";
 
 import {
     FileChange,
-    FileChangeType,
     FileChangesRequests,
     FileChangesResponses,
     FileChangesWatcherRequestType,
     FileChangesWatcherResponseType,
 } from "@shared-types/file-changes";
-
-import fs from "fs";
-import path from "path";
 
 import {Webworker} from "./worker-utils";
 
@@ -20,92 +18,6 @@ const fileManager = new FileManager();
 
 let currentDirectory: string | null = null;
 
-const makeOriginalFilePath = (userFilePath: string, mainDirectory: string): string => {
-    const relativePath = path.relative(mainDirectory, userFilePath);
-    const [userDir, user, ...filePathParts] = relativePath.split(path.sep);
-    return path.join(mainDirectory, ...filePathParts);
-};
-
-const makeUserFilePath = (userDirectory: string, filePath: string, mainDirectory: string): string => {
-    const relativePath = path.relative(mainDirectory, filePath);
-    const [...filePathParts] = relativePath.split(path.sep);
-    return path.join(userDirectory, ...filePathParts);
-};
-
-type FileMap = {
-    origin: "user" | "original";
-    file: string;
-};
-
-const deduplicate = (fileMap: FileMap[]): FileMap[] => {
-    return fileMap.filter(el => {
-        if (el.origin === "original" && fileMap.some(el2 => el2.origin === "user" && el2.file === el.file)) {
-            return false;
-        }
-        return true;
-    });
-};
-
-const compareDirectory = (
-    directory: string,
-    user: string,
-    mainDirectory: string,
-    lastUpdated: number
-): FileChange[] => {
-    const fileChanges: FileChange[] = [];
-    const originalDirectory = makeOriginalFilePath(directory, mainDirectory);
-    const userDirContent = fs.readdirSync(directory).filter(item => !/(^|\/)\.[^\/\.]/g.test(item));
-    const originalDirContent = [];
-    if (fs.existsSync(originalDirectory)) {
-        originalDirContent.push(...fs.readdirSync(originalDirectory).filter(item => !/(^|\/)\.[^\/\.]/g.test(item)));
-    }
-
-    const combinedDirContent = deduplicate([
-        ...userDirContent.map(el => ({origin: "user", file: el})),
-        ...originalDirContent.map(el => ({origin: "original", file: el})),
-    ] as FileMap[]);
-
-    combinedDirContent.forEach(file => {
-        const filePath =
-            file.origin === "user" ? path.join(directory, file.file) : path.join(originalDirectory, file.file);
-        const stats = fs.statSync(filePath);
-        if (stats.isDirectory() && file.origin === "user") {
-            fileChanges.push(...compareDirectory(filePath, user, mainDirectory, lastUpdated));
-        } else if (stats.isFile()) {
-            if (file.origin === "user") {
-                const originalFilePath = makeOriginalFilePath(filePath, mainDirectory);
-                if (fs.existsSync(originalFilePath)) {
-                    const originalFileStats = fs.statSync(originalFilePath);
-                    if (originalFileStats.size !== stats.size || originalFileStats.mtime < stats.mtime) {
-                        fileChanges.push({
-                            user,
-                            type: FileChangeType.MODIFIED,
-                            filePath: path.relative(mainDirectory, fileManager.getOriginalFileIfExists(filePath)),
-                            modified: stats.mtime,
-                        });
-                    }
-                } else {
-                    fileChanges.push({
-                        user,
-                        type: FileChangeType.ADDED,
-                        filePath: path.relative(mainDirectory, fileManager.getOriginalFileIfExists(filePath)),
-                        modified: stats.mtime,
-                    });
-                }
-            } else if (stats.mtime.getTime() <= lastUpdated && stats.ctime.getTime() <= lastUpdated) {
-                const userFilePath = makeUserFilePath(directory, filePath, mainDirectory);
-                fileChanges.push({
-                    user,
-                    type: FileChangeType.DELETED,
-                    filePath: path.relative(mainDirectory, userFilePath),
-                    modified: stats.mtime,
-                });
-            }
-        }
-    });
-    return fileChanges;
-};
-
 const checkForFileChanges = () => {
     if (!currentDirectory) {
         return;
@@ -113,19 +25,11 @@ const checkForFileChanges = () => {
 
     let fileChanges: FileChange[] = [];
 
-    const userDirectory = path.join(currentDirectory, ".users");
-    if (fs.existsSync(userDirectory)) {
-        const userFolders = fs.readdirSync(userDirectory);
-        userFolders.forEach(userFolder => {
-            const userPath = path.join(userDirectory, userFolder);
-            const lastUpdated = parseInt(
-                JSON.parse(fs.readFileSync(path.join(userPath, ".cache"), "utf-8").toString()).lastUpdated,
-                10
-            );
-            fileChanges = [
-                ...fileChanges,
-                ...compareDirectory(userPath, userFolder, currentDirectory as string, lastUpdated),
-            ];
+    const workingDirectory = new WorkingDirectory("./", currentDirectory);
+
+    if (workingDirectory.exists()) {
+        workingDirectory.getUsers().forEach(user => {
+            fileChanges = [...fileChanges, ...compareDirectories(currentDirectory, user)];
         });
     }
 

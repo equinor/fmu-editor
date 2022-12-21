@@ -25,7 +25,6 @@ export const readFileTree = (dir: string): FileTree => {
                 modified: stats.mtime,
                 children: readFileTree(filePath),
                 fileSize: stats.size,
-                
             });
         } else {
             fileTree.push({
@@ -37,13 +36,4 @@ export const readFileTree = (dir: string): FileTree => {
         }
     });
     return fileTree;
-};
-
-export const checkIfWritable = (dir: string): boolean => {
-    try {
-        fs.accessSync(dir, fs.constants.W_OK);
-        return true;
-    } catch (e) {
-        return false;
-    }
 };
