@@ -1,4 +1,4 @@
-import {FileChange, FileChangeType} from "@shared-types/file-changes";
+import {FileChange, FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
 
 import {Directory} from "./directory";
 import {File} from "./file";
@@ -36,20 +36,28 @@ export const compareDirectories = (workingDirectory: string, user: string): File
         if (origin === "main") {
             const userFile = file.getUserVersion(user) as File;
             if (userFile.exists()) {
-                if (userFile.modifiedTime() < file.modifiedTime() && !userFile.compare(file)) {
+                if (snapshot.getModifiedMs(file.relativePath()) < file.modifiedTime() && snapshot.getModifiedMs(userFile.relativePath()) < userFile.modifiedTime() && !userFile.compare(file)) {
                     changes.push({
                         type: FileChangeType.MODIFIED,
                         relativePath: file.relativePath(),
-                        main: true,
+                        origin: FileChangeOrigin.BOTH,
                         user,
                         modified: file.modifiedTime(),
                     });
-                } else if (userFile.modifiedTime() > file.modifiedTime() && !userFile.compare(file)) {
+                } else if (snapshot.getModifiedMs(file.relativePath()) < file.modifiedTime() && !userFile.compare(file)) {
+                    changes.push({
+                        type: FileChangeType.MODIFIED,
+                        relativePath: file.relativePath(),
+                        origin: FileChangeOrigin.MAIN,
+                        user,
+                        modified: file.modifiedTime(),
+                    });
+                } else if (snapshot.getModifiedMs(userFile.relativePath()) < userFile.modifiedTime() && !userFile.compare(file)) {
                     changes.push({
                         type: FileChangeType.MODIFIED,
                         relativePath: file.relativePath(),
                         user,
-                        main: false,
+                        origin: FileChangeOrigin.USER,
                         modified: userFile.modifiedTime(),
                     });
                 }
@@ -57,49 +65,30 @@ export const compareDirectories = (workingDirectory: string, user: string): File
                 changes.push({
                     type: FileChangeType.DELETED,
                     relativePath: file.relativePath(),
-                    main: false,
+                    origin: FileChangeOrigin.USER,
                     user,
                 });
             } else {
                 changes.push({
                     type: FileChangeType.ADDED,
                     relativePath: file.relativePath(),
-                    main: true,
+                    origin: FileChangeOrigin.MAIN,
                     user,
                 });
             }
         } else {
-            const mainFile = file.getMainVersion() as File;
-            if (mainFile.exists()) {
-                if (mainFile.modifiedTime() < file.modifiedTime() && !mainFile.compare(file)) {
-                    changes.push({
-                        type: FileChangeType.MODIFIED,
-                        relativePath: file.relativePath(),
-                        main: false,
-                        user,
-                        modified: file.modifiedTime(),
-                    });
-                } else if (mainFile.modifiedTime() > file.modifiedTime() && !mainFile.compare(file)) {
-                    changes.push({
-                        type: FileChangeType.MODIFIED,
-                        relativePath: file.relativePath(),
-                        main: true,
-                        user,
-                        modified: mainFile.modifiedTime(),
-                    });
-                }
-            } else if (snapshot.fileExists(file.relativePath())) {
+            if (snapshot.fileExists(file.getMainVersion().relativePath())) {
                 changes.push({
                     type: FileChangeType.DELETED,
                     relativePath: file.relativePath(),
-                    main: true,
+                    origin: FileChangeOrigin.MAIN,
                     user,
                 });
             } else {
                 changes.push({
                     type: FileChangeType.ADDED,
                     relativePath: file.relativePath(),
-                    main: false,
+                    origin: FileChangeOrigin.USER,
                     user,
                 });
             }

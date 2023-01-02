@@ -1,5 +1,6 @@
 import {Button, LinearProgress} from "@mui/material";
 import {useEnvironment} from "@services/environment-service";
+import {useFileChangesWatcher} from "@services/file-changes-service";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
@@ -10,6 +11,7 @@ import {addNotification} from "@redux/reducers/notifications";
 import {setView} from "@redux/reducers/ui";
 import {selectFmuDirectory} from "@redux/thunks";
 
+import {FileChange, FileChangeOrigin} from "@shared-types/file-changes";
 import {Notification, NotificationType} from "@shared-types/notifications";
 import {View} from "@shared-types/ui";
 
@@ -17,11 +19,18 @@ import "./toolbar.css";
 
 export const Toolbar: React.FC = () => {
     const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
+    const [filteredFileChanges, setFilteredFileChanges] = React.useState<FileChange[]>([]);
+
     const environment = useEnvironment();
     const [progress, setProgress] = React.useState<number>(100);
 
     const dispatch = useAppDispatch();
-    const {fileManager, copyUserDirectory, changedFiles} = useFileManager();
+    const {fileManager, copyUserDirectory} = useFileManager();
+    const {fileChanges} = useFileChangesWatcher();
+
+    React.useEffect(() => {
+        setFilteredFileChanges(fileChanges.filter(el => el.origin !== FileChangeOrigin.USER));
+    }, [fileChanges]);
 
     const handleOpenDirectoryClick = () => {
         selectFmuDirectory(fmuDirectory, dispatch);
@@ -60,11 +69,11 @@ export const Toolbar: React.FC = () => {
 
     const handleUserDirectoryClick = () => {
         if (fileManager.userDirectoryExists()) {
-            if (changedFiles === null) {
+            if (fileChanges === null) {
                 addNotification({type: NotificationType.INFORMATION, message: "Scanning your user directory..."});
                 return;
             }
-            if (changedFiles.length > 0) {
+            if (fileChanges.length > 0) {
                 dispatch(setView(View.Merge));
                 return;
             }
@@ -123,17 +132,17 @@ export const Toolbar: React.FC = () => {
                 size="small"
                 onClick={handleUserDirectoryClick}
                 title={
-                    changedFiles === null
+                    filteredFileChanges === null
                         ? "Scanning your user directory..."
-                        : changedFiles.length > 0
+                        : fileChanges.length > 0
                         ? "Main folder has been modified, click here to view changes"
                         : "Your user directory is up to date"
                 }
                 sx={{
                     backgroundColor:
-                        changedFiles === null
+                        filteredFileChanges === null
                             ? "var(--info)"
-                            : changedFiles.length > 0
+                            : filteredFileChanges.length > 0
                             ? "var(--warning)"
                             : "var(--success)",
                 }}
@@ -143,13 +152,14 @@ export const Toolbar: React.FC = () => {
                     <span>
                         <i>Copying...</i>
                     </span>
-                ) : changedFiles === null ? (
+                ) : filteredFileChanges === null ? (
                     <span>Scanning...</span>
-                ) : changedFiles.length === 0 ? (
+                ) : filteredFileChanges.length === 0 ? (
                     <span>User directory up to date</span>
                 ) : (
                     <span>
-                        {changedFiles.length} file{changedFiles.length > 1 ? "s" : ""} changed in main folder
+                        {filteredFileChanges.length} file{filteredFileChanges.length > 1 ? "s" : ""} changed in main
+                        folder
                     </span>
                 )}
             </Button>

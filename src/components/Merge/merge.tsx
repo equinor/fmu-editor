@@ -1,5 +1,6 @@
 import {Add, Edit, Remove} from "@mui/icons-material";
 import {Button, Stack, Typography} from "@mui/material";
+import {useFileChangesWatcher} from "@services/file-changes-service";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
@@ -10,16 +11,22 @@ import {Surface} from "@components/Surface";
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setActiveDiffFile} from "@redux/reducers/files";
 
-import {FileChangeType} from "@shared-types/file-changes";
+import {FileChange, FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
 
 import {MergeEditor} from "./components/merge-editor";
 
 export const Merge: React.VFC = () => {
     const [stagedFiles, setStagedFiles] = React.useState<string[]>([]);
-    const {fileManager, changedFiles} = useFileManager();
+    const [filteredFileChanges, setFilteredFileChanges] = React.useState<FileChange[]>([]);
+    const {fileManager} = useFileManager();
+    const {fileChanges} = useFileChangesWatcher();
 
     const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
     const dispatch = useAppDispatch();
+
+    React.useEffect(() => {
+        setFilteredFileChanges(fileChanges.filter(el => el.origin !== FileChangeOrigin.USER));
+    }, [fileChanges]);
 
     const handleFileSelected = React.useCallback(
         (file: string) => {
@@ -45,8 +52,10 @@ export const Merge: React.VFC = () => {
     );
 
     const handleStageAll = React.useCallback(() => {
-        setStagedFiles(changedFiles.filter(el => !el.mergingRequired).map(el => el.filePath));
-    }, [changedFiles]);
+        setStagedFiles(
+            filteredFileChanges.filter(el => el.origin !== FileChangeOrigin.BOTH).map(el => el.relativePath)
+        );
+    }, [filteredFileChanges]);
 
     const handleUnstageAll = React.useCallback(() => {
         setStagedFiles([]);
@@ -64,11 +73,12 @@ export const Merge: React.VFC = () => {
                 </Surface>
                 <Stack direction="column" className="ChangesBrowserContent" spacing={2}>
                     <div className="ChangesBrowserContentHeader">
-                        Unstaged Files ({changedFiles.filter(el => !stagedFiles.includes(el.filePath)).length})
+                        Unstaged Files (
+                        {filteredFileChanges.filter(el => !stagedFiles.includes(el.relativePath)).length})
                         <Button
                             variant="contained"
                             onClick={() => handleStageAll()}
-                            disabled={stagedFiles.length === changedFiles.length}
+                            disabled={stagedFiles.length === filteredFileChanges.length}
                             color="success"
                             size="small"
                         >
@@ -76,15 +86,17 @@ export const Merge: React.VFC = () => {
                         </Button>
                     </div>
                     <div className="ChangesBrowserList">
-                        {changedFiles
-                            .filter(el => !stagedFiles.includes(el.filePath))
+                        {filteredFileChanges
+                            .filter(el => !stagedFiles.includes(el.relativePath))
                             .map(fileChange => (
                                 <div
                                     className={`ChangesBrowserListItem${
-                                        fileChange.filePath === activeDiffFile ? " ChangesBrowserListItemSelected" : ""
+                                        fileChange.relativePath === activeDiffFile
+                                            ? " ChangesBrowserListItemSelected"
+                                            : ""
                                     }`}
-                                    key={fileChange.filePath}
-                                    onClick={() => handleFileSelected(fileChange.filePath)}
+                                    key={fileChange.relativePath}
+                                    onClick={() => handleFileSelected(fileChange.relativePath)}
                                 >
                                     <div>
                                         {fileChange.type === FileChangeType.MODIFIED && (
@@ -96,14 +108,14 @@ export const Merge: React.VFC = () => {
                                         {fileChange.type === FileChangeType.DELETED && (
                                             <Remove color="error" fontSize="small" />
                                         )}
-                                        <span title={fileChange.filePath}>{fileChange.filePath}&lrm;</span>
+                                        <span title={fileChange.relativePath}>{fileChange.relativePath}&lrm;</span>
                                     </div>
-                                    {fileChange.mergingRequired ? (
+                                    {fileChange.origin === FileChangeOrigin.BOTH ? (
                                         <Typography color="error">Merging required</Typography>
                                     ) : (
                                         <Button
                                             variant="text"
-                                            onClick={e => handleStageFile(e, fileChange.filePath)}
+                                            onClick={e => handleStageFile(e, fileChange.relativePath)}
                                             size="small"
                                         >
                                             Stage File
@@ -125,15 +137,17 @@ export const Merge: React.VFC = () => {
                         </Button>
                     </div>
                     <div className="ChangesBrowserList">
-                        {changedFiles
-                            .filter(el => stagedFiles.includes(el.filePath))
+                        {filteredFileChanges
+                            .filter(el => stagedFiles.includes(el.relativePath))
                             .map(fileChange => (
                                 <div
                                     className={`ChangesBrowserListItem${
-                                        fileChange.filePath === activeDiffFile ? " ChangesBrowserListItemSelected" : ""
+                                        fileChange.relativePath === activeDiffFile
+                                            ? " ChangesBrowserListItemSelected"
+                                            : ""
                                     }`}
-                                    key={fileChange.filePath}
-                                    onClick={() => handleFileSelected(fileChange.filePath)}
+                                    key={fileChange.relativePath}
+                                    onClick={() => handleFileSelected(fileChange.relativePath)}
                                 >
                                     <div>
                                         {fileChange.type === FileChangeType.MODIFIED && (
@@ -145,11 +159,11 @@ export const Merge: React.VFC = () => {
                                         {fileChange.type === FileChangeType.DELETED && (
                                             <Remove color="error" fontSize="small" />
                                         )}
-                                        <span title={fileChange.filePath}>{fileChange.filePath}</span>
+                                        <span title={fileChange.relativePath}>{fileChange.relativePath}</span>
                                     </div>
                                     <Button
                                         variant="text"
-                                        onClick={e => handleStageFile(e, fileChange.filePath)}
+                                        onClick={e => handleStageFile(e, fileChange.relativePath)}
                                         size="small"
                                     >
                                         Unstage File

@@ -2,7 +2,7 @@ import {useEnvironment} from "@services/environment-service";
 
 import React from "react";
 
-import { FileChange } from "@shared-types/file-changes";
+import { FileChange, FileChangeOrigin } from "@shared-types/file-changes";
 import { useFileChangesWatcher } from "@services/file-changes-service";
 
 export const useUserFileChanges = (): FileChange[] => {
@@ -12,7 +12,7 @@ export const useUserFileChanges = (): FileChange[] => {
     const environment = useEnvironment();
 
     React.useEffect(() => {
-        setUserFileChanges(fileChangesWatcher.fileChanges.filter(change => change.user === environment.username));
+        setUserFileChanges(fileChangesWatcher.fileChanges.filter(change => change.user === environment.username && change.origin !== FileChangeOrigin.MAIN));
     }, [fileChangesWatcher.fileChanges, environment.username]);
 
     return userFileChanges;

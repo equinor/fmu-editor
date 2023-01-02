@@ -1,4 +1,5 @@
 import path from "path";
+import { Directory } from "./directory";
 
 import {File} from "./file";
 
@@ -16,18 +17,32 @@ interface ISnapshotTree {
 export class Snapshot implements ISnapshot {
     private snapshotFile: File;
     private modified: number;
-    private snapshotTree: ISnapshotTree;
+    private snapshot: ISnapshotTree;
 
     constructor(workingDirectory: string, user: string) {
         this.snapshotFile = new File(path.join(".users", user, ".snapshot"), workingDirectory);
         this.modified = 0;
-        this.snapshotTree = {};
+        this.snapshot = {};
+        this.read();
     }
+
+    public make(): void {
+        this.snapshot = {};
+        const folder = new Directory("", this.snapshotFile.workingDirectory());
+        folder.getFilesRecursively().forEach(file => {
+            this.snapshot[file.relativePath()] = file.modifiedTime();
+        });
+        this.write();
+    }
+
+    public exists(): boolean {
+        return this.snapshotFile.exists();
+    };
 
     private write(): void {
         const snapshot: ISnapshotFile = {
             modified: new Date().getTime(),
-            snapshot: this.snapshotTree,
+            snapshot: this.snapshot,
         };
         this.snapshotFile.writeJson(snapshot);
     }
@@ -36,7 +51,7 @@ export class Snapshot implements ISnapshot {
         const snapshot = this.snapshotFile.readJson();
         if (snapshot) {
             this.modified = snapshot.modified;
-            this.snapshotTree = snapshot.snapshotTree;
+            this.snapshot = snapshot.snapshot;
         }
     }
 
@@ -48,16 +63,16 @@ export class Snapshot implements ISnapshot {
 
     public fileExists(relativeFilePath: string): boolean {
         this.maybeRead();
-        return Boolean(this.snapshotTree[relativeFilePath]);
+        return Boolean(this.snapshot[relativeFilePath]);
     }
 
     public getModifiedMs(relativeFilePath: string): number | null {
         this.maybeRead();
-        return this.snapshotTree[relativeFilePath] || null;
+        return this.snapshot[relativeFilePath] || null;
     }
 
     public updateModified(relativeFilePath: string): void {
-        this.snapshotTree[relativeFilePath] = new Date().getTime();
+        this.snapshot[relativeFilePath] = new Date().getTime();
         this.write();
     }
 }

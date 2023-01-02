@@ -35,6 +35,7 @@ export const FileChangesWatcherService: React.FC = props => {
         if (changelogWatcherWorker) {
             changelogWatcherWorker.on(FileChangesWatcherResponseType.FILE_CHANGES, data => {
                 setFileChanges(data.fileChanges);
+                console.log(data.fileChanges);
             });
         }
     }, [dispatch]);

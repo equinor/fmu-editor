@@ -13,11 +13,17 @@ export enum FileChangeType {
     DELETED = "deleted",
 }
 
+export enum FileChangeOrigin {
+    MAIN = "main",
+    USER = "user",
+    BOTH = "both",
+}
+
 export type FileChange = {
     type: FileChangeType;
     relativePath: string;
     user?: string;
-    main: boolean;
+    origin: FileChangeOrigin;
     modified?: number;
 };
 
