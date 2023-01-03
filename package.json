@@ -79,6 +79,7 @@
         "worker-loader": "3.0.8"
     },
     "dependencies": {
+        "@azure/msal-node-extensions": "^1.0.0-alpha.28",
         "@babel/core": "^7.16.0",
         "@emotion/react": "^11.5.0",
         "@emotion/styled": "^11.3.0",

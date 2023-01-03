@@ -32,6 +32,7 @@ export const IpcService: React.FC = props => {
             listeners.push(channelName);
             ipcRenderer.on(channelName, func);
         };
+
         addListener("save-file", () => {
             const result = saveFile(activeFilePath, currentEditorValue, fileManager, dispatch);
             if (result === SaveFileResult.NO_USER_DIRECTORY) {
@@ -48,7 +49,6 @@ export const IpcService: React.FC = props => {
                     })
                 );
             }
-            // document.dispatchEvent(new Event("save-file"));
         });
 
         addListener("error", (_, errorMessage) => {
@@ -60,7 +60,7 @@ export const IpcService: React.FC = props => {
             );
         });
 
-        addListener("debug:reset-init", () => {
+        addListener("debug:reset", () => {
             dispatch(setInitialConfigurationDone(false));
             dispatch(
                 addNotification({

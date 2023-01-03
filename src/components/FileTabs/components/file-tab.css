@@ -8,7 +8,7 @@
     cursor: pointer;
     white-space: nowrap;
     gap: 8px;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     border-right: 1px solid var(--background-semi-transparent);
 }
 

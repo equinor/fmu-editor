@@ -26,15 +26,22 @@ function createPreviewWindow() {
     if (isDev) {
         win.loadURL("http://localhost:3000/preview.html");
     } else {
-        // 'build/index.html'
         win.loadURL(`file://${__dirname}/../preview.html`);
     }
 
     return win;
 }
 
-export const createMenu = (disabledSaveActions = false) => {
+export const createMenu = (
+    args: {disabledSaveActions?: boolean; allActionsDisabled?: boolean} = {
+        disabledSaveActions: false,
+        allActionsDisabled: false,
+    }
+) => {
     const isMac = process.platform === "darwin";
+
+    args.allActionsDisabled = args.allActionsDisabled || false;
+    args.disabledSaveActions = args.disabledSaveActions || false;
 
     const listOfRecentDocuments = RecentFiles.getRecentFiles();
     const recentDocuments = listOfRecentDocuments.map(doc => ({
@@ -76,6 +83,7 @@ export const createMenu = (disabledSaveActions = false) => {
         // { role: 'fileMenu' }
         {
             label: "File",
+            enabled: !args.allActionsDisabled,
             submenu: [
                 {
                     label: "New File",
@@ -86,6 +94,7 @@ export const createMenu = (disabledSaveActions = false) => {
                             window.webContents.send("new-file");
                         }
                     },
+                    enabled: !args.allActionsDisabled,
                 },
                 {
                     label: "Open File...",
@@ -93,15 +102,17 @@ export const createMenu = (disabledSaveActions = false) => {
                     click() {
                         openFile();
                     },
+                    enabled: !args.allActionsDisabled,
                 },
                 {
                     label: "Open Recent",
                     submenu: recentDocuments,
+                    enabled: !args.allActionsDisabled,
                 },
                 {
                     label: "Save",
                     accelerator: "CmdOrCtrl+S",
-                    enabled: !disabledSaveActions,
+                    enabled: !args.disabledSaveActions && !args.allActionsDisabled,
                     click() {
                         const window = BrowserWindow.getFocusedWindow();
                         if (window) {
@@ -112,7 +123,7 @@ export const createMenu = (disabledSaveActions = false) => {
                 {
                     label: "Save as...",
                     accelerator: "CmdOrCtrl+Shift+S",
-                    enabled: !disabledSaveActions,
+                    enabled: !args.disabledSaveActions && !args.allActionsDisabled,
                     click() {
                         const window = BrowserWindow.getFocusedWindow();
                         if (window) {
@@ -120,32 +131,42 @@ export const createMenu = (disabledSaveActions = false) => {
                         }
                     },
                 },
-                isMac ? {role: "close"} : {role: "quit"},
+                isMac
+                    ? {role: "close", enabled: !args.allActionsDisabled}
+                    : {role: "quit", enabled: !args.allActionsDisabled},
             ],
         },
         // { role: 'viewMenu' }
         {
             label: "View",
+            enabled: !args.allActionsDisabled,
             submenu: [
-                {role: "resetZoom"},
-                {role: "zoomIn"},
-                {role: "zoomOut"},
-                {type: "separator"},
-                {role: "togglefullscreen"},
+                {role: "resetZoom", enabled: !args.allActionsDisabled},
+                {role: "zoomIn", enabled: !args.allActionsDisabled},
+                {role: "zoomOut", enabled: !args.allActionsDisabled},
+                {type: "separator", enabled: !args.allActionsDisabled},
+                {role: "togglefullscreen", enabled: !args.allActionsDisabled},
             ],
         },
         // { role: 'windowMenu' }
         {
             label: "Window",
+            enabled: !args.allActionsDisabled,
             submenu: [
-                {role: "minimize"},
+                {role: "minimize", enabled: !args.allActionsDisabled},
                 ...(isMac
-                    ? [{type: "separator"}, {role: "front"}, {type: "separator"}, {role: "window"}]
-                    : [{role: "close"}]),
+                    ? [
+                          {type: "separator"},
+                          {role: "front", enabled: !args.allActionsDisabled},
+                          {type: "separator"},
+                          {role: "window", enabled: !args.allActionsDisabled},
+                      ]
+                    : [{role: "close", enabled: !args.allActionsDisabled}]),
             ],
         },
         {
             role: "help",
+            enabled: !args.allActionsDisabled,
             submenu: [
                 {
                     label: "Learn More",
@@ -154,6 +175,7 @@ export const createMenu = (disabledSaveActions = false) => {
                         const {shell} = require("electron");
                         await shell.openExternal("https://equinor.github.io/webviz-subsurface");
                     },
+                    enabled: !args.allActionsDisabled,
                 },
                 {
                     label: "Report a bug",
@@ -162,6 +184,7 @@ export const createMenu = (disabledSaveActions = false) => {
                         const {shell} = require("electron");
                         await shell.openExternal("https://github.com/equinor/webviz-config-editor/issues");
                     },
+                    enabled: !args.allActionsDisabled,
                 },
             ],
         },

@@ -1,6 +1,6 @@
+import {useFileChanges} from "@hooks/useFileChanges";
 import {Add, Edit, Remove} from "@mui/icons-material";
 import {Button, Stack, Typography} from "@mui/material";
-import {useFileChangesWatcher} from "@services/file-changes-service";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
@@ -11,22 +11,17 @@ import {Surface} from "@components/Surface";
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setActiveDiffFile} from "@redux/reducers/files";
 
-import {FileChange, FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
+import {FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
 
 import {MergeEditor} from "./components/merge-editor";
 
 export const Merge: React.VFC = () => {
     const [stagedFiles, setStagedFiles] = React.useState<string[]>([]);
-    const [filteredFileChanges, setFilteredFileChanges] = React.useState<FileChange[]>([]);
     const {fileManager} = useFileManager();
-    const {fileChanges} = useFileChangesWatcher();
+    const fileChanges = useFileChanges([FileChangeOrigin.MAIN, FileChangeOrigin.BOTH]);
 
     const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
     const dispatch = useAppDispatch();
-
-    React.useEffect(() => {
-        setFilteredFileChanges(fileChanges.filter(el => el.origin !== FileChangeOrigin.USER));
-    }, [fileChanges]);
 
     const handleFileSelected = React.useCallback(
         (file: string) => {
@@ -52,10 +47,8 @@ export const Merge: React.VFC = () => {
     );
 
     const handleStageAll = React.useCallback(() => {
-        setStagedFiles(
-            filteredFileChanges.filter(el => el.origin !== FileChangeOrigin.BOTH).map(el => el.relativePath)
-        );
-    }, [filteredFileChanges]);
+        setStagedFiles(fileChanges.filter(el => el.origin !== FileChangeOrigin.BOTH).map(el => el.relativePath));
+    }, [fileChanges]);
 
     const handleUnstageAll = React.useCallback(() => {
         setStagedFiles([]);
@@ -73,12 +66,11 @@ export const Merge: React.VFC = () => {
                 </Surface>
                 <Stack direction="column" className="ChangesBrowserContent" spacing={2}>
                     <div className="ChangesBrowserContentHeader">
-                        Unstaged Files (
-                        {filteredFileChanges.filter(el => !stagedFiles.includes(el.relativePath)).length})
+                        Unstaged Files ({fileChanges.filter(el => !stagedFiles.includes(el.relativePath)).length})
                         <Button
                             variant="contained"
                             onClick={() => handleStageAll()}
-                            disabled={stagedFiles.length === filteredFileChanges.length}
+                            disabled={stagedFiles.length === fileChanges.length}
                             color="success"
                             size="small"
                         >
@@ -86,7 +78,7 @@ export const Merge: React.VFC = () => {
                         </Button>
                     </div>
                     <div className="ChangesBrowserList">
-                        {filteredFileChanges
+                        {fileChanges
                             .filter(el => !stagedFiles.includes(el.relativePath))
                             .map(fileChange => (
                                 <div
@@ -137,7 +129,7 @@ export const Merge: React.VFC = () => {
                         </Button>
                     </div>
                     <div className="ChangesBrowserList">
-                        {filteredFileChanges
+                        {fileChanges
                             .filter(el => stagedFiles.includes(el.relativePath))
                             .map(fileChange => (
                                 <div

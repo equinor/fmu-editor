@@ -1,4 +1,5 @@
 import {FileManager} from "@utils/file-manager";
+import {Snapshot} from "@utils/file-system/snapshot";
 
 import {
     FileOperationsRequestType,
@@ -12,7 +13,6 @@ import fs from "fs";
 import path from "path";
 
 import {Webworker} from "./worker-utils";
-import { Snapshot } from "@utils/file-system/snapshot";
 
 // eslint-disable-next-line no-restricted-globals
 const webworker = new Webworker<FileOperationsResponses, FileOperationsRequests>({self});
@@ -62,20 +62,6 @@ function copyFilesRecursively(source: string, destination: string, callback: () 
     return mergeFiles;
 }
 
-type FileMap = {
-    origin: "user" | "original";
-    file: string;
-};
-
-const deduplicate = (fileMap: FileMap[]): FileMap[] => {
-    return fileMap.filter(el => {
-        if (el.origin === "original" && fileMap.some(el2 => el2.origin === "user" && el2.file === el.file)) {
-            return false;
-        }
-        return true;
-    });
-};
-
 const copyToUserDirectory = (directory: string, user: string): string[] => {
     const userDirectory = path.join(directory, ".users", user);
     if (!fs.existsSync(userDirectory)) {
@@ -108,6 +94,17 @@ const maybeInitUserDirectory = (directory: string, user: string): void => {
         snapshot.make();
     }
 };
+
+const ensureUserDirectoryExists = (): void => {
+    if (!currentUsername || !currrentDirectory) {
+        return;
+    }
+
+    maybeInitUserDirectory(currrentDirectory, currentUsername);
+};
+
+// eslint-disable-next-line no-restricted-globals
+self.setInterval(ensureUserDirectoryExists, 3000);
 
 webworker.on(FileOperationsRequestType.COPY_USER_DIRECTORY, ({directory, username}) => {
     copyToUserDirectory(directory, username);

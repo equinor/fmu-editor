@@ -1,7 +1,6 @@
+import {useFileChanges} from "@hooks/useFileChanges";
 import {Close} from "@mui/icons-material";
 import {useTheme} from "@mui/material";
-import {useEnvironment} from "@services/environment-service";
-import {useFileChangesWatcher} from "@services/file-changes-service";
 
 import React from "react";
 import {VscCircleFilled} from "react-icons/vsc";
@@ -9,7 +8,9 @@ import {VscCircleFilled} from "react-icons/vsc";
 import {generateHashCode} from "@utils/hash";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {closeFile} from "@redux/reducers/files";
+import {closeFile, setPermanentOpen} from "@redux/reducers/files";
+
+import {FileChangeOrigin} from "@shared-types/file-changes";
 
 import path from "path";
 
@@ -31,8 +32,7 @@ export const FileTab: React.FC<FileTabProps> = props => {
     const file = useAppSelector(state => state.files.files.find(el => el.filePath === props.filePath));
     const directory = useAppSelector(state => state.files.directory);
     const activeFilePath = useAppSelector(state => state.files.activeFile);
-    const fileChangesWatcher = useFileChangesWatcher();
-    const environment = useEnvironment();
+    const fileChanges = useFileChanges(FileChangeOrigin.USER);
 
     React.useEffect(() => {
         if (!file) {
@@ -44,17 +44,15 @@ export const FileTab: React.FC<FileTabProps> = props => {
 
     React.useEffect(() => {
         setUncommitted(
-            fileChangesWatcher.fileChanges
-                .filter(change => change.user === environment.username)
-                .some(change => change.filePath === path.relative(directory, file?.filePath || ""))
+            fileChanges.some(change => change.relativePath === path.relative(directory, file?.filePath || ""))
         );
-    }, [fileChangesWatcher.fileChanges, file?.filePath, environment.username, directory]);
+    }, [fileChanges, file?.filePath, directory]);
 
     React.useEffect(() => {
         setActive(props.filePath === activeFilePath);
     }, [activeFilePath, props.filePath]);
 
-    const handleClickEvent = () => {
+    const handleClick = () => {
         props.onSelect(props.filePath);
     };
 
@@ -64,13 +62,18 @@ export const FileTab: React.FC<FileTabProps> = props => {
         dispatch(closeFile(props.filePath));
     };
 
+    const handleDoubleClick = () => {
+        dispatch(setPermanentOpen(props.filePath));
+    };
+
     return (
         <div
             className={`FileTab${active ? " FileTab--active" : ""}${modified ? " FileTab--modified" : ""}`}
-            onClick={() => handleClickEvent()}
+            onClick={() => handleClick()}
+            onDoubleClick={() => handleDoubleClick()}
             title={props.filePath}
         >
-            {filename}
+            {file.permanentOpen ? filename : <i>{filename}</i>}
             {uncommitted && (
                 <span title="Uncommitted changes">
                     <VscCircleFilled fontSize="inherit" style={{color: theme.palette.info.light}} />

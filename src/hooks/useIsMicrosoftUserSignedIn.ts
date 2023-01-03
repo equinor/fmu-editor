@@ -3,12 +3,17 @@ import {ProviderState, Providers} from "@microsoft/mgt-element";
 import React from "react";
 
 export const useIsSignedIn = (): boolean => {
-    const [isSignedIn, setIsSignedIn] = React.useState(false);
+    const [isSignedIn, setIsSignedIn] = React.useState<boolean | null>(null);
 
     React.useEffect(() => {
         const updateState = () => {
             const provider = Providers.globalProvider;
-            setIsSignedIn(provider && provider.state === ProviderState.SignedIn);
+            if (!provider || provider.state === ProviderState.Loading) {
+                setIsSignedIn(null);
+                return;
+            }
+
+            setIsSignedIn(provider.state === ProviderState.SignedIn);
         };
 
         Providers.onProviderUpdated(updateState);

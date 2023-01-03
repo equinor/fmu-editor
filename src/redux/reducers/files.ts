@@ -109,7 +109,7 @@ export const filesSlice = createSlice({
         },
         addFile: (
             state: Draft<FilesState>,
-            action: PayloadAction<{filePath: string; userFilePath: string; fileContent: string}>
+            action: PayloadAction<{filePath: string; userFilePath: string; fileContent: string; permanentOpen: boolean}>
         ) => {
             // Do not open file when already opened, but make it active
             const openedFile = state.files.find(el => el.filePath === action.payload.filePath);
@@ -117,8 +117,15 @@ export const filesSlice = createSlice({
             electronStore.set("files.activeFile", action.payload.filePath);
 
             if (openedFile) {
+                // Close all files that are not permanently open
+                if (!openedFile.permanentOpen) {
+                    state.files = state.files.filter(el => el.filePath === action.payload.filePath || el.permanentOpen);
+                }
                 return;
             }
+
+            // Close all files that are not permanently open
+            state.files = state.files.filter(el => el.permanentOpen);
 
             disposeUnusedDefaultModel(state.files);
 
@@ -137,7 +144,18 @@ export const filesSlice = createSlice({
                 filePath: action.payload.filePath,
                 userFilePath: action.payload.userFilePath,
                 title: "",
+                permanentOpen: action.payload.permanentOpen,
             });
+        },
+        setPermanentOpen: (state: Draft<FilesState>, action: PayloadAction<string>) => {
+            state.files = state.files.map(el =>
+                el.filePath === action.payload
+                    ? {
+                          ...el,
+                          permanentOpen: true,
+                      }
+                    : el
+            );
         },
         closeFile: (state: Draft<FilesState>, action: PayloadAction<string>) => {
             const fileToClose = state.files.find(file => file.filePath === action.payload);
@@ -215,5 +233,6 @@ export const {
     setValue,
     setEditorViewState,
     setDiffEditorViewState,
+    setPermanentOpen,
 } = filesSlice.actions;
 export default filesSlice.reducer;

@@ -13,7 +13,8 @@ export function openFile(
     filePath: string,
     fileManager: FileManager,
     dispatch: AppDispatch,
-    globalSettings: GlobalSettings
+    globalSettings: GlobalSettings,
+    permanentOpen = false
 ) {
     if (!globalSettings.supportedFileExtensions.includes(path.extname(filePath))) {
         dispatch(
@@ -28,7 +29,7 @@ export function openFile(
     }
     try {
         const result = fileManager.readFile(filePath);
-        dispatch(addFile({filePath, userFilePath: result.filePath, fileContent: result.content}));
+        dispatch(addFile({filePath, userFilePath: result.filePath, fileContent: result.content, permanentOpen}));
     } catch (e) {
         const notification: Notification = {
             type: NotificationType.ERROR,

@@ -36,7 +36,11 @@ export const compareDirectories = (workingDirectory: string, user: string): File
         if (origin === "main") {
             const userFile = file.getUserVersion(user) as File;
             if (userFile.exists()) {
-                if (snapshot.getModifiedMs(file.relativePath()) < file.modifiedTime() && snapshot.getModifiedMs(userFile.relativePath()) < userFile.modifiedTime() && !userFile.compare(file)) {
+                if (
+                    snapshot.getModifiedMs(file.relativePath()) < file.modifiedTime() &&
+                    snapshot.getModifiedMs(userFile.relativePath()) < userFile.modifiedTime() &&
+                    !userFile.compare(file)
+                ) {
                     changes.push({
                         type: FileChangeType.MODIFIED,
                         relativePath: file.relativePath(),
@@ -44,7 +48,10 @@ export const compareDirectories = (workingDirectory: string, user: string): File
                         user,
                         modified: file.modifiedTime(),
                     });
-                } else if (snapshot.getModifiedMs(file.relativePath()) < file.modifiedTime() && !userFile.compare(file)) {
+                } else if (
+                    snapshot.getModifiedMs(file.relativePath()) < file.modifiedTime() &&
+                    !userFile.compare(file)
+                ) {
                     changes.push({
                         type: FileChangeType.MODIFIED,
                         relativePath: file.relativePath(),
@@ -52,7 +59,10 @@ export const compareDirectories = (workingDirectory: string, user: string): File
                         user,
                         modified: file.modifiedTime(),
                     });
-                } else if (snapshot.getModifiedMs(userFile.relativePath()) < userFile.modifiedTime() && !userFile.compare(file)) {
+                } else if (
+                    snapshot.getModifiedMs(userFile.relativePath()) < userFile.modifiedTime() &&
+                    !userFile.compare(file)
+                ) {
                     changes.push({
                         type: FileChangeType.MODIFIED,
                         relativePath: file.relativePath(),
@@ -76,22 +86,20 @@ export const compareDirectories = (workingDirectory: string, user: string): File
                     user,
                 });
             }
+        } else if (snapshot.fileExists(file.getMainVersion().relativePath())) {
+            changes.push({
+                type: FileChangeType.DELETED,
+                relativePath: file.relativePath(),
+                origin: FileChangeOrigin.MAIN,
+                user,
+            });
         } else {
-            if (snapshot.fileExists(file.getMainVersion().relativePath())) {
-                changes.push({
-                    type: FileChangeType.DELETED,
-                    relativePath: file.relativePath(),
-                    origin: FileChangeOrigin.MAIN,
-                    user,
-                });
-            } else {
-                changes.push({
-                    type: FileChangeType.ADDED,
-                    relativePath: file.relativePath(),
-                    origin: FileChangeOrigin.USER,
-                    user,
-                });
-            }
+            changes.push({
+                type: FileChangeType.ADDED,
+                relativePath: file.relativePath(),
+                origin: FileChangeOrigin.USER,
+                user,
+            });
         }
     });
 

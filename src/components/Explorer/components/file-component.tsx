@@ -12,7 +12,7 @@ import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-setti
 import {Avatar} from "@components/MicrosoftGraph/Avatar";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setActiveOngoingChangesDiffFile} from "@redux/reducers/files";
+import {setActiveOngoingChangesDiffFile, setPermanentOpen} from "@redux/reducers/files";
 import {setOngoingChangesFile, setView} from "@redux/reducers/ui";
 import {openFile} from "@redux/thunks";
 
@@ -37,6 +37,11 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
         e.preventDefault();
     };
 
+    const handleFileDoubleClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+        dispatch(setPermanentOpen(props.file.absolutePath()));
+        e.preventDefault();
+    };
+
     const handleUserChangesClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         dispatch(
             setActiveOngoingChangesDiffFile({
@@ -54,6 +59,7 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
             href="#"
             className={`ExplorerItem${activeFile === props.file.absolutePath() ? " ExplorerItem--active" : ""}`}
             onClick={e => handleFileClick(e)}
+            onDoubleClick={e => handleFileDoubleClick(e)}
             title={props.file.relativePath()}
         >
             {Array(props.level)

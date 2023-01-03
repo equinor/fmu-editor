@@ -13,6 +13,7 @@ import {IpcService} from "@services/ipc-service";
 import React from "react";
 
 import {GlobalSettingsProvider} from "@components/GlobalSettingsProvider";
+import {LoginDialog} from "@components/LoginDialog";
 import {MainProcessDataProvider} from "@components/MainProcessDataProvider";
 import {MainWindow} from "@components/MainWindow";
 import {NotificationsProvider} from "@components/Notifications";
@@ -63,6 +64,7 @@ const App = (): JSX.Element => {
                                         <FileChangesWatcherService>
                                             <IpcService>
                                                 <MainWindow />
+                                                <LoginDialog />
                                             </IpcService>
                                         </FileChangesWatcherService>
                                     </ChangelogWatcherService>

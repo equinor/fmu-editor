@@ -21,6 +21,7 @@ import {setActiveFile, setEditorViewState, setValue} from "@redux/reducers/files
 import {setPreviewOpen, setView} from "@redux/reducers/ui";
 
 import {CodeEditorViewState} from "@shared-types/files";
+import {IpcMessages} from "@shared-types/ipc";
 import {Page, View} from "@shared-types/ui";
 
 import FmuLogo from "@assets/fmu-logo.svg";
@@ -98,6 +99,7 @@ export const Editor: React.FC<EditorProps> = () => {
     const [noModels, setNoModels] = React.useState<boolean>(false);
     const [markers, setMarkers] = React.useState<monaco.editor.IMarker[]>([]);
     const [userFilePath, setUserFilePath] = React.useState<string | null>(null);
+    const [lastActiveFile, setLastActiveFile] = React.useState<string | null>(null);
 
     const monacoEditorRef = React.useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const editorRef = React.useRef<HTMLDivElement | null>(null);
@@ -203,6 +205,11 @@ export const Editor: React.FC<EditorProps> = () => {
             return;
         }
 
+        if (lastActiveFile === activeFile) {
+            return;
+        }
+        setLastActiveFile(activeFile);
+
         if (file) {
             const newUserFilePath = fileManager.fileManager.getUserFileIfExists(file.filePath);
             setUserFilePath(newUserFilePath);
@@ -217,16 +224,13 @@ export const Editor: React.FC<EditorProps> = () => {
             if (userModel) {
                 if (monacoEditorRef.current && monacoRef.current && editorMode === Page.Editor) {
                     monacoEditorRef.current.setModel(userModel);
-                    if (file.editorViewState) {
-                        monacoEditorRef.current.restoreViewState(file.editorViewState);
-                    }
                     monacoEditorRef.current.focus();
                 }
             }
         }
 
         setNoModels(false);
-    }, [activeFile, files, editorMode, fileManager, globalSettings]);
+    }, [activeFile, files, editorMode, fileManager, globalSettings, lastActiveFile]);
 
     const selectMarker = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, marker: monaco.editor.IMarker) => {
         if (monacoEditorRef.current) {
@@ -240,9 +244,9 @@ export const Editor: React.FC<EditorProps> = () => {
 
     React.useEffect(() => {
         if (noModels) {
-            ipcRenderer.send("disable-save-actions");
+            ipcRenderer.send(IpcMessages.DISABLE_SAVE_ACTIONS);
         } else {
-            ipcRenderer.send("enable-save-actions");
+            ipcRenderer.send(IpcMessages.ENABLE_SAVE_ACTIONS);
         }
     });
 

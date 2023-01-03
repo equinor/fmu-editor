@@ -39,6 +39,7 @@ export type File = {
     hash: number;
     selection: Selection;
     title: string;
+    permanentOpen: boolean;
 };
 
 export enum EventSource {

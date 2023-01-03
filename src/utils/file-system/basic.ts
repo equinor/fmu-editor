@@ -60,21 +60,21 @@ export class FileBasic implements IFileBasic {
         return path.join(this.workingDirectory(), ".users", user, this.relativePath());
     }
 
-    public getUserVersion(user: string): FileBasic {
+    public getUserVersion(user: string): this {
         if (this.isUserFile()) {
             return this;
         }
-        return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => FileBasic)(
+        return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => typeof this)(
             path.join(".users", user, this.relativePath()),
             this.workingDirectory()
         );
     }
 
-    public getMainVersion(): FileBasic {
+    public getMainVersion(): this {
         if (!this.isUserFile()) {
             return this;
         }
-        return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => FileBasic)(
+        return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => typeof this)(
             this.relativePath().split(path.sep).slice(2).join(path.sep),
             this.workingDirectory()
         );
