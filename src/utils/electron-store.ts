@@ -120,7 +120,9 @@ const schema = {
                         filePath: {
                             type: "string",
                         },
-                        editorViewState: ICodeEditorViewState,
+                        editorViewState: {
+                            oneOf: [ICodeEditorViewState, {type: "string"}],
+                        },
                     },
                 },
             },

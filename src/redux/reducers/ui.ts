@@ -49,6 +49,10 @@ export const uiSlice = createSlice({
         setPreviewOpen: (state: Draft<UiState>, action: PayloadAction<boolean>) => {
             state.previewOpen = action.payload;
         },
+        setMergeFiles: (state: Draft<UiState>, action: PayloadAction<{mainFile?: string; userFile?: string}>) => {
+            state.mergeMainFile = action.payload.mainFile;
+            state.mergeUserFile = action.payload.userFile;
+        },
     },
 });
 
@@ -62,5 +66,6 @@ export const {
     setOngoingChangesFile,
     setChangesBrowserView,
     setPreviewOpen,
+    setMergeFiles,
 } = uiSlice.actions;
 export default uiSlice.reducer;

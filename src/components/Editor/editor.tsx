@@ -1,14 +1,15 @@
 import {useYamlSchemas} from "@hooks/useYamlSchema";
 import {Error as ErrorIcon} from "@mui/icons-material";
-import {Badge, Grid, IconButton, Typography, useTheme} from "@mui/material";
+import {Badge, Button, Grid, IconButton, Typography, useTheme} from "@mui/material";
 import useSize from "@react-hook/size";
-import {useFileManager} from "@services/file-manager";
 
 import {ipcRenderer} from "electron";
 
 import React from "react";
-import {VscError, VscInfo, VscLightbulb, VscPreview, VscSourceControl, VscWarning} from "react-icons/vsc";
+import {VscCloseAll, VscError, VscInfo, VscLightbulb, VscPreview, VscSourceControl, VscWarning} from "react-icons/vsc";
 import MonacoEditor, {EditorDidMount, EditorWillUnmount, monaco} from "react-monaco-editor";
+
+import {File} from "@utils/file-system/file";
 
 import {FileTabs} from "@components/FileTabs";
 import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
@@ -17,7 +18,7 @@ import {ResizablePanels} from "@components/ResizablePanels";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setActiveFile, setEditorViewState, setValue} from "@redux/reducers/files";
+import {closeAllFiles, setActiveFile, setEditorViewState, setValue} from "@redux/reducers/files";
 import {setPreviewOpen, setView} from "@redux/reducers/ui";
 
 import {CodeEditorViewState} from "@shared-types/files";
@@ -26,7 +27,6 @@ import {Page, View} from "@shared-types/ui";
 
 import FmuLogo from "@assets/fmu-logo.svg";
 
-import fs from "fs";
 // @ts-ignore
 import {languages} from "monaco-editor";
 import path from "path";
@@ -100,6 +100,7 @@ export const Editor: React.FC<EditorProps> = () => {
     const [markers, setMarkers] = React.useState<monaco.editor.IMarker[]>([]);
     const [userFilePath, setUserFilePath] = React.useState<string | null>(null);
     const [lastActiveFile, setLastActiveFile] = React.useState<string | null>(null);
+    const [fileExists, setFileExists] = React.useState<boolean>(true);
 
     const monacoEditorRef = React.useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const editorRef = React.useRef<HTMLDivElement | null>(null);
@@ -114,10 +115,10 @@ export const Editor: React.FC<EditorProps> = () => {
 
     const files = useAppSelector(state => state.files.files);
     const activeFile = useAppSelector(state => state.files.activeFile);
+    const workingDirectory = useAppSelector(state => state.files.directory);
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
     const editorMode = useAppSelector(state => state.ui.page);
     const previewVisible = useAppSelector(state => state.ui.previewOpen);
-    const fileManager = useFileManager();
     const globalSettings = useGlobalSettings();
 
     useYamlSchemas(yaml);
@@ -129,21 +130,24 @@ export const Editor: React.FC<EditorProps> = () => {
                 clearTimeout(timeoutRef);
             }
         };
-    }, [timeout]);
+    }, []);
 
-    const handleFileChange = (filePath: string) => {
-        if (monacoEditorRef.current) {
-            dispatch(
-                setActiveFile({
-                    filePath,
-                    viewState:
-                        editorMode === Page.Editor
-                            ? convertFromViewState(monacoEditorRef.current.saveViewState())
-                            : null,
-                })
-            );
-        }
-    };
+    const handleFileChange = React.useCallback(
+        (filePath: string) => {
+            if (monacoEditorRef.current) {
+                dispatch(
+                    setActiveFile({
+                        filePath,
+                        viewState:
+                            editorMode === Page.Editor
+                                ? convertFromViewState(monacoEditorRef.current.saveViewState())
+                                : null,
+                    })
+                );
+            }
+        },
+        [editorMode, dispatch]
+    );
 
     const handleEditorValueChange = (e: monaco.editor.IModelContentChangedEvent) => {
         if (e.isFlush) {
@@ -170,7 +174,13 @@ export const Editor: React.FC<EditorProps> = () => {
 
     const handleEditorViewStateChanged = () => {
         if (monacoEditorRef.current) {
-            dispatch(setEditorViewState(convertFromViewState(monacoEditorRef.current.saveViewState())));
+            if (timeout.current) {
+                clearTimeout(timeout.current);
+            }
+
+            timeout.current = setTimeout(() => {
+                dispatch(setEditorViewState(convertFromViewState(monacoEditorRef.current.saveViewState())));
+            }, 500);
         }
     };
 
@@ -178,11 +188,11 @@ export const Editor: React.FC<EditorProps> = () => {
         monacoEditorRef.current = editor;
         monacoRef.current = monacoInstance;
         monacoEditorRef.current.onDidChangeModelContent(handleEditorValueChange);
-        // monacoEditorRef.current.onDidChangeCursorPosition(handleCursorPositionChange);
-        // monacoEditorRef.current.onDidChangeCursorSelection(handleCursorSelectionChange);
+        monacoEditorRef.current.onDidChangeCursorPosition(handleEditorViewStateChanged);
+        monacoEditorRef.current.onDidChangeCursorSelection(handleEditorViewStateChanged);
         monacoRef.current.editor.onDidChangeMarkers(handleMarkersChange);
-        // monacoEditorRef.current.onDidLayoutChange(handleEditorViewStateChanged);
-        // monacoEditorRef.current.onDidScrollChange(handleEditorViewStateChanged);
+        monacoEditorRef.current.onDidLayoutChange(handleEditorViewStateChanged);
+        monacoEditorRef.current.onDidScrollChange(handleEditorViewStateChanged);
     };
 
     const handleEditorWillUnmount: EditorWillUnmount = () => {
@@ -201,6 +211,7 @@ export const Editor: React.FC<EditorProps> = () => {
     React.useEffect(() => {
         const file = files.find(el => el.filePath === activeFile);
         if (files.length === 0 || file === undefined) {
+            setLastActiveFile(null);
             setNoModels(true);
             return;
         }
@@ -211,14 +222,19 @@ export const Editor: React.FC<EditorProps> = () => {
         setLastActiveFile(activeFile);
 
         if (file) {
-            const newUserFilePath = fileManager.fileManager.getUserFileIfExists(file.filePath);
-            setUserFilePath(newUserFilePath);
-            let userModel = monaco.editor.getModel(monaco.Uri.file(newUserFilePath));
+            const currentFile = new File(path.relative(workingDirectory, file.filePath), workingDirectory);
+            if (!currentFile.exists()) {
+                setFileExists(false);
+                return;
+            }
+            setFileExists(true);
+            setUserFilePath(currentFile.relativePath());
+            let userModel = monaco.editor.getModel(monaco.Uri.file(currentFile.absolutePath()));
             if (!userModel) {
                 userModel = monaco.editor.createModel(
-                    fs.readFileSync(newUserFilePath).toString(),
-                    globalSettings.languageForFileExtension(path.extname(newUserFilePath)),
-                    monaco.Uri.file(newUserFilePath)
+                    currentFile.readString(),
+                    globalSettings.languageForFileExtension(path.extname(currentFile.absolutePath())),
+                    monaco.Uri.file(currentFile.absolutePath())
                 );
             }
             if (userModel) {
@@ -227,10 +243,12 @@ export const Editor: React.FC<EditorProps> = () => {
                     monacoEditorRef.current.focus();
                 }
             }
+
+            monacoEditorRef.current.restoreViewState(file.editorViewState);
         }
 
         setNoModels(false);
-    }, [activeFile, files, editorMode, fileManager, globalSettings, lastActiveFile]);
+    }, [activeFile, files, editorMode, globalSettings, lastActiveFile, workingDirectory]);
 
     const selectMarker = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, marker: monaco.editor.IMarker) => {
         if (monacoEditorRef.current) {
@@ -250,13 +268,25 @@ export const Editor: React.FC<EditorProps> = () => {
         }
     });
 
-    const handleFileSourceControlClick = () => {
+    const handleFileSourceControlClick = React.useCallback(() => {
         dispatch(setView(View.SingleFileChanges));
-    };
+    }, [dispatch]);
 
-    const handleTogglePreview = () => {
+    const handleTogglePreview = React.useCallback(() => {
         dispatch(setPreviewOpen(!previewVisible));
-    };
+    }, [dispatch, previewVisible]);
+
+    const handleCloseAllEditors = React.useCallback(() => {
+        dispatch(closeAllFiles());
+        setLastActiveFile(null);
+    }, [dispatch]);
+
+    const createFile = React.useCallback(() => {
+        const currentFile = new File(path.relative(workingDirectory, activeFile), workingDirectory);
+        if (currentFile.writeString("")) {
+            setFileExists(currentFile.exists());
+        }
+    }, [activeFile, workingDirectory]);
 
     return (
         <div className="EditorWrapper">
@@ -278,6 +308,13 @@ export const Editor: React.FC<EditorProps> = () => {
                                 onFileChange={handleFileChange}
                                 actions={
                                     <>
+                                        <IconButton
+                                            color="inherit"
+                                            onClick={() => handleCloseAllEditors()}
+                                            title="Close all open editors"
+                                        >
+                                            <VscCloseAll />
+                                        </IconButton>
                                         <IconButton
                                             color={previewVisible ? "primary" : "inherit"}
                                             onClick={() => handleTogglePreview()}
@@ -301,22 +338,40 @@ export const Editor: React.FC<EditorProps> = () => {
                                 minSizes={[100, 200]}
                                 visible={[true, previewVisible]}
                             >
-                                <div ref={editorRef} className="Editor">
-                                    <MonacoEditor
-                                        language="yaml"
-                                        defaultValue=""
-                                        className="YamlEditor"
-                                        editorDidMount={handleEditorDidMount}
-                                        editorWillUnmount={handleEditorWillUnmount}
-                                        theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
-                                        options={{
-                                            tabSize: 2,
-                                            insertSpaces: true,
-                                            quickSuggestions: {other: true, strings: true},
+                                <div style={{height: "100%"}}>
+                                    <div
+                                        className="Editor__FileNotFound"
+                                        style={{
+                                            display: !fileExists ? "flex" : "none",
                                         }}
-                                        width={editorTotalWidth}
-                                        height={editorTotalHeight - 2}
-                                    />
+                                    >
+                                        <VscError style={{fontSize: 64, color: theme.palette.error.main}} />
+                                        <Typography variant="h6">File not found</Typography>
+                                        <Button onClick={() => createFile()} color="primary">
+                                            Create file now
+                                        </Button>
+                                    </div>
+                                    <div
+                                        ref={editorRef}
+                                        className="Editor"
+                                        style={{display: fileExists ? "block" : "none"}}
+                                    >
+                                        <MonacoEditor
+                                            language="yaml"
+                                            defaultValue=""
+                                            className="YamlEditor"
+                                            editorDidMount={handleEditorDidMount}
+                                            editorWillUnmount={handleEditorWillUnmount}
+                                            theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
+                                            options={{
+                                                tabSize: 2,
+                                                insertSpaces: true,
+                                                quickSuggestions: {other: true, strings: true},
+                                            }}
+                                            width={editorTotalWidth}
+                                            height={editorTotalHeight - 2}
+                                        />
+                                    </div>
                                 </div>
                                 <Preview filePath={userFilePath} />
                             </ResizablePanels>

@@ -1,10 +1,8 @@
-import {useFileManager} from "@services/file-manager";
-
 import React from "react";
 
-import {useAppSelector} from "@redux/hooks";
+import {File} from "@utils/file-system/file";
 
-import fs from "fs";
+import {useAppSelector} from "@redux/hooks";
 
 import "./preview.css";
 
@@ -20,7 +18,6 @@ export const Preview: React.VFC<PreviewProps> = props => {
 
     const directory = useAppSelector(state => state.files.directory);
     const theme = useAppSelector(state => state.ui.settings.theme);
-    const {fileManager} = useFileManager();
 
     React.useEffect(() => {
         broadcastChannel.current = new BroadcastChannel("preview");
@@ -40,13 +37,14 @@ export const Preview: React.VFC<PreviewProps> = props => {
 
     React.useEffect(() => {
         if (broadcastChannel.current && directory && props.filePath) {
+            const currentFile = new File(props.filePath, directory);
             broadcastChannel.current.postMessage({
-                relativeFilePath: fileManager.relativeFilePath(fileManager.getOriginalFileIfExists(props.filePath)),
-                fileContent: fs.readFileSync(props.filePath, "utf8"),
+                relativeFilePath: currentFile.getMainVersion().relativePath(),
+                fileContent: currentFile.readString(),
                 theme,
             });
         }
-    }, [props.filePath, directory, fileManager, theme]);
+    }, [props.filePath, directory, theme]);
 
     /* eslint-disable react/no-unknown-property */
     return (

@@ -22,6 +22,17 @@ const disposeUnusedDefaultModel = (files: File[]) => {
     }
 };
 
+const updateFilesInElectronStore = (state: Draft<FilesState>) => {
+    const adjustedFiles = state.files.map(file => {
+        const {editorViewState, ...rest} = file;
+        return {
+            ...rest,
+            editorViewState: editorViewState === null ? "null" : editorViewState,
+        };
+    });
+    electronStore.set("files.files", adjustedFiles);
+};
+
 export const filesSlice = createSlice({
     name: "files",
     initialState: initialState.files,
@@ -96,6 +107,7 @@ export const filesSlice = createSlice({
                       }
                     : el
             );
+            updateFilesInElectronStore(state);
         },
         setDiffEditorViewState: (state: Draft<FilesState>, action: PayloadAction<DiffEditorViewState | null>) => {
             state.files = state.files.map(el =>
@@ -106,6 +118,7 @@ export const filesSlice = createSlice({
                       }
                     : el
             );
+            updateFilesInElectronStore(state);
         },
         addFile: (
             state: Draft<FilesState>,
@@ -146,6 +159,8 @@ export const filesSlice = createSlice({
                 title: "",
                 permanentOpen: action.payload.permanentOpen,
             });
+
+            updateFilesInElectronStore(state);
         },
         setPermanentOpen: (state: Draft<FilesState>, action: PayloadAction<string>) => {
             state.files = state.files.map(el =>
@@ -156,6 +171,7 @@ export const filesSlice = createSlice({
                       }
                     : el
             );
+            updateFilesInElectronStore(state);
         },
         closeFile: (state: Draft<FilesState>, action: PayloadAction<string>) => {
             const fileToClose = state.files.find(file => file.filePath === action.payload);
@@ -181,7 +197,20 @@ export const filesSlice = createSlice({
                 if (model) {
                     window.setTimeout(() => model.dispose(), 100); // Dispose model after 1 second - this is a workaround for an error that occurs in the DiffEditor when disposing the model immediately
                 }
+                updateFilesInElectronStore(state);
             }
+        },
+        closeAllFiles: (state: Draft<FilesState>) => {
+            state.files.forEach(file => {
+                const model = monaco.editor.getModel(monaco.Uri.file(file.filePath));
+                if (model) {
+                    window.setTimeout(() => model.dispose(), 100); // Dispose model after 1 second - this is a workaround for an error that occurs in the DiffEditor when disposing the model immediately
+                }
+            });
+            state.files = [];
+            state.activeFile = "";
+
+            updateFilesInElectronStore(state);
         },
         markAsSaved: (state: Draft<FilesState>, action: PayloadAction<{userFilePath: string; filePath: string}>) => {
             state.files = state.files.map(f =>
@@ -191,6 +220,7 @@ export const filesSlice = createSlice({
                           hash: generateHashCode(f.editorValue),
                           userFilePath: action.payload.userFilePath,
                           associatedWithFile: true,
+                          permanentOpen: true,
                       }
                     : f
             );
@@ -228,6 +258,7 @@ export const {
     setActiveOngoingChangesDiffFile,
     addFile,
     closeFile,
+    closeAllFiles,
     markAsSaved,
     changeFilePath,
     setValue,

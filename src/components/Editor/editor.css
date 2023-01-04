@@ -46,6 +46,16 @@
     color: var(--text-tertiary);
 }
 
+.Editor__FileNotFound {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    height: 100%;
+    color: var(--text-tertiary);
+}
+
 .Editor__NoModels > img {
     min-width: 100px;
     max-width: 300px;

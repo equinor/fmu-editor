@@ -1,4 +1,4 @@
-import {useUserFileChanges} from "@hooks/useUserFileChanges";
+import {useFileChanges} from "@hooks/useFileChanges";
 import {Add, Edit, Remove} from "@mui/icons-material";
 import {Button, Stack} from "@mui/material";
 import {useChangelogWatcher} from "@services/changelog-service";
@@ -14,17 +14,19 @@ import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setActiveDiffFile} from "@redux/reducers/files";
 
 import {ICommit} from "@shared-types/changelog";
-import {FileChangeType} from "@shared-types/file-changes";
+import {FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
 
 import path from "path";
 import {v4} from "uuid";
+
+const FILE_ORIGINS = [FileChangeOrigin.USER, FileChangeOrigin.BOTH];
 
 export const CurrentChanges: React.VFC = () => {
     const [stagedFiles, setStagedFiles] = React.useState<string[]>([]);
     const [commitSummary, setCommitSummary] = React.useState<string>("");
     const [commitDescription, setCommitDescription] = React.useState<string>("");
 
-    const userFileChanges = useUserFileChanges();
+    const userFileChanges = useFileChanges(FILE_ORIGINS);
     const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
     const dispatch = useAppDispatch();
     const environment = useEnvironment();
@@ -136,13 +138,24 @@ export const CurrentChanges: React.VFC = () => {
                                     )}
                                     <span title={fileChange.relativePath}>{fileChange.relativePath}&lrm;</span>
                                 </div>
-                                <Button
-                                    variant="text"
-                                    onClick={e => handleCommitChange(e, fileChange.relativePath)}
-                                    size="small"
-                                >
-                                    Stage File
-                                </Button>
+                                {fileChange.origin === FileChangeOrigin.USER ? (
+                                    <Button
+                                        variant="text"
+                                        onClick={e => handleCommitChange(e, fileChange.relativePath)}
+                                        size="small"
+                                    >
+                                        Stage File
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        variant="text"
+                                        onClick={e => handleCommitChange(e, fileChange.relativePath)}
+                                        size="small"
+                                        color="error"
+                                    >
+                                        Merging required
+                                    </Button>
+                                )}
                             </div>
                         ))}
                 </div>

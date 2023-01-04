@@ -1,15 +1,19 @@
 import {useFileChanges} from "@hooks/useFileChanges";
 import {Add, Edit, Remove} from "@mui/icons-material";
-import {Button, Stack, Typography} from "@mui/material";
+import {Button, Stack} from "@mui/material";
+import {useEnvironment} from "@services/environment-service";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
+
+import {File} from "@utils/file-system/file";
 
 import {ResizablePanels} from "@components/ResizablePanels";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setActiveDiffFile} from "@redux/reducers/files";
+import {setMergeFiles} from "@redux/reducers/ui";
 
 import {FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
 
@@ -21,7 +25,9 @@ export const Merge: React.VFC = () => {
     const fileChanges = useFileChanges([FileChangeOrigin.MAIN, FileChangeOrigin.BOTH]);
 
     const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
+    const directory = useAppSelector(state => state.files.directory);
     const dispatch = useAppDispatch();
+    const {username} = useEnvironment();
 
     const handleFileSelected = React.useCallback(
         (file: string) => {
@@ -53,6 +59,20 @@ export const Merge: React.VFC = () => {
     const handleUnstageAll = React.useCallback(() => {
         setStagedFiles([]);
     }, []);
+
+    const handleMergeFile = React.useCallback(
+        (e, filePath: string) => {
+            e.stopPropagation();
+            const file = new File(filePath, directory);
+            dispatch(
+                setMergeFiles({
+                    mainFile: file.getMainVersion().absolutePath(),
+                    userFile: file.getUserVersion(username).absolutePath(),
+                })
+            );
+        },
+        [username, dispatch, directory]
+    );
 
     const handlePull = React.useCallback(() => {
         console.log("pulled");
@@ -103,7 +123,14 @@ export const Merge: React.VFC = () => {
                                         <span title={fileChange.relativePath}>{fileChange.relativePath}&lrm;</span>
                                     </div>
                                     {fileChange.origin === FileChangeOrigin.BOTH ? (
-                                        <Typography color="error">Merging required</Typography>
+                                        <Button
+                                            variant="text"
+                                            onClick={e => handleMergeFile(e, fileChange.relativePath)}
+                                            size="small"
+                                            color="error"
+                                        >
+                                            Merging required
+                                        </Button>
                                     ) : (
                                         <Button
                                             variant="text"

@@ -8,9 +8,10 @@ const [useDataProvider, DataProvider] = createGenericContext<GlobalSettings>();
 
 export const GlobalSettingsProvider: React.FC = ({children}) => {
     const globalSettings: GlobalSettings = {
-        supportedFileExtensions: [".yaml", ".yml", ".py", ".json", ".txt", ".xml"],
+        supportedFileExtensions: [".csv", ".yaml", ".yml", ".py", ".json", ".txt", ".xml"],
         languageForFileExtension: (extension: string) => {
             const fileExtensionLanguageMap: Record<string, string> = {
+                ".csv": "csv",
                 ".yaml": "yaml",
                 ".yml": "yaml",
                 ".py": "python",

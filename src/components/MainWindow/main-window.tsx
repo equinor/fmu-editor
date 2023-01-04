@@ -34,12 +34,16 @@ export const MainWindow: React.FC = () => {
     const view = useAppSelector(state => state.ui.view);
 
     React.useEffect(() => {
-        if (!files || files.activeFile === "") {
-            document.title = "FMU Editor";
+        if (page === Page.Editor && files && files.activeFile !== "") {
+            document.title = `${path.basename(files.activeFile)} - FMU Editor`;
             return;
         }
-        document.title = `${path.basename(files.activeFile)} - FMU Editor`;
-    }, [files]);
+        if (page === Page.SourceControl) {
+            document.title = "Source Control - FMU Editor";
+            return;
+        }
+        document.title = "FMU Editor";
+    }, [files, page]);
 
     const makeContent = () => {
         if (view === View.OngoingChanges) {

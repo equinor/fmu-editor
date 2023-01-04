@@ -4,6 +4,7 @@
     min-height: 38px;
     height: 38px;
     background-color: var(--background);
+    z-index: 10;
 }
 
 .FileTabsContent {
@@ -11,7 +12,7 @@
     flex-direction: row;
     min-height: 38px;
     height: 38px;
-    overflow: auto;
+    overflow: overlay;
     flex-grow: 4;
 }
 
@@ -24,15 +25,15 @@
     padding: var(--spacing-s);
 }
 
-.FileTabs::-webkit-scrollbar {
-    height: 10px;
+.FileTabsContent::-webkit-scrollbar {
+    height: 8px;
 }
 
-.FileTabs::-webkit-scrollbar-track {
+.FileTabsContent::-webkit-scrollbar-track {
     background-color: transparent;
 }
 
-.FileTabs::-webkit-scrollbar-thumb {
+.FileTabsContent::-webkit-scrollbar-thumb {
     border-radius: 3px;
     border: 2px solid transparent;
     background-clip: content-box;

@@ -57,7 +57,7 @@
 }
 
 .ExplorerContent {
-    overflow-y: auto;
+    overflow-y: overlay;
     padding: var(--spacing-s);
 }
 

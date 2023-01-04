@@ -39,4 +39,6 @@ export type UiState = {
     ongoingChangesFile?: string;
     changesBrowserView: ChangesBrowserView;
     previewOpen: boolean;
+    mergeMainFile?: string;
+    mergeUserFile?: string;
 };

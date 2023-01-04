@@ -47,6 +47,7 @@ async function createWindow() {
             nodeIntegrationInWorker: true,
             nodeIntegrationInSubFrames: true,
             webSecurity: false,
+            webviewTag: true,
         },
     });
 

@@ -36,7 +36,7 @@ export type File = {
     associatedWithFile: boolean;
     editorValue: string;
     editorViewState: CodeEditorViewState | null;
-    hash: number;
+    hash: string;
     selection: Selection;
     title: string;
     permanentOpen: boolean;

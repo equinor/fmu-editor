@@ -30,6 +30,8 @@ const initialUiState: UiState = {
     ongoingChangesFile: undefined,
     changesBrowserView: ChangesBrowserView.LoggedChanges,
     previewOpen: electronStore.get("ui.settings.previewOpen") || false,
+    mergeMainFile: undefined,
+    mergeUserFile: undefined,
 };
 
 const initialPreferencesState: PreferencesState = {
@@ -58,7 +60,7 @@ const initialFilesState: FilesState = {
                 userFilePath: file.userFilePath,
                 associatedWithFile: fs.existsSync(file.filePath),
                 editorValue: fileContent,
-                editorViewState: file.editorViewState,
+                editorViewState: file.editorViewState === "null" ? null : file.editorViewState,
                 hash: generateHashCode(fileContent),
                 selection: {
                     startLineNumber: 0,
@@ -68,6 +70,7 @@ const initialFilesState: FilesState = {
                     direction: SelectionDirection.LTR,
                 },
                 title: "",
+                permanentOpen: file.permanentOpen,
             };
         }) || [],
 };

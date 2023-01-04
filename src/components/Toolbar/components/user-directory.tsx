@@ -12,8 +12,10 @@ import {FileChangeOrigin} from "@shared-types/file-changes";
 import {NotificationType} from "@shared-types/notifications";
 import {View} from "@shared-types/ui";
 
+const FILE_ORIGINS = [FileChangeOrigin.MAIN, FileChangeOrigin.BOTH];
+
 export const UserDirectory: React.FC = () => {
-    const fileChanges = useFileChanges(FileChangeOrigin.MAIN);
+    const fileChanges = useFileChanges(FILE_ORIGINS);
 
     const [progress, setProgress] = React.useState<number>(100);
     const dispatch = useAppDispatch();

@@ -41,3 +41,19 @@ body {
     width: 12px;
     background: none;
 }
+
+.Divider {
+    box-sizing: border-box;
+    border-radius: 1px;
+    border-right: 1px inset var(--background-medium);
+    margin: 4px;
+    background-color: var(--background-color);
+}
+
+.Divider--horizontal {
+    height: 1px;
+}
+
+.Divider--vertical {
+    width: 1px;
+}

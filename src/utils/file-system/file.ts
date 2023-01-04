@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import {generateHashCode} from "@utils/hash";
+
 import fs from "fs";
 import path from "path";
 
@@ -42,7 +43,7 @@ export class File extends FileBasic implements IFile {
 
         try {
             const buffer = fs.readFileSync(this.absolutePath());
-            const hash = crypto.createHash("sha256").update(buffer).digest("hex");
+            const hash = generateHashCode(buffer);
             this._hash = hash;
             return hash;
         } catch (e) {

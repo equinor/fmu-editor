@@ -39,7 +39,8 @@ export const Explorer: React.FC = () => {
     const [directory, setDirectory] = React.useState<Directory | null>(null);
     const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
 
-    const refreshTimer = React.useRef<ReturnType<typeof setInterval> | null>(null);
+    const refreshFmuTimer = React.useRef<ReturnType<typeof setInterval> | null>(null);
+    const refreshWorkingDirTimer = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
     const dispatch = useAppDispatch();
     const theme = useTheme();
@@ -59,16 +60,27 @@ export const Explorer: React.FC = () => {
     }, [workingDirectoryPath, dispatch, username]);
 
     React.useEffect(() => {
-        if (refreshTimer.current) {
-            clearInterval(refreshTimer.current);
+        if (refreshFmuTimer.current) {
+            clearInterval(refreshFmuTimer.current);
         }
         if (fmuDirectoryPath !== undefined && fmuDirectoryPath !== "" && drawerOpen) {
             setFmuDirectory(new Directory("", fmuDirectoryPath));
-            refreshTimer.current = setInterval(() => {
+            refreshFmuTimer.current = setInterval(() => {
                 setFmuDirectory(new Directory("", fmuDirectoryPath));
             }, 3000);
         }
     }, [fmuDirectoryPath, drawerOpen]);
+
+    React.useEffect(() => {
+        if (refreshWorkingDirTimer.current) {
+            clearInterval(refreshWorkingDirTimer.current);
+        }
+        if (workingDirectoryPath !== undefined && workingDirectoryPath !== "") {
+            refreshWorkingDirTimer.current = setInterval(() => {
+                setDirectory(new Directory("", workingDirectoryPath).getUserVersion(username));
+            }, 3000);
+        }
+    }, [workingDirectoryPath, username]);
 
     const handleWorkingDirectoryChange = (dir: string) => {
         dispatch(setWorkingDirectoryPath({path: dir}));

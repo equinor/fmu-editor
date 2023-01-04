@@ -5,7 +5,7 @@ import useSize from "@react-hook/size";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
-import {DiffEditorDidMount, MonacoDiffEditor, monaco} from "react-monaco-editor";
+import MonacoEditor, {DiffEditorDidMount, MonacoDiffEditor, monaco} from "react-monaco-editor";
 
 import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
 import {Surface} from "@components/Surface";
@@ -62,8 +62,6 @@ const {yaml} = languages || {};
 
 export const MergeEditor: React.VFC = () => {
     const [visible, setVisible] = React.useState<boolean>(false);
-    const [originalFilePath, setOriginalFilePath] = React.useState<string | null>(null);
-    const [userFilePath, setUserFilePath] = React.useState<string | null>(null);
     const [originalEditorWidth, setOriginalEditorWidth] = React.useState<number>(0);
 
     const monacoDiffEditorRef = React.useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
@@ -77,12 +75,9 @@ export const MergeEditor: React.VFC = () => {
     const theme = useTheme();
 
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
-    const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
-    const activeOngoingChangesDiffFile = useAppSelector(state => state.files.activeOngoingChangesDiffFile);
-    const currentCommit = useAppSelector(state => state.ui.currentCommit);
+    const mergeMainFile = useAppSelector(state => state.ui.mergeMainFile);
+    const mergeUserFile = useAppSelector(state => state.ui.mergeUserFile);
     const currentDirectory = useAppSelector(state => state.files.directory);
-    const ongoingChangesFile = useAppSelector(state => state.ui.ongoingChangesFile);
-    const view = useAppSelector(state => state.ui.view);
     const dispatch = useAppDispatch();
     const {fileManager} = useFileManager();
     const globalSettings = useGlobalSettings();
@@ -112,48 +107,10 @@ export const MergeEditor: React.VFC = () => {
     }, [fontSize, monacoDiffEditorRef]);
 
     React.useEffect(() => {
-        if (view === View.Main || view === View.SingleFileChanges) {
-            if (activeDiffFile) {
-                if (currentCommit) {
-                    setUserFilePath(fileManager.makeOriginalFilePath(activeDiffFile, currentCommit.snapshotPath));
-                    if (currentCommit.compareSnapshotPath !== undefined) {
-                        setOriginalFilePath(
-                            fileManager.makeOriginalFilePath(
-                                activeDiffFile,
-                                currentCommit.compareSnapshotPath ?? undefined
-                            )
-                        );
-                    } else {
-                        setOriginalFilePath(
-                            fileManager.makeOriginalFilePath(activeDiffFile, currentCommit.snapshotPath)
-                        );
-                    }
-                } else {
-                    setUserFilePath(fileManager.getUserFileIfExists(path.join(currentDirectory, activeDiffFile)));
-                    setOriginalFilePath(
-                        fileManager.getOriginalFileIfExists(path.join(currentDirectory, activeDiffFile))
-                    );
-                }
-            }
-        } else if (ongoingChangesFile) {
-            setUserFilePath(activeOngoingChangesDiffFile);
-            setOriginalFilePath(fileManager.getOriginalFileIfExists(activeOngoingChangesDiffFile));
-        }
-    }, [
-        activeDiffFile,
-        currentCommit,
-        currentDirectory,
-        fileManager,
-        ongoingChangesFile,
-        view,
-        activeOngoingChangesDiffFile,
-    ]);
-
-    React.useEffect(() => {
         if (
-            !originalFilePath ||
-            !userFilePath ||
-            !globalSettings.supportedFileExtensions.includes(path.extname(originalFilePath))
+            !mergeMainFile ||
+            !mergeUserFile ||
+            !globalSettings.supportedFileExtensions.includes(path.extname(mergeMainFile))
         ) {
             monacoDiffEditorRef.current?.setModel({
                 original: monaco.editor.createModel("", "yaml"),
@@ -161,9 +118,9 @@ export const MergeEditor: React.VFC = () => {
             });
             setVisible(false);
             if (
-                originalFilePath &&
-                userFilePath &&
-                !globalSettings.supportedFileExtensions.includes(path.extname(originalFilePath))
+                mergeMainFile &&
+                mergeUserFile &&
+                !globalSettings.supportedFileExtensions.includes(path.extname(mergeMainFile))
             ) {
                 dispatch(
                     addNotification({
@@ -179,27 +136,27 @@ export const MergeEditor: React.VFC = () => {
 
         setVisible(true);
 
-        if (userFilePath && originalFilePath) {
-            let userModel = monaco.editor.getModel(monaco.Uri.file(userFilePath));
+        if (mergeUserFile && mergeMainFile) {
+            let userModel = monaco.editor.getModel(monaco.Uri.file(mergeUserFile));
             if (!userModel) {
                 userModel = monaco.editor.createModel(
-                    fs.readFileSync(userFilePath).toString(),
-                    globalSettings.languageForFileExtension(path.extname(userFilePath)),
-                    monaco.Uri.file(userFilePath)
+                    fs.readFileSync(mergeUserFile).toString(),
+                    globalSettings.languageForFileExtension(path.extname(mergeUserFile)),
+                    monaco.Uri.file(mergeUserFile)
                 );
             } else {
-                userModel.setValue(fs.readFileSync(userFilePath).toString());
+                userModel.setValue(fs.readFileSync(mergeUserFile).toString());
             }
 
-            let diffModel = monaco.editor.getModel(monaco.Uri.file(originalFilePath));
+            let diffModel = monaco.editor.getModel(monaco.Uri.file(mergeMainFile));
             if (!diffModel) {
                 diffModel = monaco.editor.createModel(
-                    fs.readFileSync(originalFilePath).toString(),
-                    globalSettings.languageForFileExtension(path.extname(userFilePath)),
-                    monaco.Uri.file(originalFilePath)
+                    fs.readFileSync(mergeMainFile).toString(),
+                    globalSettings.languageForFileExtension(path.extname(mergeUserFile)),
+                    monaco.Uri.file(mergeMainFile)
                 );
             } else {
-                diffModel.setValue(fs.readFileSync(originalFilePath).toString());
+                diffModel.setValue(fs.readFileSync(mergeMainFile).toString());
             }
             if (userModel) {
                 if (monacoDiffEditorRef.current && monacoDiffRef.current) {
@@ -212,14 +169,12 @@ export const MergeEditor: React.VFC = () => {
             }
         }
     }, [
-        activeDiffFile,
-        currentCommit,
         currentDirectory,
         dispatch,
         fileManager,
         globalSettings.supportedFileExtensions,
-        originalFilePath,
-        userFilePath,
+        mergeMainFile,
+        mergeUserFile,
         globalSettings,
     ]);
 
@@ -239,10 +194,10 @@ export const MergeEditor: React.VFC = () => {
             <div ref={diffEditorRef} className="EditorContainer" style={{display: visible ? "block" : "none"}}>
                 <Surface elevation="raised" className="DiffEditorHeader">
                     <div style={{width: originalEditorWidth}}>
-                        <strong>Original</strong> <i>({fileManager.relativeFilePath(originalFilePath || "")})</i>
+                        <strong>Original</strong> <i>({fileManager.relativeFilePath(mergeMainFile || "")})</i>
                     </div>
                     <div style={{width: `calc(100% - 130px - ${originalEditorWidth}px)`}}>
-                        <strong>Modified</strong> <i>({fileManager.relativeFilePath(userFilePath || "")})</i>
+                        <strong>Modified</strong> <i>({fileManager.relativeFilePath(mergeUserFile || "")})</i>
                     </div>
                     <IconButton onClick={() => handleClose()}>
                         <Close />
@@ -260,6 +215,7 @@ export const MergeEditor: React.VFC = () => {
                     width={diffEditorTotalWidth}
                     height={diffEditorTotalHeight - 56}
                 />
+                <MonacoEditor className="YamlEditor" />
             </div>
         </div>
     );

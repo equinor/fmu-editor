@@ -10,6 +10,10 @@
     gap: 8px;
     font-size: 0.9rem;
     border-right: 1px solid var(--background-semi-transparent);
+    user-select: none;
+    font-weight: var(--body-long-bold-font-weight);
+    border-bottom: 1px transparent solid;
+    position: relative;
 }
 
 .FileTab > span {
@@ -23,15 +27,17 @@
 
 .FileTab--active {
     background-color: var(--background-semi-transparent);
+    border-bottom: 1px solid var(--primary);
+    color: var(--primary);
 }
 
 .FileTab__CloseButton {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 1px;
     min-width: 16px;
     min-height: 16px;
+    padding: 2px;
 }
 
 .FileTab .FileTab__CloseButton * {
@@ -46,6 +52,11 @@
     visibility: visible;
 }
 
+.FileTab--deleted {
+    color: var(--danger);
+    text-decoration: line-through;
+}
+
 .FileTab:hover .FileTab__CloseButton:hover,
 .FileTab--active .FileTab__CloseButton:hover {
     border-radius: 4px;
@@ -53,6 +64,12 @@
     background-color: var(--background-light);
 }
 
-.FileTab--modified {
-    font-style: italic;
+.FileTab > .FileTab--modified {
+    position: absolute;
+    right: var(--spacing-s);
+    top: var(--spacing-s);
+}
+
+.FileTab:hover > .FileTab--modified {
+    display: none;
 }

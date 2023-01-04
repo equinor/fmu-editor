@@ -1,10 +1,12 @@
 import {useFileChanges} from "@hooks/useFileChanges";
 import {Close} from "@mui/icons-material";
 import {useTheme} from "@mui/material";
+import {useEnvironment} from "@services/environment-service";
 
 import React from "react";
 import {VscCircleFilled} from "react-icons/vsc";
 
+import {File} from "@utils/file-system/file";
 import {generateHashCode} from "@utils/hash";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
@@ -21,32 +23,63 @@ export type FileTabProps = {
     onSelect: (filePath: string) => void;
 };
 
+const FILE_ORIGINS = [FileChangeOrigin.USER, FileChangeOrigin.BOTH];
+
 export const FileTab: React.FC<FileTabProps> = props => {
     const [filename, setFilename] = React.useState<string>("");
     const [active, setActive] = React.useState<boolean>(false);
     const [modified, setModified] = React.useState<boolean>(false);
+    const [exists, setExists] = React.useState<boolean>(true);
     const [uncommitted, setUncommitted] = React.useState<boolean>(false);
+
+    const interval = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const theme = useTheme();
     const dispatch = useAppDispatch();
     const file = useAppSelector(state => state.files.files.find(el => el.filePath === props.filePath));
     const directory = useAppSelector(state => state.files.directory);
     const activeFilePath = useAppSelector(state => state.files.activeFile);
-    const fileChanges = useFileChanges(FileChangeOrigin.USER);
+    const fileChanges = useFileChanges(FILE_ORIGINS);
+    const {username} = useEnvironment();
 
-    React.useEffect(() => {
+    React.useLayoutEffect(() => {
+        const currentFile = new File(path.relative(directory, props.filePath), directory);
+        const checkFile = () => {
+            if (!currentFile.exists()) {
+                setExists(false);
+                return;
+            }
+            setExists(true);
+            setModified(generateHashCode(file.editorValue) !== file?.hash || !file?.associatedWithFile);
+        };
+        checkFile();
+        interval.current = setInterval(checkFile, 3000);
+
+        return () => {
+            if (interval.current) {
+                clearInterval(interval.current);
+            }
+        };
+    }, [props.filePath, file, directory]);
+
+    React.useLayoutEffect(() => {
         if (!file) {
             return;
         }
         setFilename(path.basename(file.filePath));
-        setModified(generateHashCode(file.editorValue) !== file.hash || !file.associatedWithFile);
     }, [file]);
 
     React.useEffect(() => {
         setUncommitted(
-            fileChanges.some(change => change.relativePath === path.relative(directory, file?.filePath || ""))
+            fileChanges.some(change => {
+                const changeFile = new File(change.relativePath, directory);
+                return (
+                    changeFile.getUserVersion(username).relativePath() ===
+                    path.relative(directory, file?.filePath || "")
+                );
+            })
         );
-    }, [fileChanges, file?.filePath, directory]);
+    }, [fileChanges, file?.filePath, directory, username]);
 
     React.useEffect(() => {
         setActive(props.filePath === activeFilePath);
@@ -68,7 +101,7 @@ export const FileTab: React.FC<FileTabProps> = props => {
 
     return (
         <div
-            className={`FileTab${active ? " FileTab--active" : ""}${modified ? " FileTab--modified" : ""}`}
+            className={`FileTab${active ? " FileTab--active" : ""}${exists ? "" : " FileTab--deleted"}`}
             onClick={() => handleClick()}
             onDoubleClick={() => handleDoubleClick()}
             title={props.filePath}
@@ -77,6 +110,11 @@ export const FileTab: React.FC<FileTabProps> = props => {
             {uncommitted && (
                 <span title="Uncommitted changes">
                     <VscCircleFilled fontSize="inherit" style={{color: theme.palette.info.light}} />
+                </span>
+            )}
+            {modified && (
+                <span title="Modified" className="FileTab--modified">
+                    <VscCircleFilled fontSize="inherit" style={{color: theme.palette.text.secondary}} />
                 </span>
             )}
             <div className="FileTab__CloseButton" onClick={e => handleCloseEvent(e)}>
