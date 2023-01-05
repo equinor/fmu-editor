@@ -66,8 +66,8 @@ export const Merge: React.VFC = () => {
             const file = new File(filePath, directory);
             dispatch(
                 setMergeFiles({
-                    mainFile: file.getMainVersion().absolutePath(),
-                    userFile: file.getUserVersion(username).absolutePath(),
+                    mainFile: file.getMainVersion().relativePath(),
+                    userFile: file.getUserVersion(username).relativePath(),
                 })
             );
         },
