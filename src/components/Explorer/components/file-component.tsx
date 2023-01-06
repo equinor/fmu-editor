@@ -46,7 +46,7 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
     const handleUserChangesClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         dispatch(
             setDiffFiles({
-                mainFile: props.file.relativePath(),
+                mainFile: props.file.getMainVersion().relativePath(),
                 userFile: props.file.getUserVersion(userChanges[0].user).relativePath(),
                 origin: FileChangeOrigin.USER,
             })
