@@ -1,5 +1,6 @@
 import {useFileChanges} from "@hooks/useFileChanges";
-import {Button, LinearProgress} from "@mui/material";
+import {Button, CircularProgress, LinearProgress} from "@mui/material";
+import {useFileChangesWatcher} from "@services/file-changes-service";
 
 import React from "react";
 import {VscFileSymlinkDirectory} from "react-icons/vsc";
@@ -16,12 +17,13 @@ const FILE_ORIGINS = [FileChangeOrigin.MAIN, FileChangeOrigin.BOTH];
 
 export const UserDirectory: React.FC = () => {
     const fileChanges = useFileChanges(FILE_ORIGINS);
+    const {initialized} = useFileChangesWatcher();
 
     const [progress, setProgress] = React.useState<number>(100);
     const dispatch = useAppDispatch();
 
     const handleUserDirectoryClick = () => {
-        if (fileChanges === null) {
+        if (!initialized || fileChanges === null) {
             addNotification({type: NotificationType.INFORMATION, message: "Scanning your user directory..."});
             return;
         }
@@ -67,19 +69,25 @@ export const UserDirectory: React.FC = () => {
                 }}
                 className={fileChanges?.length === 0 ? undefined : "error"}
             >
-                <VscFileSymlinkDirectory />
-                {progress < 100 ? (
-                    <span>
-                        <i>Copying...</i>
-                    </span>
-                ) : fileChanges === null ? (
-                    <span>Scanning...</span>
-                ) : fileChanges.length === 0 ? (
-                    <span>User directory up to date</span>
+                {initialized ? (
+                    <>
+                        <VscFileSymlinkDirectory />
+                        {progress < 100 ? (
+                            <span>
+                                <i>Copying...</i>
+                            </span>
+                        ) : fileChanges === null ? (
+                            <span>Scanning...</span>
+                        ) : fileChanges.length === 0 ? (
+                            <span>User directory up to date</span>
+                        ) : (
+                            <span>
+                                {fileChanges.length} file{fileChanges.length > 1 ? "s" : ""} changed in main folder
+                            </span>
+                        )}
+                    </>
                 ) : (
-                    <span>
-                        {fileChanges.length} file{fileChanges.length > 1 ? "s" : ""} changed in main folder
-                    </span>
+                    <CircularProgress size={16} color="inherit" />
                 )}
             </Button>
             <div style={{width: 50, display: progress < 100 ? "block" : "none"}}>

@@ -11,9 +11,9 @@ import {OngoingChangesBrowserItem} from "./components/ongoing-changes-browser-it
 import "./ongoing-changes-browser.css";
 
 export const OngoingChangesBrowser: React.VFC = () => {
-    const ongoingChangesFile = useAppSelector(state => state.ui.ongoingChangesFile);
+    const diffFile = useAppSelector(state => state.ui.diffMainFile);
 
-    const ongoingChanges = useOngoingChangesForFile(ongoingChangesFile);
+    const ongoingChanges = useOngoingChangesForFile(diffFile);
 
     return (
         <Surface elevation="raised" className="Explorer">
@@ -24,7 +24,7 @@ export const OngoingChangesBrowser: React.VFC = () => {
             </Surface>
             <Stack direction="column" className="ChangesBrowserContent" spacing={2}>
                 <div className="ChangesBrowserContentHeader">Ongoing changes to file</div>
-                <div className="ChangesBrowserText">{ongoingChangesFile}</div>
+                <div className="ChangesBrowserText">{diffFile}</div>
                 <div className="ChangesBrowserContentHeader">Changes</div>
                 <div>
                     {ongoingChanges.map(change => (

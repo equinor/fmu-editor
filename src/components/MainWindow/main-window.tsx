@@ -29,8 +29,7 @@ export const MainWindow: React.FC = () => {
     const mainWindowRef = React.useRef<HTMLDivElement | null>(null);
     const files = useAppSelector(state => state.files);
     const page = useAppSelector(state => state.ui.page);
-    const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
-    const activeOngoingChangesDiffFile = useAppSelector(state => state.files.activeOngoingChangesDiffFile);
+    const diffFile = useAppSelector(state => state.ui.diffMainFile);
     const view = useAppSelector(state => state.ui.view);
 
     React.useEffect(() => {
@@ -50,7 +49,7 @@ export const MainWindow: React.FC = () => {
             return (
                 <ResizablePanels direction="horizontal" id="user-changes" minSizes={[300, 0]}>
                     <OngoingChangesBrowser />
-                    {activeOngoingChangesDiffFile ? <DiffEditor /> : null}
+                    {diffFile ? <DiffEditor /> : null}
                 </ResizablePanels>
             );
         }
@@ -59,7 +58,7 @@ export const MainWindow: React.FC = () => {
             return (
                 <ResizablePanels direction="horizontal" id="single-file-changes" minSizes={[300, 0]}>
                     <SingleFileChangesBrowser />
-                    {activeDiffFile ? <DiffEditor /> : null}
+                    {diffFile ? <DiffEditor /> : null}
                 </ResizablePanels>
             );
         }
@@ -79,7 +78,7 @@ export const MainWindow: React.FC = () => {
                 {page === Page.SourceControl && (
                     <ResizablePanels direction="horizontal" id="source-control" minSizes={[300, 0]}>
                         <ChangesBrowser />
-                        {activeDiffFile ? <DiffEditor /> : <CommitBrowser />}
+                        {diffFile ? <DiffEditor /> : <CommitBrowser />}
                     </ResizablePanels>
                 )}
             </>

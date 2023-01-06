@@ -1,4 +1,5 @@
 import {ICommitExtended} from "./changelog";
+import {FileChangeOrigin} from "./file-changes";
 
 export enum Themes {
     Dark = "dark",
@@ -39,6 +40,7 @@ export type UiState = {
     ongoingChangesFile?: string;
     changesBrowserView: ChangesBrowserView;
     previewOpen: boolean;
-    mergeMainFile?: string;
-    mergeUserFile?: string;
+    diffMainFile?: string;
+    diffUserFile?: string;
+    diffFileOrigin?: FileChangeOrigin;
 };

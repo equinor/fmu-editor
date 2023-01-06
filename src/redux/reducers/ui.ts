@@ -5,6 +5,7 @@ import electronStore from "@utils/electron-store";
 import initialState from "@redux/initial-state";
 
 import {ICommitExtended} from "@shared-types/changelog";
+import {FileChangeOrigin} from "@shared-types/file-changes";
 import {ChangesBrowserView, Page, PaneConfiguration, Themes, UiState, View} from "@shared-types/ui";
 
 export const uiSlice = createSlice({
@@ -40,8 +41,17 @@ export const uiSlice = createSlice({
         setCurrentCommit: (state: Draft<UiState>, action: PayloadAction<ICommitExtended | undefined>) => {
             state.currentCommit = action.payload;
         },
-        setOngoingChangesFile: (state: Draft<UiState>, action: PayloadAction<string>) => {
-            state.ongoingChangesFile = action.payload;
+        setDiffUserFile: (
+            state: Draft<UiState>,
+            action: PayloadAction<{userFile?: string; origin: FileChangeOrigin}>
+        ) => {
+            state.diffUserFile = action.payload.userFile;
+        },
+        setDiffMainFile: (
+            state: Draft<UiState>,
+            action: PayloadAction<{mainFile?: string; origin: FileChangeOrigin}>
+        ) => {
+            state.diffMainFile = action.payload.mainFile;
         },
         setChangesBrowserView: (state: Draft<UiState>, action: PayloadAction<ChangesBrowserView>) => {
             state.changesBrowserView = action.payload;
@@ -49,9 +59,18 @@ export const uiSlice = createSlice({
         setPreviewOpen: (state: Draft<UiState>, action: PayloadAction<boolean>) => {
             state.previewOpen = action.payload;
         },
-        setMergeFiles: (state: Draft<UiState>, action: PayloadAction<{mainFile?: string; userFile?: string}>) => {
-            state.mergeMainFile = action.payload.mainFile;
-            state.mergeUserFile = action.payload.userFile;
+        setDiffFiles: (
+            state: Draft<UiState>,
+            action: PayloadAction<{mainFile?: string; userFile?: string; origin: FileChangeOrigin}>
+        ) => {
+            state.diffMainFile = action.payload.mainFile;
+            state.diffUserFile = action.payload.userFile;
+            state.diffFileOrigin = action.payload.origin;
+        },
+        resetDiffFiles: (state: Draft<UiState>) => {
+            state.diffMainFile = undefined;
+            state.diffUserFile = undefined;
+            state.diffFileOrigin = undefined;
         },
     },
 });
@@ -63,9 +82,11 @@ export const {
     setPaneConfiguration,
     setEditorFontSize,
     setCurrentCommit,
-    setOngoingChangesFile,
     setChangesBrowserView,
     setPreviewOpen,
-    setMergeFiles,
+    setDiffFiles,
+    setDiffMainFile,
+    setDiffUserFile,
+    resetDiffFiles,
 } = uiSlice.actions;
 export default uiSlice.reducer;

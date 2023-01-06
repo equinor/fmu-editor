@@ -1,43 +1,44 @@
 import {useFileChanges} from "@hooks/useFileChanges";
 import {Add, Edit, Remove} from "@mui/icons-material";
-import {Button, Stack} from "@mui/material";
+import {Button, Stack, Typography} from "@mui/material";
 import {useEnvironment} from "@services/environment-service";
-import {useFileManager} from "@services/file-manager";
 
 import React from "react";
 
 import {File} from "@utils/file-system/file";
 
+import {DiffEditor} from "@components/DiffEditor";
 import {ResizablePanels} from "@components/ResizablePanels";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setActiveDiffFile} from "@redux/reducers/files";
-import {setMergeFiles} from "@redux/reducers/ui";
+import {setDiffFiles} from "@redux/reducers/ui";
 
 import {FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
 
-import {MergeEditor} from "./components/merge-editor";
+const FILE_ORIGINS = [FileChangeOrigin.MAIN, FileChangeOrigin.BOTH];
 
 export const Merge: React.VFC = () => {
     const [stagedFiles, setStagedFiles] = React.useState<string[]>([]);
-    const {fileManager} = useFileManager();
-    const fileChanges = useFileChanges([FileChangeOrigin.MAIN, FileChangeOrigin.BOTH]);
 
-    const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
+    const diffMainFile = useAppSelector(state => state.ui.diffMainFile);
+    const fileChanges = useFileChanges(FILE_ORIGINS);
     const directory = useAppSelector(state => state.files.directory);
     const dispatch = useAppDispatch();
     const {username} = useEnvironment();
 
     const handleFileSelected = React.useCallback(
-        (file: string) => {
+        (filePath: string, origin: FileChangeOrigin) => {
+            const file = new File(filePath, directory);
             dispatch(
-                setActiveDiffFile({
-                    relativeFilePath: fileManager.relativeFilePath(file),
+                setDiffFiles({
+                    mainFile: file.getMainVersion().relativePath(),
+                    userFile: file.getUserVersion(username).relativePath(),
+                    origin,
                 })
             );
         },
-        [dispatch, fileManager]
+        [dispatch, directory, username]
     );
 
     const handleStageFile = React.useCallback(
@@ -59,20 +60,6 @@ export const Merge: React.VFC = () => {
     const handleUnstageAll = React.useCallback(() => {
         setStagedFiles([]);
     }, []);
-
-    const handleMergeFile = React.useCallback(
-        (e, filePath: string) => {
-            e.stopPropagation();
-            const file = new File(filePath, directory);
-            dispatch(
-                setMergeFiles({
-                    mainFile: file.getMainVersion().relativePath(),
-                    userFile: file.getUserVersion(username).relativePath(),
-                })
-            );
-        },
-        [username, dispatch, directory]
-    );
 
     const handlePull = React.useCallback(() => {
         console.log("pulled");
@@ -103,12 +90,12 @@ export const Merge: React.VFC = () => {
                             .map(fileChange => (
                                 <div
                                     className={`ChangesBrowserListItem${
-                                        fileChange.relativePath === activeDiffFile
+                                        fileChange.relativePath === diffMainFile
                                             ? " ChangesBrowserListItemSelected"
                                             : ""
                                     }`}
                                     key={fileChange.relativePath}
-                                    onClick={() => handleFileSelected(fileChange.relativePath)}
+                                    onClick={() => handleFileSelected(fileChange.relativePath, fileChange.origin)}
                                 >
                                     <div>
                                         {fileChange.type === FileChangeType.MODIFIED && (
@@ -123,14 +110,7 @@ export const Merge: React.VFC = () => {
                                         <span title={fileChange.relativePath}>{fileChange.relativePath}&lrm;</span>
                                     </div>
                                     {fileChange.origin === FileChangeOrigin.BOTH ? (
-                                        <Button
-                                            variant="text"
-                                            onClick={e => handleMergeFile(e, fileChange.relativePath)}
-                                            size="small"
-                                            color="error"
-                                        >
-                                            Merging required
-                                        </Button>
+                                        <Typography color="error">Merging required</Typography>
                                     ) : (
                                         <Button
                                             variant="text"
@@ -161,12 +141,12 @@ export const Merge: React.VFC = () => {
                             .map(fileChange => (
                                 <div
                                     className={`ChangesBrowserListItem${
-                                        fileChange.relativePath === activeDiffFile
+                                        fileChange.relativePath === diffMainFile
                                             ? " ChangesBrowserListItemSelected"
                                             : ""
                                     }`}
                                     key={fileChange.relativePath}
-                                    onClick={() => handleFileSelected(fileChange.relativePath)}
+                                    onClick={() => handleFileSelected(fileChange.relativePath, fileChange.origin)}
                                 >
                                     <div>
                                         {fileChange.type === FileChangeType.MODIFIED && (
@@ -195,7 +175,7 @@ export const Merge: React.VFC = () => {
                     </Button>
                 </Stack>
             </Surface>
-            <MergeEditor />
+            <DiffEditor />
         </ResizablePanels>
     );
 };

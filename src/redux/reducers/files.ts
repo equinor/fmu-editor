@@ -75,24 +75,6 @@ export const filesSlice = createSlice({
             state.activeFile = action.payload.filePath;
             electronStore.set("files.activeFile", action.payload.filePath);
         },
-        setActiveDiffFile: (
-            state: Draft<FilesState>,
-            action: PayloadAction<{
-                relativeFilePath: string | null;
-            }>
-        ) => {
-            state.activeDiffFile = action.payload.relativeFilePath;
-            electronStore.set("files.activeDiffFile", action.payload.relativeFilePath);
-        },
-        setActiveOngoingChangesDiffFile: (
-            state: Draft<FilesState>,
-            action: PayloadAction<{
-                relativeFilePath: string | null;
-            }>
-        ) => {
-            state.activeOngoingChangesDiffFile = action.payload.relativeFilePath;
-            electronStore.set("files.activeOngoingChangesDiffFile", action.payload.relativeFilePath);
-        },
         setValue: (state: Draft<FilesState>, action: PayloadAction<string>) => {
             state.files = state.files.map(el =>
                 el.filePath === state.activeFile ? {...el, editorValue: action.payload, unsavedChanges: true} : el
@@ -254,8 +236,6 @@ export const {
     setWorkingDirectoryPath,
     setFileTreeStates,
     setActiveFile,
-    setActiveDiffFile,
-    setActiveOngoingChangesDiffFile,
     addFile,
     closeFile,
     closeAllFiles,

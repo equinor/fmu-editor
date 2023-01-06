@@ -1,5 +1,6 @@
 import {useUserFileChanges} from "@hooks/useUserFileChanges";
-import {Badge, Tab, Tabs} from "@mui/material";
+import {Badge, CircularProgress, Tab, Tabs} from "@mui/material";
+import {useFileChangesWatcher} from "@services/file-changes-service";
 
 import React from "react";
 import {VscEdit, VscSourceControl} from "react-icons/vsc";
@@ -9,8 +10,7 @@ import {Surface} from "@components/Surface";
 import {ThemeSwitch} from "@components/ThemeSwitch";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setActiveDiffFile} from "@redux/reducers/files";
-import {setPage, setView} from "@redux/reducers/ui";
+import {resetDiffFiles, setPage, setView} from "@redux/reducers/ui";
 
 import {Page, View} from "@shared-types/ui";
 
@@ -22,6 +22,7 @@ export const PageTabs: React.VFC = () => {
 
     const dispatch = useAppDispatch();
     const userFileChanges = useUserFileChanges();
+    const {initialized} = useFileChangesWatcher();
 
     const handlePageChange = (_, newValue: string) => {
         dispatch(setPage(newValue as Page));
@@ -30,11 +31,7 @@ export const PageTabs: React.VFC = () => {
 
     const handlePageClick = () => {
         if (view !== View.Main) {
-            dispatch(
-                setActiveDiffFile({
-                    relativeFilePath: null,
-                })
-            );
+            dispatch(resetDiffFiles());
         }
         dispatch(setView(View.Main));
     };
@@ -51,12 +48,15 @@ export const PageTabs: React.VFC = () => {
                 <Tab
                     icon={
                         <Badge
-                            badgeContent={userFileChanges.length}
+                            badgeContent={
+                                initialized ? userFileChanges.length : <CircularProgress color="inherit" size={12} />
+                            }
                             color="primary"
                             anchorOrigin={{
                                 vertical: "bottom",
                                 horizontal: "right",
                             }}
+                            sx={{backgroundColor: initialized ? undefined : "transparent"}}
                         >
                             <VscSourceControl color="inherit" size={24} title="Source control" />
                         </Badge>

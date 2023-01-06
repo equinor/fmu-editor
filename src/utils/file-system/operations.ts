@@ -38,7 +38,7 @@ export const compareDirectories = (workingDirectory: string, user: string): File
             if (userFile.exists()) {
                 if (
                     snapshot.getModifiedMs(file.relativePath()) < file.modifiedTime() &&
-                    snapshot.getModifiedMs(userFile.relativePath()) < userFile.modifiedTime() &&
+                    snapshot.getModifiedMs(file.relativePath()) < userFile.modifiedTime() &&
                     !userFile.compare(file)
                 ) {
                     changes.push({

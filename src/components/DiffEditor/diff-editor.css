@@ -35,25 +35,6 @@
     flex-grow: 4;
 }
 
-.Editor__NoModels {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    height: 100%;
-    background-color: var(--background-medium);
-    color: var(--text-tertiary);
-}
-
-.Editor__NoModels > img {
-    min-width: 100px;
-    max-width: 300px;
-    width: 40%;
-    filter: grayscale(100%);
-    opacity: 0.3;
-}
-
 .Editor__CurrentObjectDecoration {
     background: rgb(255, 208, 54);
     width: 5px !important;
@@ -116,19 +97,58 @@
     height: 38px;
 }
 
-.DiffEditorHeader > div {
+.EditorHeaderTitle {
+    display: flex;
+}
+
+.EditorHeaderTitle > div {
     padding: var(--spacing-s);
     padding-left: var(--spacing-m);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
 }
 
-.DiffEditorHeader > div i {
+.EditorHeaderTitle > div strong {
+    margin-right: var(--spacing-s);
+}
+
+.EditorHeaderTitle > div i {
     text-transform: none;
     font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.EditorHeaderActions {
+    flex-grow: 4;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    gap: var(--spacing-s);
+    min-width: 50px;
 }
 
 .DiffEditorHeader > div:nth-child(2){
     border-left: 1px var(--background-medium) solid;
+}
+
+.MergeEditorFile {
+    display: flex;
+    flex-direction: row;
+    padding: var(--spacing-s);
+    gap: var(--spacing-s);
+    align-items: center;
+    height: 38px;
+    box-sizing: border-box;
+}
+
+.MergeEditorFile > div {
+    flex-grow: 4;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    gap: var(--spacing-s);
 }

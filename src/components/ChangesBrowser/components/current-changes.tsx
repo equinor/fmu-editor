@@ -1,20 +1,24 @@
 import {useFileChanges} from "@hooks/useFileChanges";
 import {Add, Edit, Remove} from "@mui/icons-material";
-import {Button, Stack} from "@mui/material";
+import {Button, IconButton, Stack} from "@mui/material";
 import {useChangelogWatcher} from "@services/changelog-service";
 import {useEnvironment} from "@services/environment-service";
 import {useFileManager} from "@services/file-manager";
 
 import React from "react";
+import {VscClose} from "react-icons/vsc";
+
+import {File} from "@utils/file-system/file";
 
 import {Input} from "@components/Input";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setActiveDiffFile} from "@redux/reducers/files";
+import {resetDiffFiles, setChangesBrowserView, setDiffFiles} from "@redux/reducers/ui";
 
 import {ICommit} from "@shared-types/changelog";
 import {FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
+import {ChangesBrowserView} from "@shared-types/ui";
 
 import path from "path";
 import {v4} from "uuid";
@@ -27,15 +31,17 @@ export const CurrentChanges: React.VFC = () => {
     const [commitDescription, setCommitDescription] = React.useState<string>("");
 
     const userFileChanges = useFileChanges(FILE_ORIGINS);
-    const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
+
     const dispatch = useAppDispatch();
-    const environment = useEnvironment();
+    const {username} = useEnvironment();
     const {fileManager} = useFileManager();
     const changelog = useChangelogWatcher();
+    const diffMainFile = useAppSelector(state => state.ui.diffMainFile);
+    const directory = useAppSelector(state => state.files.directory);
 
     React.useEffect(() => {
         setStagedFiles(prev => prev.filter(el => userFileChanges.some(change => change.relativePath === el)));
-    }, [userFileChanges, environment]);
+    }, [userFileChanges]);
 
     const handleCommitChange = React.useCallback(
         (e, filePath: string) => {
@@ -56,11 +62,11 @@ export const CurrentChanges: React.VFC = () => {
                     fileManager.getUserFileIfExists(path.join(fileManager.getCurrentDirectory(), file))
                 )
             ) &&
-            environment.username
+            username
         ) {
             const commit: ICommit = {
                 id: v4(),
-                author: environment.username,
+                author: username,
                 message: [commitSummary, commitDescription].join("\n"),
                 datetime: new Date().getTime(),
                 files: stagedFiles.map(el => ({
@@ -72,19 +78,28 @@ export const CurrentChanges: React.VFC = () => {
             setCommitSummary("");
             setCommitDescription("");
             setStagedFiles([]);
-            dispatch(setActiveDiffFile({relativeFilePath: null}));
+            dispatch(
+                setDiffFiles({
+                    mainFile: undefined,
+                    userFile: undefined,
+                    origin: undefined,
+                })
+            );
         }
-    }, [stagedFiles, fileManager, environment, changelog, commitSummary, commitDescription, userFileChanges, dispatch]);
+    }, [stagedFiles, fileManager, username, changelog, commitSummary, commitDescription, userFileChanges, dispatch]);
 
     const handleFileSelected = React.useCallback(
-        (file: string) => {
+        (filePath: string, origin: FileChangeOrigin) => {
+            const file = new File(filePath, directory);
             dispatch(
-                setActiveDiffFile({
-                    relativeFilePath: file,
+                setDiffFiles({
+                    mainFile: file.getMainVersion().relativePath(),
+                    userFile: file.getUserVersion(username).relativePath(),
+                    origin,
                 })
             );
         },
-        [dispatch]
+        [dispatch, username, directory]
     );
 
     const handleStageAll = React.useCallback(() => {
@@ -95,13 +110,21 @@ export const CurrentChanges: React.VFC = () => {
         setStagedFiles([]);
     }, []);
 
+    const handleClose = React.useCallback(() => {
+        dispatch(resetDiffFiles());
+        dispatch(setChangesBrowserView(ChangesBrowserView.LoggedChanges));
+    }, [dispatch]);
+
     return (
         <>
-            {userFileChanges.length > 0 && (
-                <Surface elevation="raised" className="ChangesBrowserHeader">
+            <Surface elevation="raised" className="ChangesBrowserHeader">
+                <div>
                     {userFileChanges.length} file change{userFileChanges.length > 1 && "s"} to commit
-                </Surface>
-            )}
+                </div>
+                <IconButton onClick={handleClose}>
+                    <VscClose />
+                </IconButton>
+            </Surface>
             <Stack direction="column" className="ChangesBrowserContent" spacing={2}>
                 <div className="ChangesBrowserContentHeader">
                     Unstaged Files ({userFileChanges.filter(el => !stagedFiles.includes(el.relativePath)).length})
@@ -121,10 +144,10 @@ export const CurrentChanges: React.VFC = () => {
                         .map(fileChange => (
                             <div
                                 className={`ChangesBrowserListItem${
-                                    fileChange.relativePath === activeDiffFile ? " ChangesBrowserListItemSelected" : ""
+                                    fileChange.relativePath === diffMainFile ? " ChangesBrowserListItemSelected" : ""
                                 }`}
                                 key={fileChange.relativePath}
-                                onClick={() => handleFileSelected(fileChange.relativePath)}
+                                onClick={() => handleFileSelected(fileChange.relativePath, fileChange.origin)}
                             >
                                 <div>
                                     {fileChange.type === FileChangeType.MODIFIED && (
@@ -177,10 +200,10 @@ export const CurrentChanges: React.VFC = () => {
                         .map(fileChange => (
                             <div
                                 className={`ChangesBrowserListItem${
-                                    fileChange.relativePath === activeDiffFile ? " ChangesBrowserListItemSelected" : ""
+                                    fileChange.relativePath === diffMainFile ? " ChangesBrowserListItemSelected" : ""
                                 }`}
                                 key={fileChange.relativePath}
-                                onClick={() => handleFileSelected(fileChange.relativePath)}
+                                onClick={() => handleFileSelected(fileChange.relativePath, fileChange.origin)}
                             >
                                 <div>
                                     {fileChange.type === FileChangeType.MODIFIED && (

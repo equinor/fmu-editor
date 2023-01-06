@@ -3,21 +3,24 @@ import {useFileChangesWatcher} from "@services/file-changes-service";
 
 import React from "react";
 
-import {FileChange} from "@shared-types/file-changes";
+import {FileChange, FileChangeOrigin} from "@shared-types/file-changes";
 
 export const useOngoingChangesForFile = (relativeFilePath: string): FileChange[] => {
     const [ongoingChanges, setOngoingChanges] = React.useState<FileChange[]>([]);
 
     const fileChangesWatcher = useFileChangesWatcher();
-    const environment = useEnvironment();
+    const {username} = useEnvironment();
 
     React.useEffect(() => {
         setOngoingChanges(
             fileChangesWatcher.fileChanges.filter(
-                change => change.relativePath === relativeFilePath && change.user !== environment.username
+                change =>
+                    change.relativePath === relativeFilePath &&
+                    change.user !== username &&
+                    [FileChangeOrigin.USER, FileChangeOrigin.BOTH].includes(change.origin)
             )
         );
-    }, [fileChangesWatcher.fileChanges, environment.username, relativeFilePath]);
+    }, [fileChangesWatcher.fileChanges, username, relativeFilePath]);
 
     return ongoingChanges;
 };

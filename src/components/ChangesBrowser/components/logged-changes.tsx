@@ -8,10 +8,12 @@ import React from "react";
 import {Avatar} from "@components/MicrosoftGraph/Avatar";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setActiveDiffFile} from "@redux/reducers/files";
+import {setDiffFiles} from "@redux/reducers/ui";
 
 // import {ICommit} from "@shared-types/changelog";
-import {FileChangeType} from "@shared-types/file-changes";
+import {FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
+
+import path from "path";
 
 export const LoggedChanges: React.VFC = () => {
     const [summarizedActions, setSummarizedActions] = React.useState<{[key: string]: number}>({
@@ -21,10 +23,11 @@ export const LoggedChanges: React.VFC = () => {
     });
     const [userDetails, setUserDetails] = React.useState<IDynamicPerson | null>(null);
 
-    const activeDiffFile = useAppSelector(state => state.files.activeDiffFile);
     const currentCommit = useAppSelector(state => state.ui.currentCommit);
     const dispatch = useAppDispatch();
     const environment = useEnvironment();
+    const diffMainFile = useAppSelector(state => state.ui.diffMainFile);
+    const directory = useAppSelector(state => state.files.directory);
 
     React.useEffect(() => {
         const counts = {
@@ -42,9 +45,12 @@ export const LoggedChanges: React.VFC = () => {
 
     const handleFileSelected = React.useCallback(
         (file: string) => {
-            dispatch(setActiveDiffFile({relativeFilePath: file}));
+            const mainFile = currentCommit.compareSnapshotPath
+                ? path.join(currentCommit.compareSnapshotPath, file)
+                : path.join(directory, file);
+            dispatch(setDiffFiles({mainFile, userFile: file, origin: FileChangeOrigin.USER}));
         },
-        [dispatch]
+        [dispatch, directory, currentCommit]
     );
 
     if (!currentCommit) {
@@ -82,7 +88,7 @@ export const LoggedChanges: React.VFC = () => {
                 {currentCommit.files.map(fileChange => (
                     <div
                         className={`ChangesBrowserListItem${
-                            fileChange.path === activeDiffFile ? " ChangesBrowserListItemSelected" : ""
+                            fileChange.path === diffMainFile ? " ChangesBrowserListItemSelected" : ""
                         }`}
                         key={fileChange.path}
                         onClick={() => handleFileSelected(fileChange.path)}

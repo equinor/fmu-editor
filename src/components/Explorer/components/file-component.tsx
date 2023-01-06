@@ -12,10 +12,11 @@ import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-setti
 import {Avatar} from "@components/MicrosoftGraph/Avatar";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setActiveOngoingChangesDiffFile, setPermanentOpen} from "@redux/reducers/files";
-import {setOngoingChangesFile, setView} from "@redux/reducers/ui";
+import {setPermanentOpen} from "@redux/reducers/files";
+import {setDiffFiles, setView} from "@redux/reducers/ui";
 import {openFile} from "@redux/thunks";
 
+import {FileChangeOrigin} from "@shared-types/file-changes";
 import {View} from "@shared-types/ui";
 
 import {v4} from "uuid";
@@ -26,7 +27,7 @@ export type FileComponentProps = {
 };
 
 export const FileComponent: React.FC<FileComponentProps> = props => {
-    const userChanges = useOngoingChangesForFile(props.file.relativePath());
+    const userChanges = useOngoingChangesForFile(props.file.getMainVersion().relativePath());
     const activeFile = useAppSelector(state => state.files.activeFile);
     const dispatch = useAppDispatch();
     const {fileManager} = useFileManager();
@@ -44,11 +45,12 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
 
     const handleUserChangesClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         dispatch(
-            setActiveOngoingChangesDiffFile({
-                relativeFilePath: props.file.getUserVersion(userChanges[0].user).relativePath(),
+            setDiffFiles({
+                mainFile: props.file.relativePath(),
+                userFile: props.file.getUserVersion(userChanges[0].user).relativePath(),
+                origin: FileChangeOrigin.USER,
             })
         );
-        dispatch(setOngoingChangesFile(props.file.relativePath()));
         dispatch(setView(View.OngoingChanges));
         e.stopPropagation();
         e.preventDefault();

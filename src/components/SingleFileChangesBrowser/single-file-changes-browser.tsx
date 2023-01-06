@@ -1,6 +1,5 @@
 import {Stack} from "@mui/material";
 import {useChangelogWatcher} from "@services/changelog-service";
-import {useFileManager} from "@services/file-manager";
 
 import React from "react";
 
@@ -8,9 +7,12 @@ import {CommitList} from "@components/CommitList";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setActiveDiffFile} from "@redux/reducers/files";
+import {setDiffUserFile} from "@redux/reducers/ui";
 
 import {ISnapshotCommitBundle} from "@shared-types/changelog";
+import {FileChangeOrigin} from "@shared-types/file-changes";
+
+import path from "path";
 
 import "./single-file-changes-browser.css";
 
@@ -19,7 +21,7 @@ export const SingleFileChangesBrowser: React.VFC = () => {
     const activeFile = useAppSelector(state => state.files.activeFile);
 
     const changelogWatcher = useChangelogWatcher();
-    const {fileManager} = useFileManager();
+    const directory = useAppSelector(state => state.files.directory);
     const dispatch = useAppDispatch();
 
     React.useEffect(() => {
@@ -33,8 +35,8 @@ export const SingleFileChangesBrowser: React.VFC = () => {
     }, [changelogWatcher.changesForFile]);
 
     React.useEffect(() => {
-        dispatch(setActiveDiffFile({relativeFilePath: fileManager.relativeFilePath(activeFile)}));
-    }, [activeFile, dispatch, fileManager]);
+        dispatch(setDiffUserFile({userFile: path.relative(directory, activeFile), origin: FileChangeOrigin.USER}));
+    }, [activeFile, dispatch, directory]);
 
     return (
         <Surface elevation="raised" className="Explorer">
@@ -45,7 +47,7 @@ export const SingleFileChangesBrowser: React.VFC = () => {
             </Surface>
             <Stack direction="column" className="ChangesBrowserContent" spacing={2}>
                 <div className="ChangesBrowserContentHeader">File</div>
-                <div className="ChangesBrowserText">{fileManager.relativeFilePath(activeFile)}</div>
+                <div className="ChangesBrowserText">{path.relative(directory, activeFile)}</div>
                 <div className="ChangesBrowserContentHeader">Commits</div>
                 <div>
                     <CommitList commitBundles={fileChanges} />
