@@ -4,18 +4,22 @@ import {AppDispatch} from "@redux/store";
 
 import {Notification, NotificationType} from "@shared-types/notifications";
 
-import fs from "fs";
+import { File } from "@utils/file-system/file";
 
-export function deleteFile(filePath: string, dispatch: AppDispatch) {
-    try {
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-            dispatch(closeFile(filePath));
-        }
-    } catch (e) {
+export function deleteFile(filePath: string, workingDirectory: string, dispatch: AppDispatch) {
+    const file = new File(filePath, workingDirectory);
+    if (file.remove()) {
+        dispatch(closeFile(filePath));
+        const notification: Notification = {
+            type: NotificationType.SUCCESS,
+            message: `File '${filePath}' successfully deleted.`,
+        };
+        dispatch(addNotification(notification));
+    }
+    else {
         const notification: Notification = {
             type: NotificationType.ERROR,
-            message: `Could not delete file '${filePath}'. ${e}`,
+            message: `Could not delete file '${filePath}'.`,
         };
         dispatch(addNotification(notification));
     }

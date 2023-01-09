@@ -105,3 +105,6 @@ dist
 
 # Test folder
 test
+
+# Build folder
+build/

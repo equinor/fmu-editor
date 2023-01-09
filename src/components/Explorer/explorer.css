@@ -59,6 +59,8 @@
 .ExplorerContent {
     overflow-y: overlay;
     padding: var(--spacing-s);
+    height: 100%;
+    box-sizing: border-box;
 }
 
 .ExplorerItem {

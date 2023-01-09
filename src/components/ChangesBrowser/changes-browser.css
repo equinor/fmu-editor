@@ -18,6 +18,15 @@
     padding: var(--spacing-s);
 }
 
+.ChangesBrowserNoContent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: var(--spacing-s);
+    text-align: center;
+}
+
 .ChangesBrowserContentHeader {
     display: flex;
     font-weight: var(--h6-font-weight);

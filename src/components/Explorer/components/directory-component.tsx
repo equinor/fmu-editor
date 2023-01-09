@@ -4,6 +4,8 @@ import {VscChevronDown, VscChevronRight} from "react-icons/vsc";
 import {Directory} from "@utils/file-system/directory";
 import {File} from "@utils/file-system/file";
 
+import {ContextMenu} from "@components/ContextMenu";
+
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setFileTreeStates} from "@redux/reducers/files";
 
@@ -19,6 +21,8 @@ export type DirectoryComponentProps = {
 export const DirectoryComponent: React.VFC<DirectoryComponentProps> = props => {
     const fileTreeStates = useAppSelector(state => state.files.fileTreeStates[state.files.directory]);
     const [expanded, setExpanded] = React.useState<boolean>(true);
+
+    const ref = React.useRef<HTMLDivElement | null>(null);
 
     const dispatch = useAppDispatch();
 
@@ -46,8 +50,26 @@ export const DirectoryComponent: React.VFC<DirectoryComponentProps> = props => {
         [fileTreeStates, dispatch, expanded, props.directory]
     );
 
+    const contextMenuTemplate = React.useMemo(() => {
+        return [
+            {
+                label: "New File...",
+                icon: null,
+                click: () => {},
+                shortcut: null,
+            },
+            {
+                label: "New Folder...",
+                icon: null,
+                click: () => {},
+                shortcut: null,
+            },
+        ];
+    }, [dispatch]);
+
     return (
-        <div className="Directory">
+        <div className="Directory" ref={ref}>
+            <ContextMenu parent={ref.current} template={contextMenuTemplate} />
             <a
                 className="ExplorerItem"
                 href="#"

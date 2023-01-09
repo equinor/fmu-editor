@@ -1,9 +1,10 @@
 import {IDynamicPerson} from "@microsoft/mgt-react";
 import {Add, Edit, Remove} from "@mui/icons-material";
-import {Stack} from "@mui/material";
+import {Stack, Typography} from "@mui/material";
 import {useEnvironment} from "@services/environment-service";
 
 import React from "react";
+import {VscGitCommit} from "react-icons/vsc";
 
 import {Avatar} from "@components/MicrosoftGraph/Avatar";
 
@@ -46,15 +47,20 @@ export const LoggedChanges: React.VFC = () => {
     const handleFileSelected = React.useCallback(
         (file: string) => {
             const mainFile = currentCommit.compareSnapshotPath
-                ? path.join(currentCommit.compareSnapshotPath, file)
-                : path.join(directory, file);
+                ? path.relative(directory, path.join(currentCommit.compareSnapshotPath, file))
+                : path.relative(directory, path.join(directory, file));
             dispatch(setDiffFiles({mainFile, userFile: file, origin: FileChangeOrigin.USER}));
         },
         [dispatch, directory, currentCommit]
     );
 
     if (!currentCommit) {
-        return null;
+        return (
+            <Stack direction="column" className="ChangesBrowserNoContent" spacing={2}>
+                <VscGitCommit size={40} />
+                <Typography variant="body2">Please select a commit to show its details.</Typography>
+            </Stack>
+        );
     }
 
     return (

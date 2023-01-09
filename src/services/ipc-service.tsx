@@ -8,7 +8,6 @@ import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {addNotification} from "@redux/reducers/notifications";
 import {setInitialConfigurationDone} from "@redux/reducers/uiCoach";
 import {saveFile} from "@redux/thunks";
-import {SaveFileResult} from "@redux/thunks/save-file";
 
 import {NotificationType} from "@shared-types/notifications";
 
@@ -25,6 +24,7 @@ export const IpcService: React.FC = props => {
         state => state.files.files.find(el => el.filePath === state.files.activeFile)?.editorValue || ""
     );
     const mainProcessData = useMainProcessDataProvider();
+    const workingDirectory = useAppSelector(state => state.files.directory);
 
     React.useEffect(() => {
         const listeners: string[] = [];
@@ -34,21 +34,7 @@ export const IpcService: React.FC = props => {
         };
 
         addListener("save-file", () => {
-            const result = saveFile(activeFilePath, currentEditorValue, fileManager, dispatch);
-            if (result === SaveFileResult.NO_USER_DIRECTORY) {
-                dispatch(
-                    addNotification({
-                        type: NotificationType.ERROR,
-                        message: `You don't have a copy of the working directory (${fileManager.getCurrentDirectory()}). Create it now? Note: this might take a couple of minutes.`,
-                        action: {
-                            label: "Create",
-                            action: () => {
-                                copyUserDirectory();
-                            },
-                        },
-                    })
-                );
-            }
+            saveFile(activeFilePath, currentEditorValue, workingDirectory, dispatch);
         });
 
         addListener("error", (_, errorMessage) => {

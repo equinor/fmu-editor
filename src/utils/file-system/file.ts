@@ -52,6 +52,16 @@ export class File extends FileBasic implements IFile {
         }
     }
 
+    public copyTo(destination: string): boolean {
+        try {
+            fs.copyFileSync(this.absolutePath(), destination);
+            return true;
+        } catch (e) {
+            this._error = e;
+            return false;
+        }  
+    }
+
     private getAllUserVersions(): UserVersion[] {
         if (!fs.existsSync(this.usersDir())) {
             return [];

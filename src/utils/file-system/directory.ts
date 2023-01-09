@@ -10,14 +10,18 @@ export interface IDirectory extends IFileBasic {
 }
 
 export class Directory extends FileBasic implements IDirectory {
-    public getContent(): FileBasic[] {
+    public getContent(recursive = false): FileBasic[] {
         const filesAndDirs: FileBasic[] = [];
         const content = fs.readdirSync(this.absolutePath()).filter(item => !/(^|\/)\.[^\/\.]/g.test(item));
         content.forEach(el => {
             const fullPath = path.join(this.absolutePath(), el);
             const stats = fs.statSync(fullPath);
             if (stats.isDirectory()) {
-                filesAndDirs.push(new Directory(path.join(this.relativePath(), el), this.workingDirectory()));
+                const dir = new Directory(path.join(this.relativePath(), el), this.workingDirectory());
+                filesAndDirs.push(dir);
+                if (recursive) {
+                    filesAndDirs.push(...dir.getContent(true));
+                }
             } else {
                 filesAndDirs.push(new File(path.join(this.relativePath(), el), this.workingDirectory()));
             }
@@ -37,6 +41,27 @@ export class Directory extends FileBasic implements IDirectory {
             }
         });
         return files;
+    }
+
+    public makeIfNotExists(): boolean {
+        if (this.exists()) {
+            return true;
+        }
+        try {
+            fs.mkdirSync(this.absolutePath(), {recursive: true});
+        }
+        catch (e) {
+            this._error = e;
+            return false;
+        }
+        return true;
+    }
+
+    public countFiles(recursively = false): number {
+        if (recursively) {
+            return this.getFilesRecursively().length;
+        }
+        return this.getContent().filter(el => !el.isDirectory()).length;
     }
 
     // eslint-disable-next-line class-methods-use-this

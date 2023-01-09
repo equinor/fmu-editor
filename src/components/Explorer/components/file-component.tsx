@@ -8,6 +8,7 @@ import {getFileIcon} from "@src/file-icons";
 
 import {File} from "@utils/file-system/file";
 
+import {ContextMenu} from "@components/ContextMenu";
 import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
 import {Avatar} from "@components/MicrosoftGraph/Avatar";
 
@@ -27,6 +28,8 @@ export type FileComponentProps = {
 };
 
 export const FileComponent: React.FC<FileComponentProps> = props => {
+    const ref = React.useRef<HTMLAnchorElement | null>(null);
+
     const userChanges = useOngoingChangesForFile(props.file.getMainVersion().relativePath());
     const activeFile = useAppSelector(state => state.files.activeFile);
     const dispatch = useAppDispatch();
@@ -56,6 +59,23 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
         e.preventDefault();
     };
 
+    const contextMenuTemplate = React.useMemo(() => {
+        return [
+            {
+                label: "Rename...",
+                icon: null,
+                click: () => {},
+                shortcut: null,
+            },
+            {
+                label: "Delete",
+                icon: null,
+                click: () => {},
+                shortcut: null,
+            },
+        ];
+    }, [dispatch]);
+
     return (
         <a
             href="#"
@@ -63,7 +83,9 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
             onClick={e => handleFileClick(e)}
             onDoubleClick={e => handleFileDoubleClick(e)}
             title={props.file.relativePath()}
+            ref={ref}
         >
+            <ContextMenu template={contextMenuTemplate} parent={ref.current} />
             {Array(props.level)
                 .fill(0)
                 .map(_ => (

@@ -55,11 +55,12 @@ export const filesSlice = createSlice({
             state.directory = action.payload.path;
             state.fileTreeStates = {...state.fileTreeStates, [action.payload.path]: []};
             electronStore.set("files.directory", action.payload.path);
+            electronStore.set(`files.fileTreeStates`, state.fileTreeStates);
         },
         setFileTreeStates: (state: Draft<FilesState>, action: PayloadAction<string[]>) => {
             const newState = {...state.fileTreeStates, [state.directory]: action.payload};
             state.fileTreeStates = newState;
-            electronStore.set(`ui.fileTreeStates`, newState);
+            electronStore.set(`files.fileTreeStates`, newState);
         },
         setActiveFile: (
             state: Draft<FilesState>,
@@ -137,7 +138,6 @@ export const filesSlice = createSlice({
                 editorViewState: null,
                 hash: generateHashCode(action.payload.fileContent),
                 filePath: action.payload.filePath,
-                userFilePath: action.payload.userFilePath,
                 title: "",
                 permanentOpen: action.payload.permanentOpen,
             });
@@ -194,13 +194,12 @@ export const filesSlice = createSlice({
 
             updateFilesInElectronStore(state);
         },
-        markAsSaved: (state: Draft<FilesState>, action: PayloadAction<{userFilePath: string; filePath: string}>) => {
+        markAsSaved: (state: Draft<FilesState>, action: PayloadAction<string>) => {
             state.files = state.files.map(f =>
-                f.filePath === action.payload.filePath
+                f.filePath === action.payload
                     ? {
                           ...f,
                           hash: generateHashCode(f.editorValue),
-                          userFilePath: action.payload.userFilePath,
                           associatedWithFile: true,
                           permanentOpen: true,
                       }

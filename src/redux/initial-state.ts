@@ -30,8 +30,8 @@ const initialUiState: UiState = {
     ongoingChangesFile: undefined,
     changesBrowserView: ChangesBrowserView.LoggedChanges,
     previewOpen: electronStore.get("ui.settings.previewOpen") || false,
-    mergeMainFile: undefined,
-    mergeUserFile: undefined,
+    diffMainFile: undefined,
+    diffUserFile: undefined,
 };
 
 const initialPreferencesState: PreferencesState = {
@@ -44,20 +44,26 @@ const initialUiCoachState: UiCoachState = {
     initialConfigurationDone: electronStore.get("uiCoach.initialConfigurationDone") || false,
 };
 
+const prepareInitialFileTreeStates = () => {
+    const fileTreeStates = electronStore.get("files.fileTreeStates") || {};
+    const directory = electronStore.get("files.directory") || "";
+    if (directory && !fileTreeStates[directory]) {
+        fileTreeStates[directory] = [];
+    }
+    return fileTreeStates;
+};
+
 const initialFilesState: FilesState = {
     fmuDirectory: electronStore.get("files.fmuDirectory") || "",
     directory: electronStore.get("files.directory") || "",
-    fileTreeStates: electronStore.get("ui.fileTreeStates") || {},
+    fileTreeStates: prepareInitialFileTreeStates(),
     activeFile: electronStore.get("files.activeFile"),
-    activeDiffFile: electronStore.get("files.activeDiffFile"),
-    activeOngoingChangesDiffFile: electronStore.get("files.activeOngoingChangesDiffFile"),
     eventSource: EventSource.Editor,
     files:
         electronStore.get("files.files")?.map((file: any): File => {
             const fileContent = getFileContent(file.filePath);
             return {
                 filePath: file.filePath,
-                userFilePath: file.userFilePath,
                 associatedWithFile: fs.existsSync(file.filePath),
                 editorValue: fileContent,
                 editorViewState: file.editorViewState === "null" ? null : file.editorViewState,

@@ -1,5 +1,6 @@
 import {
     Button,
+    CircularProgress,
     Drawer,
     IconButton,
     List,
@@ -17,6 +18,7 @@ import {VscCheck, VscChevronDown, VscCollapseAll, VscLock} from "react-icons/vsc
 
 import {Directory} from "@utils/file-system/directory";
 
+import {ContextMenu} from "@components/ContextMenu";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
@@ -41,6 +43,7 @@ export const Explorer: React.FC = () => {
 
     const refreshFmuTimer = React.useRef<ReturnType<typeof setInterval> | null>(null);
     const refreshWorkingDirTimer = React.useRef<ReturnType<typeof setInterval> | null>(null);
+    const explorerRef = React.useRef<HTMLDivElement | null>(null);
 
     const dispatch = useAppDispatch();
     const theme = useTheme();
@@ -101,6 +104,23 @@ export const Explorer: React.FC = () => {
         []
     );
 
+    const contextMenuTemplate = React.useMemo(() => {
+        return [
+            {
+                label: "New File...",
+                icon: null,
+                click: () => {},
+                shortcut: null,
+            },
+            {
+                label: "New Folder...",
+                icon: null,
+                click: () => {},
+                shortcut: null,
+            },
+        ];
+    }, [dispatch]);
+
     const makeContent = React.useCallback(() => {
         const handleOpenDirectoryClick = () => {
             selectFmuDirectory(fmuDirectoryPath, dispatch);
@@ -146,7 +166,7 @@ export const Explorer: React.FC = () => {
                     <Stack direction="row" alignItems="center" className="ExplorerTitle">
                         <div>
                             {directory.getMainVersion().baseName()}
-                            {!directory.isWritable() && (
+                            {!directory.getMainVersion().isWritable() && (
                                 <VscLock
                                     color={theme.palette.warning.main}
                                     title="You don't have write access for this folder."
@@ -161,17 +181,38 @@ export const Explorer: React.FC = () => {
                         </IconButton>
                     </Stack>
                 </Surface>
-                <div className="ExplorerContent">
-                    {directory.getContent().map(item => {
-                        if (!item.isDirectory()) {
-                            return (
-                                <div className="ExplorerItem" key={item.relativePath()} style={{paddingLeft: 16}}>
-                                    {item.baseName()}
-                                </div>
-                            );
-                        }
-                        return <DirectoryComponent level={1} directory={item as Directory} key={item.relativePath()} />;
-                    })}
+                <div className="ExplorerContent" ref={explorerRef}>
+                    {directory.exists() && (
+                        <>
+                            <ContextMenu parent={explorerRef.current} template={contextMenuTemplate} />
+                            {directory.getContent().map(item => {
+                                if (!item.isDirectory()) {
+                                    return (
+                                        <div
+                                            className="ExplorerItem"
+                                            key={item.relativePath()}
+                                            style={{paddingLeft: 16}}
+                                        >
+                                            {item.baseName()}
+                                        </div>
+                                    );
+                                }
+                                return (
+                                    <DirectoryComponent
+                                        level={1}
+                                        directory={item as Directory}
+                                        key={item.relativePath()}
+                                    />
+                                );
+                            })}
+                        </>
+                    )}
+                    {!directory.exists() && (
+                        <Stack className="ExplorerNoDirectory" spacing={2}>
+                            <CircularProgress />
+                            <Typography>Creating copy of working directory for you...</Typography>
+                        </Stack>
+                    )}
                 </div>
             </>
         );

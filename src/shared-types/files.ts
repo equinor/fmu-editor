@@ -32,7 +32,6 @@ export type DiffEditorViewState = {
 
 export type File = {
     filePath: string; // Also used as identifier
-    userFilePath: string;
     associatedWithFile: boolean;
     editorValue: string;
     editorViewState: CodeEditorViewState | null;

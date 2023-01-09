@@ -255,12 +255,14 @@ export const DiffEditor: React.VFC = () => {
                 <Surface elevation="raised" className="DiffEditorHeader">
                     <div style={{width: originalEditorWidth}} className="EditorHeaderTitle">
                         <div>
-                            <strong>Main</strong>
+                            <strong>{diffFileOrigin === FileChangeOrigin.BOTH ? "Main" : "Old"}</strong>
+                            {diffFileOrigin !== FileChangeOrigin.BOTH && <i>{diffMainFilePath}</i>}
                         </div>
                     </div>
                     <div style={{width: `calc(100% - 48px - ${originalEditorWidth}px)`}} className="EditorHeaderTitle">
                         <div>
-                            <strong>User</strong>
+                            <strong>{diffFileOrigin === FileChangeOrigin.BOTH ? "User" : "New"}</strong>
+                            {diffFileOrigin !== FileChangeOrigin.BOTH && <i>{diffUserFilePath}</i>}
                         </div>
                     </div>
                 </Surface>
