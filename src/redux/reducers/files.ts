@@ -103,9 +103,52 @@ export const filesSlice = createSlice({
             );
             updateFilesInElectronStore(state);
         },
+        renameFile: (state: Draft<FilesState>, action: PayloadAction<{oldFilePath: string; newFilePath: string}>) => {
+            state.files = state.files.map(el =>
+                el.filePath === action.payload.oldFilePath
+                    ? {
+                          ...el,
+                          filePath: action.payload.newFilePath,
+                          title: path.basename(action.payload.newFilePath),
+                      }
+                    : el
+            );
+            if (state.activeFile === action.payload.oldFilePath) {
+                state.activeFile = action.payload.newFilePath;
+            }
+            updateFilesInElectronStore(state);
+        },
+        renameDirectory: (
+            state: Draft<FilesState>,
+            action: PayloadAction<{oldFilePath: string; newFilePath: string}>
+        ) => {
+            state.files = state.files.map(el =>
+                el.filePath.includes(action.payload.oldFilePath)
+                    ? {
+                          ...el,
+                          filePath: path.join(
+                              action.payload.newFilePath,
+                              path.relative(action.payload.oldFilePath, el.filePath)
+                          ),
+                      }
+                    : el
+            );
+            if (state.activeFile.includes(action.payload.oldFilePath)) {
+                state.activeFile = path.join(
+                    action.payload.newFilePath,
+                    path.relative(action.payload.oldFilePath, state.activeFile)
+                );
+            }
+            state.fileTreeStates[state.directory] = state.fileTreeStates[state.directory].map(el =>
+                el.includes(action.payload.oldFilePath)
+                    ? path.join(action.payload.newFilePath, path.relative(action.payload.oldFilePath, state.activeFile))
+                    : el
+            );
+            updateFilesInElectronStore(state);
+        },
         addFile: (
             state: Draft<FilesState>,
-            action: PayloadAction<{filePath: string; userFilePath: string; fileContent: string; permanentOpen: boolean}>
+            action: PayloadAction<{filePath: string; fileContent: string; permanentOpen: boolean}>
         ) => {
             // Do not open file when already opened, but make it active
             const openedFile = state.files.find(el => el.filePath === action.payload.filePath);
@@ -244,5 +287,7 @@ export const {
     setEditorViewState,
     setDiffEditorViewState,
     setPermanentOpen,
+    renameFile,
+    renameDirectory,
 } = filesSlice.actions;
 export default filesSlice.reducer;

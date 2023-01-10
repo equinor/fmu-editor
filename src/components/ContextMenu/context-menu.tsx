@@ -1,12 +1,26 @@
 import React from "react";
 
+import {v4} from "uuid";
+
 import "./context-menu.css";
 
-export type ContextMenuTemplate = {
-    label: string;
-    shortcut: string;
-    click: () => void;
-}[];
+export type ContextMenuTemplate =
+    | (
+          | {
+                label: string;
+                shortcut?: string;
+                click: () => void;
+                icon?: React.ReactNode;
+                divider?: boolean;
+            }
+          | {
+                label?: undefined;
+                shortcut?: undefined;
+                click?: undefined;
+                icon?: undefined;
+                divider: boolean;
+            }
+      )[];
 
 export type ContextMenuProps = {
     template: ContextMenuTemplate;
@@ -27,24 +41,28 @@ export const ContextMenu: React.VFC<ContextMenuProps> = props => {
             setVisible(true);
         };
 
-        const handleAwayClick = () => {
-            setVisible(false);
+        const handleAwayClick = (e: MouseEvent) => {
+            if (e.target === overlayRef.current) {
+                setVisible(false);
+            }
         };
 
         if (props.parent) {
             props.parent.addEventListener("contextmenu", handleContextMenu);
         }
 
-        if (overlayRef.current) {
-            overlayRef.current.addEventListener("mousedown", handleAwayClick);
+        const overlay = overlayRef.current;
+
+        if (overlay) {
+            overlay.addEventListener("mousedown", handleAwayClick);
         }
 
         return () => {
             if (props.parent) {
                 props.parent.removeEventListener("contextmenu", handleContextMenu);
             }
-            if (overlayRef.current) {
-                overlayRef.current.removeEventListener("mousedown", handleAwayClick);
+            if (overlay) {
+                overlay.removeEventListener("mousedown", handleAwayClick);
             }
         };
     }, [props.template, props.parent, visible]);
@@ -53,7 +71,8 @@ export const ContextMenu: React.VFC<ContextMenuProps> = props => {
         return null;
     }
 
-    const handleItemClick = (func: () => void) => {
+    const handleItemClick = (e: React.MouseEvent, func: () => void) => {
+        e.stopPropagation();
         func();
         setVisible(false);
     };
@@ -61,11 +80,15 @@ export const ContextMenu: React.VFC<ContextMenuProps> = props => {
     return (
         <div className="ContextMenuOverlay" ref={overlayRef}>
             <div className="ContextMenu" style={{left: position.x, top: position.y}}>
-                {props.template.map(item => (
-                    <div key={item.label} className="ContextMenuItem" onClick={() => handleItemClick(item.click)}>
-                        {item.label}
-                    </div>
-                ))}
+                {props.template.map(item =>
+                    item.divider ? (
+                        <div key={v4()} className="ContextMenuDivider" />
+                    ) : (
+                        <div key={item.label} className="ContextMenuItem" onClick={e => handleItemClick(e, item.click)}>
+                            {item.icon} {item.label}
+                        </div>
+                    )
+                )}
             </div>
         </div>
     );

@@ -17,6 +17,7 @@ import React from "react";
 import {VscCheck, VscChevronDown, VscCollapseAll, VscLock} from "react-icons/vsc";
 
 import {Directory} from "@utils/file-system/directory";
+import {File} from "@utils/file-system/file";
 
 import {ContextMenu} from "@components/ContextMenu";
 import {Surface} from "@components/Surface";
@@ -29,11 +30,16 @@ import {selectFmuDirectory} from "@redux/thunks";
 import {Notification, NotificationType} from "@shared-types/notifications";
 
 import {DirectoryComponent} from "./components/directory-component";
+import {FileComponent} from "./components/file-component";
+import {NewItem, NewItemType} from "./components/new-item";
 import "./explorer.css";
 
 import {useEnvironment} from "../../services/environment-service";
 
 export const Explorer: React.FC = () => {
+    const [creatingNewFile, setCreatingNewFile] = React.useState<boolean>(false);
+    const [creatingNewDir, setCreatingNewDir] = React.useState<boolean>(false);
+
     const fmuDirectoryPath = useAppSelector(state => state.files.fmuDirectory);
     const workingDirectoryPath = useAppSelector(state => state.files.directory);
     const {username} = useEnvironment();
@@ -109,17 +115,17 @@ export const Explorer: React.FC = () => {
             {
                 label: "New File...",
                 icon: null,
-                click: () => {},
+                click: () => setCreatingNewFile(true),
                 shortcut: null,
             },
             {
                 label: "New Folder...",
                 icon: null,
-                click: () => {},
+                click: () => setCreatingNewDir(true),
                 shortcut: null,
             },
         ];
-    }, [dispatch]);
+    }, []);
 
     const makeContent = React.useCallback(() => {
         const handleOpenDirectoryClick = () => {
@@ -130,16 +136,6 @@ export const Explorer: React.FC = () => {
             dispatch(setFileTreeStates([]));
         };
 
-        if (username === undefined) {
-            return (
-                <Stack className="ExplorerNoDirectory" spacing={2}>
-                    <Button variant="contained" onClick={toggleDrawer(true)}>
-                        Select Working Directory
-                    </Button>
-                    <Typography>In order to start using the editor, please select your working directory.</Typography>
-                </Stack>
-            );
-        }
         if (fmuDirectoryPath === undefined || fmuDirectoryPath === "") {
             return (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
@@ -150,7 +146,7 @@ export const Explorer: React.FC = () => {
                 </Stack>
             );
         }
-        if (directory === null) {
+        if (username === undefined || directory === undefined || directory === null) {
             return (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
                     <Button variant="contained" onClick={toggleDrawer(true)}>
@@ -160,6 +156,7 @@ export const Explorer: React.FC = () => {
                 </Stack>
             );
         }
+
         return (
             <>
                 <Surface elevation="raised">
@@ -182,41 +179,69 @@ export const Explorer: React.FC = () => {
                     </Stack>
                 </Surface>
                 <div className="ExplorerContent" ref={explorerRef}>
+                    {creatingNewDir && (
+                        <NewItem
+                            type={NewItemType.DIRECTORY}
+                            onClose={() => setCreatingNewDir(false)}
+                            onSubmit={() => {
+                                setCreatingNewDir(false);
+                            }}
+                            directoryRelativePath={directory.relativePath()}
+                            level={0}
+                        />
+                    )}
                     {directory.exists() && (
                         <>
                             <ContextMenu parent={explorerRef.current} template={contextMenuTemplate} />
-                            {directory.getContent().map(item => {
-                                if (!item.isDirectory()) {
-                                    return (
-                                        <div
-                                            className="ExplorerItem"
-                                            key={item.relativePath()}
-                                            style={{paddingLeft: 16}}
-                                        >
-                                            {item.baseName()}
-                                        </div>
-                                    );
-                                }
-                                return (
+                            {directory
+                                .getContent()
+                                .filter(item => item.isDirectory())
+                                .map(item => (
                                     <DirectoryComponent
                                         level={1}
                                         directory={item as Directory}
                                         key={item.relativePath()}
                                     />
-                                );
-                            })}
+                                ))}
+                            {creatingNewFile && (
+                                <NewItem
+                                    type={NewItemType.FILE}
+                                    onClose={() => setCreatingNewFile(false)}
+                                    onSubmit={() => {
+                                        setCreatingNewFile(false);
+                                    }}
+                                    directoryRelativePath={directory.relativePath()}
+                                    level={0}
+                                />
+                            )}
+                            {directory
+                                .getContent()
+                                .filter(item => !item.isDirectory())
+                                .map(item => (
+                                    <FileComponent key={item.relativePath()} level={0} file={item as File} />
+                                ))}
                         </>
                     )}
                     {!directory.exists() && (
                         <Stack className="ExplorerNoDirectory" spacing={2}>
                             <CircularProgress />
-                            <Typography>Creating copy of working directory for you...</Typography>
+                            <Typography>Creating a copy of the working directory for you...</Typography>
                         </Stack>
                     )}
                 </div>
             </>
         );
-    }, [username, directory, fmuDirectoryPath, theme, toggleDrawer, dispatch]);
+    }, [
+        username,
+        directory,
+        fmuDirectoryPath,
+        theme,
+        creatingNewFile,
+        creatingNewDir,
+        toggleDrawer,
+        contextMenuTemplate,
+        dispatch,
+    ]);
 
     return (
         <Surface elevation="raised" className="Explorer">

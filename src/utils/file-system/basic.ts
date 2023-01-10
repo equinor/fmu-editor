@@ -44,6 +44,21 @@ export class FileBasic implements IFileBasic {
         return fs.existsSync(this.absolutePath());
     }
 
+    public rename(newName: string): boolean {
+        const newPath = path.join(path.dirname(this.absolutePath()), newName);
+        if (fs.existsSync(newPath)) {
+            return false;
+        }
+        try {
+            fs.renameSync(this.absolutePath(), newPath);
+            this._path = path.relative(this._workingDirectory, newPath);
+            return true;
+        } catch (e) {
+            this._error = e;
+            return false;
+        }
+    }
+
     public workingDirectory(): string {
         return this._workingDirectory;
     }
@@ -107,7 +122,22 @@ export class FileBasic implements IFileBasic {
 
     public remove(): boolean {
         try {
+            if (this.isDirectory()) {
+                fs.rmdirSync(this.absolutePath());
+                return true;
+            }
             fs.unlinkSync(this.absolutePath());
+            return true;
+        } catch (e) {
+            this._error = e;
+            return false;
+        }
+    }
+
+    public move(newPath: string): boolean {
+        try {
+            fs.renameSync(this.absolutePath(), newPath);
+            this._path = path.relative(this._workingDirectory, newPath);
             return true;
         } catch (e) {
             this._error = e;

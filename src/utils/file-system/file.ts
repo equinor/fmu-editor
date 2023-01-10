@@ -59,7 +59,7 @@ export class File extends FileBasic implements IFile {
         } catch (e) {
             this._error = e;
             return false;
-        }  
+        }
     }
 
     private getAllUserVersions(): UserVersion[] {

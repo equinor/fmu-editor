@@ -1,4 +1,4 @@
-import {FileManager} from "@utils/file-manager";
+import {File} from "@utils/file-system/file";
 
 import {addFile} from "@redux/reducers/files";
 import {addNotification} from "@redux/reducers/notifications";
@@ -11,7 +11,7 @@ import path from "path";
 
 export function openFile(
     filePath: string,
-    fileManager: FileManager,
+    workingDirectory: string,
     dispatch: AppDispatch,
     globalSettings: GlobalSettings,
     permanentOpen = false
@@ -28,8 +28,8 @@ export function openFile(
         return;
     }
     try {
-        const result = fileManager.readFile(filePath);
-        dispatch(addFile({filePath, userFilePath: result.filePath, fileContent: result.content, permanentOpen}));
+        const file = new File(path.relative(workingDirectory, filePath), workingDirectory);
+        dispatch(addFile({filePath, fileContent: file.readString() || "", permanentOpen}));
     } catch (e) {
         const notification: Notification = {
             type: NotificationType.ERROR,
