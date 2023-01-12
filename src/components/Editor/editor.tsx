@@ -298,8 +298,6 @@ export const Editor: React.FC<EditorProps> = () => {
     };
 
     const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
         setDragOver(false);
     };
 
@@ -317,7 +315,7 @@ export const Editor: React.FC<EditorProps> = () => {
     );
 
     return (
-        <div className="EditorWrapper">
+        <div className="EditorWrapper" onDragOver={handleDragOver}>
             <div className="EditorContainer">
                 <div
                     className="Editor__NoModels"
@@ -375,7 +373,7 @@ export const Editor: React.FC<EditorProps> = () => {
                                 minSizes={[100, 200]}
                                 visible={[true, previewVisible]}
                             >
-                                <div style={{height: "100%"}} onDragOver={handleDragOver}>
+                                <div style={{height: "100%"}}>
                                     <div
                                         className="Editor__FileNotFound"
                                         style={{
