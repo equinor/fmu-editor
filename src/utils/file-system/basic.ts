@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "fs-extra";
 import path from "path";
 
 export interface IFileBasic {
@@ -134,9 +134,10 @@ export class FileBasic implements IFileBasic {
         }
     }
 
-    public move(newPath: string): boolean {
+    public moveToDir(dirPath: string): boolean {
         try {
-            fs.renameSync(this.absolutePath(), newPath);
+            const newPath = path.join(dirPath, this.baseName());
+            fs.moveSync(this.absolutePath(), newPath);
             this._path = path.relative(this._workingDirectory, newPath);
             return true;
         } catch (e) {
@@ -147,7 +148,12 @@ export class FileBasic implements IFileBasic {
 
     // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
     public isDirectory(): boolean {
-        throw new Error("Not implemented");
+        try {
+            return fs.statSync(this.absolutePath()).isDirectory();
+        } catch (e) {
+            this._error = e;
+            return false;
+        }
     }
 
     public error(): unknown | null {

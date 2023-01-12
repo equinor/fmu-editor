@@ -66,6 +66,8 @@ export const DiffEditor: React.VFC = () => {
     const [visible, setVisible] = React.useState<boolean>(false);
     const [originalEditorWidth, setOriginalEditorWidth] = React.useState<number>(0);
     const [conflicts, setConflicts] = React.useState<monaco.editor.IChange[]>([]);
+    const [originalFileExists, setOriginalFileExists] = React.useState<boolean>(false);
+    const [modifiedFileExists, setModifiedFileExists] = React.useState<boolean>(false);
 
     const monacoDiffEditorRef = React.useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
     const diffEditorRef = React.useRef<HTMLDivElement | null>(null);
@@ -117,6 +119,13 @@ export const DiffEditor: React.VFC = () => {
         }
         monacoDiffEditorRef.current.updateOptions({fontSize: 12 * fontSize});
     }, [fontSize, monacoDiffEditorRef]);
+
+    React.useLayoutEffect(() => {
+        const originalFile = new File(diffMainFilePath, currentDirectory);
+        const modifiedFile = new File(diffUserFilePath, currentDirectory);
+        setOriginalFileExists(originalFile.exists());
+        setModifiedFileExists(modifiedFile.exists());
+    }, [diffMainFilePath, diffUserFilePath, currentDirectory]);
 
     React.useEffect(() => {
         if (
@@ -220,7 +229,7 @@ export const DiffEditor: React.VFC = () => {
                 dispatch(
                     addNotification({
                         type: NotificationType.ERROR,
-                        message: "Failed to save merge file",
+                        message: "Failed to save merged file",
                     })
                 );
             }
@@ -255,17 +264,30 @@ export const DiffEditor: React.VFC = () => {
                 <Surface elevation="raised" className="DiffEditorHeader">
                     <div style={{width: originalEditorWidth}} className="EditorHeaderTitle">
                         <div>
-                            <strong>{diffFileOrigin === FileChangeOrigin.BOTH ? "Main" : "Old"}</strong>
+                            <strong>{diffFileOrigin === FileChangeOrigin.BOTH ? "Main" : "Original"}</strong>
                             {diffFileOrigin !== FileChangeOrigin.BOTH && <i>{diffMainFilePath}</i>}
                         </div>
                     </div>
                     <div style={{width: `calc(100% - 48px - ${originalEditorWidth}px)`}} className="EditorHeaderTitle">
                         <div>
-                            <strong>{diffFileOrigin === FileChangeOrigin.BOTH ? "User" : "New"}</strong>
+                            <strong>{diffFileOrigin === FileChangeOrigin.BOTH ? "User" : "Modified"}</strong>
                             {diffFileOrigin !== FileChangeOrigin.BOTH && <i>{diffUserFilePath}</i>}
                         </div>
                     </div>
                 </Surface>
+                {!originalFileExists && (
+                    <div className="EditorOverlay" style={{left: 0, width: originalEditorWidth + 47}}>
+                        File does not exist here
+                    </div>
+                )}
+                {!modifiedFileExists && (
+                    <div
+                        className="EditorOverlay"
+                        style={{left: originalEditorWidth + 48, width: `calc(100% - 48px - ${originalEditorWidth}px)`}}
+                    >
+                        File does not exist here
+                    </div>
+                )}
                 <MonacoDiffEditor
                     language="yaml"
                     defaultValue=""

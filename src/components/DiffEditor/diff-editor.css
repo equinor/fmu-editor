@@ -152,3 +152,20 @@
     justify-content: right;
     gap: var(--spacing-s);
 }
+
+.EditorOverlay {
+    position: absolute;
+    height: 100%;
+    z-index: 999;
+    background: var(--background-color) repeating-linear-gradient(
+        -45deg,
+        var(--background-color),
+        var(--background-color) 6px,
+        var(--background-light) 6px,
+        var(--background-light) 8px
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+}

@@ -140,3 +140,7 @@
 .DirectoryDragOver {
     background-color: var(--primary-hover-alt);
 }
+
+.RootDirectory {
+    height: 100%;
+}

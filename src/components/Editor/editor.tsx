@@ -9,6 +9,7 @@ import React from "react";
 import {VscCloseAll, VscError, VscInfo, VscLightbulb, VscPreview, VscSourceControl, VscWarning} from "react-icons/vsc";
 import MonacoEditor, {EditorDidMount, EditorWillUnmount, monaco} from "react-monaco-editor";
 
+import {FileBasic} from "@utils/file-system/basic";
 import {File} from "@utils/file-system/file";
 
 import {FileTabs} from "@components/FileTabs";
@@ -20,6 +21,7 @@ import {Surface} from "@components/Surface";
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {closeAllFiles, setActiveFile, setEditorViewState, setValue} from "@redux/reducers/files";
 import {setPreviewOpen, setView} from "@redux/reducers/ui";
+import {openFile} from "@redux/thunks";
 
 import {CodeEditorViewState} from "@shared-types/files";
 import {IpcMessages} from "@shared-types/ipc";
@@ -101,6 +103,7 @@ export const Editor: React.FC<EditorProps> = () => {
     const [userFilePath, setUserFilePath] = React.useState<string | null>(null);
     const [lastActiveFile, setLastActiveFile] = React.useState<string | null>(null);
     const [fileExists, setFileExists] = React.useState<boolean>(true);
+    const [dragOver, setDragOver] = React.useState<boolean>(false);
 
     const monacoEditorRef = React.useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const editorRef = React.useRef<HTMLDivElement | null>(null);
@@ -288,6 +291,31 @@ export const Editor: React.FC<EditorProps> = () => {
         }
     }, [activeFile, workingDirectory]);
 
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragOver(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragOver(false);
+    };
+
+    const handleDrop = React.useCallback(
+        (e: React.DragEvent<HTMLDivElement>) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDragOver(false);
+            const droppedAsset = new FileBasic(e.dataTransfer.getData("text/plain"), workingDirectory);
+            if (droppedAsset.exists() && !droppedAsset.isDirectory()) {
+                openFile(droppedAsset.absolutePath(), workingDirectory, dispatch, globalSettings);
+            }
+        },
+        [dispatch, globalSettings, workingDirectory]
+    );
+
     return (
         <div className="EditorWrapper">
             <div className="EditorContainer">
@@ -296,10 +324,19 @@ export const Editor: React.FC<EditorProps> = () => {
                     style={{
                         display: noModels ? "flex" : "none",
                     }}
+                    onDragOver={handleDragOver}
                 >
                     <img src={FmuLogo} alt="FMU Logo" />
                     <Typography variant="h6">FMU Editor</Typography>
                     <Typography variant="body1">Please select a file...</Typography>
+                </div>
+                <div
+                    className="Editor__DragOver"
+                    style={{display: dragOver ? "flex" : "none"}}
+                    onDrop={handleDrop}
+                    onDragLeave={handleDragLeave}
+                >
+                    Drop into editor to open file
                 </div>
                 <div className="EditorContainer" style={{display: !noModels ? "flex" : "none"}}>
                     <ResizablePanels direction="vertical" id="Editor-Issues" minSizes={[0, 80]}>
@@ -338,7 +375,7 @@ export const Editor: React.FC<EditorProps> = () => {
                                 minSizes={[100, 200]}
                                 visible={[true, previewVisible]}
                             >
-                                <div style={{height: "100%"}}>
+                                <div style={{height: "100%"}} onDragOver={handleDragOver}>
                                     <div
                                         className="Editor__FileNotFound"
                                         style={{

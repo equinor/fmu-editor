@@ -150,6 +150,12 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
         return null;
     }
 
+    const handleDragStart = (e: React.DragEvent<HTMLAnchorElement>) => {
+        e.stopPropagation();
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", props.file.relativePath());
+    };
+
     /* eslint-disable jsx-a11y/no-autofocus */
     return (
         <a
@@ -159,7 +165,7 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
             onDoubleClick={e => handleFileDoubleClick(e)}
             title={props.file.relativePath()}
             ref={ref}
-            draggable
+            onDragStart={handleDragStart}
         >
             <ContextMenu template={contextMenuTemplate} parent={ref.current} />
             {Array(props.level)
