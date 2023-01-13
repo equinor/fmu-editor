@@ -32,6 +32,12 @@ const initialUiState: UiState = {
     previewOpen: electronStore.get("ui.settings.previewOpen") || false,
     diffMainFile: undefined,
     diffUserFile: undefined,
+    explorer: {
+        activeItemPath: "",
+        dragParentFolder: null,
+        createFolder: false,
+        createFile: false,
+    },
 };
 
 const initialPreferencesState: PreferencesState = {

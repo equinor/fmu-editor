@@ -72,6 +72,21 @@ export const uiSlice = createSlice({
             state.diffUserFile = undefined;
             state.diffFileOrigin = undefined;
         },
+        setDragParentFolder: (state: Draft<UiState>, action: PayloadAction<string>) => {
+            state.explorer.dragParentFolder = action.payload;
+        },
+        resetDragParentFolder: (state: Draft<UiState>) => {
+            state.explorer.dragParentFolder = null;
+        },
+        setCreateFile: (state: Draft<UiState>, action: PayloadAction<boolean>) => {
+            state.explorer.createFile = action.payload;
+        },
+        setCreateFolder: (state: Draft<UiState>, action: PayloadAction<boolean>) => {
+            state.explorer.createFolder = action.payload;
+        },
+        setActiveItemPath: (state: Draft<UiState>, action: PayloadAction<string>) => {
+            state.explorer.activeItemPath = action.payload;
+        },
     },
 });
 
@@ -88,5 +103,10 @@ export const {
     setDiffMainFile,
     setDiffUserFile,
     resetDiffFiles,
+    setDragParentFolder,
+    resetDragParentFolder,
+    setCreateFile,
+    setCreateFolder,
+    setActiveItemPath,
 } = uiSlice.actions;
 export default uiSlice.reducer;

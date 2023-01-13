@@ -7,9 +7,9 @@ import {CommitBrowser} from "@components/CommitBrowser";
 import {DiffEditor} from "@components/DiffEditor";
 import {Editor} from "@components/Editor";
 import {Explorer} from "@components/Explorer/explorer";
-import {Merge} from "@components/Merge";
 import {OngoingChangesBrowser} from "@components/OngoingChangesBrowser";
 import {PageTabs} from "@components/PageTabs";
+import {Pull} from "@components/Pull";
 import {ResizablePanels} from "@components/ResizablePanels";
 import {Toolbar} from "@components/Toolbar";
 
@@ -64,7 +64,7 @@ export const MainWindow: React.FC = () => {
         }
 
         if (view === View.Merge) {
-            return <Merge />;
+            return <Pull />;
         }
 
         return (

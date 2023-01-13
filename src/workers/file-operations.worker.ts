@@ -1,3 +1,5 @@
+import {Directory} from "@utils/file-system/directory";
+import {File} from "@utils/file-system/file";
 import {Snapshot} from "@utils/file-system/snapshot";
 
 import {
@@ -10,9 +12,6 @@ import {
 
 import path from "path";
 
-import { Directory } from "@utils/file-system/directory";
-import { File } from "@utils/file-system/file";
-
 import {Webworker} from "./worker-utils";
 
 // eslint-disable-next-line no-restricted-globals
@@ -24,7 +23,7 @@ let currrentDirectory: string = "";
 const copyToUserDirectory = (directory: string, user: string): void => {
     const userDirectoryPath = path.join(".users", user);
     const mainDirectory = new Directory("", directory);
-    const userDirectory = new Directory(userDirectoryPath, directory); 
+    const userDirectory = new Directory(userDirectoryPath, directory);
 
     userDirectory.makeIfNotExists();
 
@@ -52,7 +51,7 @@ const copyToUserDirectory = (directory: string, user: string): void => {
 
 const maybeInitUserDirectory = (directory: string, user: string): void => {
     const userDirectoryPath = path.join(".users", user);
-    const userDirectory = new Directory(userDirectoryPath, directory);  
+    const userDirectory = new Directory(userDirectoryPath, directory);
 
     if (!userDirectory.exists()) {
         copyToUserDirectory(directory, user);
@@ -72,6 +71,17 @@ const ensureUserDirectoryExists = (): void => {
     maybeInitUserDirectory(currrentDirectory, currentUsername);
 };
 
+const commitFileChanges = (directory: string, files: string[]): boolean => {
+    try {
+        files.forEach(file => {
+            const fileToCommit = new File(file, directory);
+            return fileToCommit.commit();
+        });
+    } catch (e) {
+        return false;
+    }
+};
+
 // eslint-disable-next-line no-restricted-globals
 self.setInterval(ensureUserDirectoryExists, 3000);
 
@@ -79,4 +89,9 @@ webworker.on(FileOperationsRequestType.SET_USER_DIRECTORY, ({directory, username
     currentUsername = username;
     currrentDirectory = directory;
     maybeInitUserDirectory(directory, username);
+});
+
+webworker.on(FileOperationsRequestType.COMMIT_USER_CHANGES, ({files}) => {
+    const result = commitFileChanges(currrentDirectory, files);
+    webworker.postMessage(FileOperationsResponseType.USER_CHANGES_COMMITTED, {result});
 });

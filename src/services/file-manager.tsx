@@ -5,7 +5,7 @@ import {createGenericContext} from "@utils/generic-context";
 
 import {Webworker} from "@workers/worker-utils";
 
-import {useAppSelector} from "@redux/hooks";
+import {useAppDispatch, useAppSelector} from "@redux/hooks";
 
 import {
     ChangedFile,
@@ -25,21 +25,32 @@ const fileOperationsWorker = new Webworker<FileOperationsRequests, FileOperation
     Worker: FileOperationsWorker,
 });
 
+export enum CommitState {
+    IDLE = "idle",
+    COMMITTING = "committing",
+    COMMITTED = "committed",
+    FAILED = "failed",
+}
+
 export type Context = {
     fileManager: FileManager;
     copyUserDirectory: () => void;
     changedFiles: ChangedFile[] | null;
+    commitState: CommitState;
+    commitUserChanges: (files: string[]) => void;
 };
 
 const [useFileManagerContext, FileManagerContextProvider] = createGenericContext<Context>();
 
 export const FileManagerService: React.FC = props => {
     const [changedFiles, setChangedFiles] = React.useState<ChangedFile[] | null>(null);
+    const [commitState, setCommitState] = React.useState<CommitState>(CommitState.IDLE);
     const environment = useEnvironment();
     const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
     const currentDirectory = useAppSelector(state => state.files.directory);
 
     const fileManager = React.useRef<FileManager>(new FileManager());
+    const dispatch = useAppDispatch();
 
     React.useEffect(() => {
         if (fileManager.current && environment.username) {
@@ -63,6 +74,15 @@ export const FileManagerService: React.FC = props => {
         }
     }, [environment, currentDirectory]);
 
+    const commitUserChanges = React.useCallback((files: string[]) => {
+        if (fileOperationsWorker) {
+            fileOperationsWorker.postMessage(FileOperationsRequestType.COMMIT_USER_CHANGES, {
+                files,
+            });
+            setCommitState(CommitState.COMMITTING);
+        }
+    }, []);
+
     React.useEffect(() => {
         if (fileOperationsWorker) {
             fileOperationsWorker.on(FileOperationsResponseType.COPY_USER_DIRECTORY_PROGRESS, payload => {
@@ -72,8 +92,12 @@ export const FileManagerService: React.FC = props => {
             fileOperationsWorker.on(FileOperationsResponseType.CHANGED_FILES, payload => {
                 setChangedFiles(payload.changedFiles);
             });
+
+            fileOperationsWorker.on(FileOperationsResponseType.USER_CHANGES_COMMITTED, payload => {
+                setCommitState(payload.success ? CommitState.COMMITTED : CommitState.FAILED);
+            });
         }
-    }, []);
+    }, [dispatch]);
 
     return (
         <FileManagerContextProvider
@@ -81,6 +105,8 @@ export const FileManagerService: React.FC = props => {
                 fileManager: fileManager.current,
                 copyUserDirectory,
                 changedFiles,
+                commitUserChanges,
+                commitState,
             }}
         >
             {props.children}

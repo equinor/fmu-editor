@@ -142,8 +142,11 @@ const defaults = {
             editorFontSize: 1.0,
         },
         paneConfiguration: {
-            "Editor-Issues": [0.7, 0.3],
-            "Editor-LivePreview": [0.5, 0.5],
+            "Editor-Issues": [75, 25],
+            "file-explorer": [25, 75],
+            "Editor-Preview": [50, 50],
+            pull: [25, 75],
+            "source-control": [25, 75],
         },
         recentDocument: [],
     },

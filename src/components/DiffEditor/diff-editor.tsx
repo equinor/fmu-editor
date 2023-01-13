@@ -68,6 +68,7 @@ export const DiffEditor: React.VFC = () => {
     const [conflicts, setConflicts] = React.useState<monaco.editor.IChange[]>([]);
     const [originalFileExists, setOriginalFileExists] = React.useState<boolean>(false);
     const [modifiedFileExists, setModifiedFileExists] = React.useState<boolean>(false);
+    const [relativeFilePath, setRelativeFilePath] = React.useState<string>("");
 
     const monacoDiffEditorRef = React.useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
     const diffEditorRef = React.useRef<HTMLDivElement | null>(null);
@@ -121,11 +122,23 @@ export const DiffEditor: React.VFC = () => {
     }, [fontSize, monacoDiffEditorRef]);
 
     React.useLayoutEffect(() => {
-        const originalFile = new File(diffMainFilePath, currentDirectory);
-        const modifiedFile = new File(diffUserFilePath, currentDirectory);
-        setOriginalFileExists(originalFile.exists());
-        setModifiedFileExists(modifiedFile.exists());
-    }, [diffMainFilePath, diffUserFilePath, currentDirectory]);
+        if (diffMainFilePath) {
+            const originalFile = new File(diffMainFilePath, currentDirectory);
+            setOriginalFileExists(originalFile.exists());
+            setRelativeFilePath(originalFile.getMainVersion().relativePath());
+            return;
+        }
+        setOriginalFileExists(false);
+    }, [diffMainFilePath, currentDirectory]);
+
+    React.useLayoutEffect(() => {
+        if (diffUserFilePath) {
+            const originalFile = new File(diffUserFilePath, currentDirectory);
+            setModifiedFileExists(originalFile.exists());
+            return;
+        }
+        setModifiedFileExists(false);
+    }, [diffUserFilePath, currentDirectory]);
 
     React.useEffect(() => {
         if (
@@ -240,9 +253,9 @@ export const DiffEditor: React.VFC = () => {
         <div className="EditorWrapper" style={{display: visible ? "block" : "none"}}>
             <Surface elevation="raised" className="MergeEditorFile">
                 {diffFileOrigin === FileChangeOrigin.BOTH && <VscWarning color={theme.palette.warning.main} />}
-                <strong>{diffMainFilePath || ""}</strong>
+                <strong>{relativeFilePath}</strong>
                 {diffFileOrigin === FileChangeOrigin.BOTH &&
-                    `${conflicts.length} conflict${conflicts.length === 1 ? "" : "s"})`}
+                    `${conflicts.length} conflict${conflicts.length === 1 ? "" : "s"}`}
                 <div>
                     {diffFileOrigin === FileChangeOrigin.BOTH && (
                         <Button
@@ -252,7 +265,7 @@ export const DiffEditor: React.VFC = () => {
                             startIcon={<VscSave />}
                             size="small"
                         >
-                            Save
+                            Save User Version
                         </Button>
                     )}
                     <IconButton onClick={() => handleClose()}>
@@ -270,20 +283,24 @@ export const DiffEditor: React.VFC = () => {
                     </div>
                     <div style={{width: `calc(100% - 48px - ${originalEditorWidth}px)`}} className="EditorHeaderTitle">
                         <div>
-                            <strong>{diffFileOrigin === FileChangeOrigin.BOTH ? "User" : "Modified"}</strong>
+                            <strong>{diffFileOrigin === FileChangeOrigin.BOTH ? "User (output)" : "Modified"}</strong>
                             {diffFileOrigin !== FileChangeOrigin.BOTH && <i>{diffUserFilePath}</i>}
                         </div>
                     </div>
                 </Surface>
                 {!originalFileExists && (
-                    <div className="EditorOverlay" style={{left: 0, width: originalEditorWidth + 47}}>
+                    <div className="EditorOverlay" style={{left: 0, width: originalEditorWidth + 47, top: 75}}>
                         File does not exist here
                     </div>
                 )}
                 {!modifiedFileExists && (
                     <div
                         className="EditorOverlay"
-                        style={{left: originalEditorWidth + 48, width: `calc(100% - 48px - ${originalEditorWidth}px)`}}
+                        style={{
+                            left: originalEditorWidth + 48,
+                            width: `calc(100% - 48px - ${originalEditorWidth}px)`,
+                            top: 75,
+                        }}
                     >
                         File does not exist here
                     </div>
@@ -295,7 +312,7 @@ export const DiffEditor: React.VFC = () => {
                     editorDidMount={handleDiffEditorDidMount}
                     theme={theme.palette.mode === "dark" ? "vs-dark" : "vs"}
                     options={{
-                        readOnly: false,
+                        readOnly: diffFileOrigin !== FileChangeOrigin.BOTH,
                     }}
                     width={diffEditorTotalWidth}
                     height={diffEditorTotalHeight - 30}

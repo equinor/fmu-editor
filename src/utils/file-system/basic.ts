@@ -79,20 +79,42 @@ export class FileBasic implements IFileBasic {
         if (this.isUserFile()) {
             return this;
         }
+        if (this.isSnapshotFile()) {
+            return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => typeof this)(
+                path.join(".users", user, this.getMainVersion().relativePath()),
+                this.workingDirectory()
+            );
+        }
         return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => typeof this)(
             path.join(".users", user, this.relativePath()),
             this.workingDirectory()
         );
     }
 
-    public getMainVersion(): this {
-        if (!this.isUserFile()) {
+    public getSnapshotVersion(snapshot: string): this {
+        if (this.isUserFile()) {
+            return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => typeof this)(
+                path.join(".snapshots", snapshot, this.getMainVersion().relativePath()),
+                this.workingDirectory()
+            );
+        }
+        if (this.isSnapshotFile()) {
             return this;
         }
         return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => typeof this)(
-            this.relativePath().split(path.sep).slice(2).join(path.sep),
+            path.join(".snapshots", snapshot, this.relativePath()),
             this.workingDirectory()
         );
+    }
+
+    public getMainVersion(): this {
+        if (this.isUserFile() || this.isSnapshotFile()) {
+            return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => typeof this)(
+                this.relativePath().split(path.sep).slice(2).join(path.sep),
+                this.workingDirectory()
+            );
+        }
+        return this;
     }
 
     public modifiedTime(): number | null {
@@ -108,8 +130,16 @@ export class FileBasic implements IFileBasic {
         return this.relativePath().split(path.sep).at(0) === ".users";
     }
 
+    public isSnapshotFile(): boolean {
+        return this.relativePath().split(path.sep).at(0) === ".snapshots";
+    }
+
     protected usersDir(): string {
         return path.join(this.workingDirectory(), ".users");
+    }
+
+    protected snapshotsDir(): string {
+        return path.join(this.workingDirectory(), ".snapshots");
     }
 
     protected extractUserFromPath(userPath: string): string {
@@ -144,6 +174,10 @@ export class FileBasic implements IFileBasic {
             this._error = e;
             return false;
         }
+    }
+
+    public parentDirectoryPath(): string {
+        return path.dirname(this.absolutePath());
     }
 
     // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars

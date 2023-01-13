@@ -43,4 +43,10 @@ export type UiState = {
     diffMainFile?: string;
     diffUserFile?: string;
     diffFileOrigin?: FileChangeOrigin;
+    explorer: {
+        activeItemPath: string;
+        dragParentFolder: string | null;
+        createFolder: boolean;
+        createFile: boolean;
+    };
 };

@@ -11,10 +11,11 @@ import {Avatar} from "@components/MicrosoftGraph/Avatar";
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setDiffFiles} from "@redux/reducers/ui";
 
-// import {ICommit} from "@shared-types/changelog";
 import {FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
 
 import path from "path";
+
+import {EllipsisPosition, OverflowEllipsis} from "../../OverflowEllipsis/overflow-ellipsis";
 
 export const LoggedChanges: React.VFC = () => {
     const [summarizedActions, setSummarizedActions] = React.useState<{[key: string]: number}>({
@@ -49,7 +50,15 @@ export const LoggedChanges: React.VFC = () => {
             const mainFile = currentCommit.compareSnapshotPath
                 ? path.relative(directory, path.join(currentCommit.compareSnapshotPath, file))
                 : path.relative(directory, path.join(directory, file));
-            dispatch(setDiffFiles({mainFile, userFile: file, origin: FileChangeOrigin.USER}));
+            dispatch(
+                setDiffFiles({
+                    mainFile,
+                    userFile: currentCommit.snapshotPath
+                        ? path.relative(directory, path.join(currentCommit.snapshotPath, file))
+                        : file,
+                    origin: FileChangeOrigin.USER,
+                })
+            );
         },
         [dispatch, directory, currentCommit]
     );
@@ -103,7 +112,11 @@ export const LoggedChanges: React.VFC = () => {
                             {fileChange.action === FileChangeType.MODIFIED && <Edit color="warning" fontSize="small" />}
                             {fileChange.action === FileChangeType.ADDED && <Add color="success" fontSize="small" />}
                             {fileChange.action === FileChangeType.DELETED && <Remove color="error" fontSize="small" />}
-                            <span title={fileChange.path}>{fileChange.path}&lrm;</span>
+                            <OverflowEllipsis
+                                text={fileChange.path}
+                                ellipsisPosition={EllipsisPosition.LEFT}
+                                showFullTextAsTitle
+                            />
                         </div>
                     </div>
                 ))}

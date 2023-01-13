@@ -131,6 +131,17 @@ export class File extends FileBasic implements IFile {
         }
     }
 
+    public commit(): boolean {
+        try {
+            fs.unlinkSync(this.getMainVersion().absolutePath());
+            fs.copyFileSync(this.absolutePath(), this.getMainVersion().absolutePath());
+            return true;
+        } catch (e) {
+            this._error = e;
+            return false;
+        }
+    }
+
     // eslint-disable-next-line class-methods-use-this
     public isDirectory(): boolean {
         return false;

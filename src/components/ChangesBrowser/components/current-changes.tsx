@@ -1,5 +1,4 @@
 import {useFileChanges} from "@hooks/useFileChanges";
-import {Add, Edit, Remove} from "@mui/icons-material";
 import {Button, IconButton, Stack} from "@mui/material";
 import {useChangelogWatcher} from "@services/changelog-service";
 import {useEnvironment} from "@services/environment-service";
@@ -23,6 +22,8 @@ import {ChangesBrowserView} from "@shared-types/ui";
 import path from "path";
 import {v4} from "uuid";
 
+import {ChangesList, ChangesListMode} from "../../ChangesList/changes-list";
+
 const FILE_ORIGINS = [FileChangeOrigin.USER, FileChangeOrigin.BOTH];
 
 export const CurrentChanges: React.VFC = () => {
@@ -36,16 +37,14 @@ export const CurrentChanges: React.VFC = () => {
     const {username} = useEnvironment();
     const {fileManager} = useFileManager();
     const changelog = useChangelogWatcher();
-    const diffMainFile = useAppSelector(state => state.ui.diffMainFile);
     const directory = useAppSelector(state => state.files.directory);
 
     React.useEffect(() => {
         setStagedFiles(prev => prev.filter(el => userFileChanges.some(change => change.relativePath === el)));
     }, [userFileChanges]);
 
-    const handleCommitChange = React.useCallback(
-        (e, filePath: string) => {
-            e.stopPropagation();
+    const handleStageOrUnstageFile = React.useCallback(
+        (filePath: string) => {
             if (stagedFiles.includes(filePath)) {
                 setStagedFiles(prev => prev.filter(el => el !== filePath));
             } else {
@@ -115,6 +114,20 @@ export const CurrentChanges: React.VFC = () => {
         dispatch(setChangesBrowserView(ChangesBrowserView.LoggedChanges));
     }, [dispatch]);
 
+    const handleResolveConflicts = React.useCallback(
+        (relativeFilePath: string) => {
+            const file = new File(relativeFilePath, directory);
+            dispatch(
+                setDiffFiles({
+                    mainFile: file.getMainVersion().relativePath(),
+                    userFile: file.getUserVersion(username).relativePath(),
+                    origin: FileChangeOrigin.BOTH,
+                })
+            );
+        },
+        [dispatch, directory, username]
+    );
+
     return (
         <>
             <Surface elevation="raised" className="ChangesBrowserHeader">
@@ -139,48 +152,13 @@ export const CurrentChanges: React.VFC = () => {
                     </Button>
                 </div>
                 <div className="ChangesBrowserList">
-                    {userFileChanges
-                        .filter(el => !stagedFiles.includes(el.relativePath))
-                        .map(fileChange => (
-                            <div
-                                className={`ChangesBrowserListItem${
-                                    fileChange.relativePath === diffMainFile ? " ChangesBrowserListItemSelected" : ""
-                                }`}
-                                key={fileChange.relativePath}
-                                onClick={() => handleFileSelected(fileChange.relativePath, fileChange.origin)}
-                            >
-                                <div>
-                                    {fileChange.type === FileChangeType.MODIFIED && (
-                                        <Edit color="warning" fontSize="small" />
-                                    )}
-                                    {fileChange.type === FileChangeType.ADDED && (
-                                        <Add color="success" fontSize="small" />
-                                    )}
-                                    {fileChange.type === FileChangeType.DELETED && (
-                                        <Remove color="error" fontSize="small" />
-                                    )}
-                                    <span title={fileChange.relativePath}>{fileChange.relativePath}&lrm;</span>
-                                </div>
-                                {fileChange.origin === FileChangeOrigin.USER ? (
-                                    <Button
-                                        variant="text"
-                                        onClick={e => handleCommitChange(e, fileChange.relativePath)}
-                                        size="small"
-                                    >
-                                        Stage File
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        variant="text"
-                                        onClick={e => handleCommitChange(e, fileChange.relativePath)}
-                                        size="small"
-                                        color="error"
-                                    >
-                                        Merging required
-                                    </Button>
-                                )}
-                            </div>
-                        ))}
+                    <ChangesList
+                        mode={ChangesListMode.Staging}
+                        fileChanges={userFileChanges.filter(el => !stagedFiles.includes(el.relativePath))}
+                        onFileSelect={handleFileSelected}
+                        onFileStage={handleStageOrUnstageFile}
+                        onResolveConflicts={handleResolveConflicts}
+                    />
                 </div>
                 <div className="ChangesBrowserContentHeader">
                     Staged Files ({stagedFiles.length})
@@ -195,37 +173,12 @@ export const CurrentChanges: React.VFC = () => {
                     </Button>
                 </div>
                 <div className="ChangesBrowserList">
-                    {userFileChanges
-                        .filter(el => stagedFiles.includes(el.relativePath))
-                        .map(fileChange => (
-                            <div
-                                className={`ChangesBrowserListItem${
-                                    fileChange.relativePath === diffMainFile ? " ChangesBrowserListItemSelected" : ""
-                                }`}
-                                key={fileChange.relativePath}
-                                onClick={() => handleFileSelected(fileChange.relativePath, fileChange.origin)}
-                            >
-                                <div>
-                                    {fileChange.type === FileChangeType.MODIFIED && (
-                                        <Edit color="warning" fontSize="small" />
-                                    )}
-                                    {fileChange.type === FileChangeType.ADDED && (
-                                        <Add color="success" fontSize="small" />
-                                    )}
-                                    {fileChange.type === FileChangeType.DELETED && (
-                                        <Remove color="error" fontSize="small" />
-                                    )}
-                                    <span title={fileChange.relativePath}>{fileChange.relativePath}&lrm;</span>
-                                </div>
-                                <Button
-                                    variant="text"
-                                    onClick={e => handleCommitChange(e, fileChange.relativePath)}
-                                    size="small"
-                                >
-                                    Unstage File
-                                </Button>
-                            </div>
-                        ))}
+                    <ChangesList
+                        mode={ChangesListMode.Staging}
+                        fileChanges={userFileChanges.filter(el => stagedFiles.includes(el.relativePath))}
+                        onFileSelect={handleFileSelected}
+                        onFileUnstage={handleStageOrUnstageFile}
+                    />
                 </div>
                 <div className="ChangesBrowserContentHeader">Commit Message</div>
                 <Stack direction="column" spacing={0}>

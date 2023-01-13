@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 
 import React from "react";
-import {VscCheck, VscChevronDown, VscCollapseAll, VscLock} from "react-icons/vsc";
+import {VscCheck, VscChevronDown, VscCollapseAll, VscLock, VscNewFile, VscNewFolder, VscRefresh} from "react-icons/vsc";
 
 import {Directory} from "@utils/file-system/directory";
 
@@ -23,6 +23,7 @@ import {Surface} from "@components/Surface";
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setFileTreeStates, setWorkingDirectoryPath} from "@redux/reducers/files";
 import {addNotification} from "@redux/reducers/notifications";
+import {setCreateFile, setCreateFolder} from "@redux/reducers/ui";
 import {selectFmuDirectory} from "@redux/thunks";
 
 import {Notification, NotificationType} from "@shared-types/notifications";
@@ -73,13 +74,19 @@ export const Explorer: React.FC = () => {
         }
     }, [fmuDirectoryPath, drawerOpen]);
 
+    const refreshExplorer = React.useCallback(() => {
+        if (workingDirectoryPath !== undefined && workingDirectoryPath !== "" && username) {
+            setDirectory(new Directory("", workingDirectoryPath).getUserVersion(username));
+        }
+    }, [workingDirectoryPath, username]);
+
     React.useEffect(() => {
         if (refreshWorkingDirTimer.current) {
             clearInterval(refreshWorkingDirTimer.current);
         }
         if (workingDirectoryPath !== undefined && workingDirectoryPath !== "") {
             refreshWorkingDirTimer.current = setInterval(() => {
-                setDirectory(new Directory("", workingDirectoryPath).getUserVersion(username));
+                refreshExplorer();
             }, 3000);
         }
     }, [workingDirectoryPath, username]);
@@ -149,6 +156,23 @@ export const Explorer: React.FC = () => {
                                 <VscChevronDown />
                             </IconButton>
                         </div>
+                        <IconButton
+                            size="small"
+                            title="Create new file..."
+                            onClick={() => dispatch(setCreateFile(true))}
+                        >
+                            <VscNewFile />
+                        </IconButton>
+                        <IconButton
+                            size="small"
+                            title="Create new folder..."
+                            onClick={() => dispatch(setCreateFolder(true))}
+                        >
+                            <VscNewFolder />
+                        </IconButton>
+                        <IconButton size="small" title="Refresh" onClick={() => refreshExplorer()}>
+                            <VscRefresh />
+                        </IconButton>
                         <IconButton size="small" title="Collapse all" onClick={() => handleCollapseAll()}>
                             <VscCollapseAll />
                         </IconButton>

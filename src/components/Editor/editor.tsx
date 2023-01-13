@@ -20,7 +20,7 @@ import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {closeAllFiles, setActiveFile, setEditorViewState, setValue} from "@redux/reducers/files";
-import {setPreviewOpen, setView} from "@redux/reducers/ui";
+import {setActiveItemPath, setPreviewOpen, setView} from "@redux/reducers/ui";
 import {openFile} from "@redux/thunks";
 
 import {CodeEditorViewState} from "@shared-types/files";
@@ -147,6 +147,7 @@ export const Editor: React.FC<EditorProps> = () => {
                                 : null,
                     })
                 );
+                dispatch(setActiveItemPath(filePath));
             }
         },
         [editorMode, dispatch]
@@ -297,7 +298,7 @@ export const Editor: React.FC<EditorProps> = () => {
         setDragOver(true);
     };
 
-    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    const handleDragLeave = () => {
         setDragOver(false);
     };
 

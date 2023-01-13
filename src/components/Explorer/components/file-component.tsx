@@ -14,7 +14,7 @@ import {Avatar} from "@components/MicrosoftGraph/Avatar";
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {renameFile, setPermanentOpen} from "@redux/reducers/files";
 import {addNotification} from "@redux/reducers/notifications";
-import {setDiffFiles, setView} from "@redux/reducers/ui";
+import {resetDragParentFolder, setActiveItemPath, setDiffFiles, setDragParentFolder, setView} from "@redux/reducers/ui";
 import {openFile} from "@redux/thunks";
 
 import {FileChangeOrigin} from "@shared-types/file-changes";
@@ -36,21 +36,24 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
     const ref = React.useRef<HTMLAnchorElement | null>(null);
 
     const userChanges = useOngoingChangesForFile(props.file.getMainVersion().relativePath());
-    const activeFile = useAppSelector(state => state.files.activeFile);
     const dispatch = useAppDispatch();
     const globalSettings = useGlobalSettings();
     const workingDirectory = useAppSelector(state => state.files.directory);
+    const activeItemPath = useAppSelector(state => state.ui.explorer.activeItemPath);
 
     const handleFileClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         if (editMode) return;
+        dispatch(setActiveItemPath(props.file.absolutePath()));
         openFile(props.file.absolutePath(), workingDirectory, dispatch, globalSettings);
         e.preventDefault();
+        e.stopPropagation();
     };
 
     const handleFileDoubleClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         if (editMode) return;
         dispatch(setPermanentOpen(props.file.absolutePath()));
         e.preventDefault();
+        e.stopPropagation();
     };
 
     React.useEffect(() => {
@@ -154,18 +157,25 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
         e.stopPropagation();
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", props.file.relativePath());
+        dispatch(setDragParentFolder(props.file.parentDirectoryPath()));
+    };
+
+    const handleDragEnd = (e: React.DragEvent<HTMLAnchorElement>) => {
+        e.stopPropagation();
+        dispatch(resetDragParentFolder());
     };
 
     /* eslint-disable jsx-a11y/no-autofocus */
     return (
         <a
             href="#"
-            className={`ExplorerItem${activeFile === props.file.absolutePath() ? " ExplorerItem--active" : ""}`}
+            className={`ExplorerItem${activeItemPath === props.file.absolutePath() ? " ExplorerItem--active" : ""}`}
             onClick={e => handleFileClick(e)}
             onDoubleClick={e => handleFileDoubleClick(e)}
             title={props.file.relativePath()}
             ref={ref}
             onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
         >
             <ContextMenu template={contextMenuTemplate} parent={ref.current} />
             {Array(props.level)
