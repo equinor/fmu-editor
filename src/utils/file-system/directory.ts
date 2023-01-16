@@ -1,3 +1,4 @@
+import { generateHashCode } from "@utils/hash";
 import fs from "fs";
 import path from "path";
 
@@ -28,6 +29,21 @@ export class Directory extends FileBasic implements IDirectory {
         });
 
         return filesAndDirs;
+    }
+
+    public getHash(recursive = true): string {
+        let hash = "";
+        this.getContent().forEach(el => {
+            if (el.isDirectory()) {
+                hash += generateHashCode((el as Directory).absolutePath());
+                if (recursive) {
+                    hash += (el as Directory).getHash();
+                }
+            } else {
+                hash += generateHashCode((el as File).absolutePath());
+            }
+        });
+        return hash;
     }
 
     public getFilesRecursively(): File[] {

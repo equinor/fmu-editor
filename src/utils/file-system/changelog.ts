@@ -15,9 +15,10 @@ export class Changelog {
     private directory: string | null;
     private changelog: IGlobalChangelog | null;
 
-    constructor() {
-        this.directory = null;
+    constructor(directory: string | null = null) {
+        this.directory = directory;
         this.changelog = null;
+        this.maybeRefresh();
     }
 
     public isInitialized(): boolean {

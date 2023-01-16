@@ -12,6 +12,7 @@ import {
     Typography,
     useTheme,
 } from "@mui/material";
+import {useFileSystemWatcher} from "@services/file-system-service";
 
 import React from "react";
 import {VscCheck, VscChevronDown, VscCollapseAll, VscLock, VscNewFile, VscNewFolder, VscRefresh} from "react-icons/vsc";
@@ -23,10 +24,12 @@ import {Surface} from "@components/Surface";
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setFileTreeStates, setWorkingDirectoryPath} from "@redux/reducers/files";
 import {addNotification} from "@redux/reducers/notifications";
-import {setCreateFile, setCreateFolder} from "@redux/reducers/ui";
+import {setActiveItemPath, setCreateFile, setCreateFolder} from "@redux/reducers/ui";
 import {selectFmuDirectory} from "@redux/thunks";
 
 import {Notification, NotificationType} from "@shared-types/notifications";
+
+import path from "path";
 
 import {DirectoryComponent} from "./components/directory-component";
 import "./explorer.css";
@@ -41,12 +44,12 @@ export const Explorer: React.FC = () => {
     const [directory, setDirectory] = React.useState<Directory | null>(null);
     const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
 
-    const refreshFmuTimer = React.useRef<ReturnType<typeof setInterval> | null>(null);
-    const refreshWorkingDirTimer = React.useRef<ReturnType<typeof setInterval> | null>(null);
     const explorerRef = React.useRef<HTMLDivElement | null>(null);
 
     const dispatch = useAppDispatch();
     const theme = useTheme();
+    const {availableWorkingDirectoriesLastChangedMs, currentWorkingDirectoryLastChangedMs} = useFileSystemWatcher();
+    const activeItemPath = useAppSelector(state => state.ui.explorer.activeItemPath);
 
     React.useEffect(() => {
         if (workingDirectoryPath !== undefined && workingDirectoryPath !== "" && username) {
@@ -63,16 +66,21 @@ export const Explorer: React.FC = () => {
     }, [workingDirectoryPath, dispatch, username]);
 
     React.useEffect(() => {
-        if (refreshFmuTimer.current) {
-            clearInterval(refreshFmuTimer.current);
+        const relativePath = path.relative(workingDirectoryPath, activeItemPath);
+        if (
+            workingDirectoryPath &&
+            username &&
+            (activeItemPath === "" || (relativePath.startsWith("..") && !path.isAbsolute(relativePath)))
+        ) {
+            dispatch(
+                setActiveItemPath(new Directory("", workingDirectoryPath).getUserVersion(username).absolutePath())
+            );
         }
-        if (fmuDirectoryPath !== undefined && fmuDirectoryPath !== "" && drawerOpen) {
-            setFmuDirectory(new Directory("", fmuDirectoryPath));
-            refreshFmuTimer.current = setInterval(() => {
-                setFmuDirectory(new Directory("", fmuDirectoryPath));
-            }, 3000);
-        }
-    }, [fmuDirectoryPath, drawerOpen]);
+    }, [workingDirectoryPath, username, dispatch, activeItemPath]);
+
+    React.useEffect(() => {
+        setFmuDirectory(new Directory("", fmuDirectoryPath));
+    }, [availableWorkingDirectoriesLastChangedMs, fmuDirectoryPath]);
 
     const refreshExplorer = React.useCallback(() => {
         if (workingDirectoryPath !== undefined && workingDirectoryPath !== "" && username) {
@@ -81,15 +89,8 @@ export const Explorer: React.FC = () => {
     }, [workingDirectoryPath, username]);
 
     React.useEffect(() => {
-        if (refreshWorkingDirTimer.current) {
-            clearInterval(refreshWorkingDirTimer.current);
-        }
-        if (workingDirectoryPath !== undefined && workingDirectoryPath !== "") {
-            refreshWorkingDirTimer.current = setInterval(() => {
-                refreshExplorer();
-            }, 3000);
-        }
-    }, [workingDirectoryPath, username]);
+        refreshExplorer();
+    }, [currentWorkingDirectoryLastChangedMs, workingDirectoryPath, username, refreshExplorer]);
 
     const handleWorkingDirectoryChange = (dir: string) => {
         dispatch(setWorkingDirectoryPath({path: dir}));
@@ -195,7 +196,7 @@ export const Explorer: React.FC = () => {
                 </div>
             </>
         );
-    }, [username, directory, fmuDirectoryPath, theme, toggleDrawer, dispatch]);
+    }, [username, directory, fmuDirectoryPath, theme, toggleDrawer, dispatch, explorerRef, refreshExplorer]);
 
     return (
         <Surface elevation="raised" className="Explorer">

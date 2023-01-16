@@ -48,6 +48,7 @@ export const CommitList: React.FC<CommitListProps> = props => {
                                             key={commit.id}
                                             message={commit.message}
                                             user={commit.author}
+                                            datetime={commit.datetime}
                                             onClick={() =>
                                                 handleCommitClick(commit, bundle.snapshotPath, lastBundle?.snapshotPath)
                                             }

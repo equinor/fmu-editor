@@ -132,8 +132,13 @@ export class File extends FileBasic implements IFile {
     }
 
     public commit(): boolean {
+        if (!this.isUserFile() || !this.exists()) {
+            return false;
+        }
         try {
-            fs.unlinkSync(this.getMainVersion().absolutePath());
+            if (this.getMainVersion().exists()) {
+                fs.unlinkSync(this.getMainVersion().absolutePath());
+            }
             fs.copyFileSync(this.absolutePath(), this.getMainVersion().absolutePath());
             return true;
         } catch (e) {

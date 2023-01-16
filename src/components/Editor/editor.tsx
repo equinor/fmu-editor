@@ -183,7 +183,9 @@ export const Editor: React.FC<EditorProps> = () => {
             }
 
             timeout.current = setTimeout(() => {
-                dispatch(setEditorViewState(convertFromViewState(monacoEditorRef.current.saveViewState())));
+                if (monacoEditorRef.current) {
+                    dispatch(setEditorViewState(convertFromViewState(monacoEditorRef.current.saveViewState())));
+                }
             }, 500);
         }
     };

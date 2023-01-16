@@ -4,7 +4,6 @@ import {AppDispatch} from "@redux/store";
 
 import {Notification, NotificationType} from "@shared-types/notifications";
 
-import fs from "fs";
 import { File } from "@utils/file-system/file";
 import path from "path";
 
@@ -32,22 +31,21 @@ export function saveFile(
     dispatch(addNotification(notification));
 }
 
-export function saveFileAs(oldFilePath: string, newFilePath: string, value: string, dispatch: AppDispatch) {
-    try {
-        fs.writeFileSync(newFilePath, value, {
-            encoding: "utf-8",
-            flag: "w",
-        });
+export function saveFileAs(oldFilePath: string, newFilePath: string, value: string, workingDirectory: string, dispatch: AppDispatch) {
+    const file = new File(path.relative(workingDirectory, newFilePath), workingDirectory);
+
+    if (file.writeString(value)) {
         dispatch(changeFilePath({oldFilePath, newFilePath}));
         const notification: Notification = {
             type: NotificationType.SUCCESS,
             message: `${newFilePath} successfully saved.`,
         };
         dispatch(addNotification(notification));
-    } catch (e) {
+    }
+    else {
         const notification: Notification = {
             type: NotificationType.ERROR,
-            message: `Could not save file '${newFilePath}'. ${e}`,
+            message: `Could not save file '${newFilePath}'.`,
         };
         dispatch(addNotification(notification));
     }

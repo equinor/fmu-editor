@@ -12,6 +12,8 @@ import {
 
 import path from "path";
 
+import { commitFiles } from "@utils/file-system/operations";
+import { Changelog } from "@utils/file-system/changelog";
 import {Webworker} from "./worker-utils";
 
 // eslint-disable-next-line no-restricted-globals
@@ -71,17 +73,6 @@ const ensureUserDirectoryExists = (): void => {
     maybeInitUserDirectory(currrentDirectory, currentUsername);
 };
 
-const commitFileChanges = (directory: string, files: string[]): boolean => {
-    try {
-        files.forEach(file => {
-            const fileToCommit = new File(file, directory);
-            return fileToCommit.commit();
-        });
-    } catch (e) {
-        return false;
-    }
-};
-
 // eslint-disable-next-line no-restricted-globals
 self.setInterval(ensureUserDirectoryExists, 3000);
 
@@ -91,7 +82,16 @@ webworker.on(FileOperationsRequestType.SET_USER_DIRECTORY, ({directory, username
     maybeInitUserDirectory(directory, username);
 });
 
-webworker.on(FileOperationsRequestType.COMMIT_USER_CHANGES, ({files}) => {
-    const result = commitFileChanges(currrentDirectory, files);
-    webworker.postMessage(FileOperationsResponseType.USER_CHANGES_COMMITTED, {result});
+webworker.on(FileOperationsRequestType.COMMIT_USER_CHANGES, ({fileChanges, commitSummary, commitDescription}) => {
+    if (currentUsername && currrentDirectory) {
+        const {notCommittedFiles, commit} = commitFiles(fileChanges, currentUsername, commitSummary, commitDescription, currrentDirectory);
+
+        let commitMessageWritten = false;
+        if (fileChanges.length > notCommittedFiles.length) {
+            const changelog = new Changelog(currrentDirectory);
+            commitMessageWritten = changelog.appendCommit(commit);
+        }
+
+        webworker.postMessage(FileOperationsResponseType.USER_CHANGES_COMMITTED, {commitMessageWritten, notCommittedFiles});
+    }
 });

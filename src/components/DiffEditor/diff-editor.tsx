@@ -3,7 +3,6 @@ import {Close} from "@mui/icons-material";
 import {Button, IconButton, useTheme} from "@mui/material";
 import useSize from "@react-hook/size";
 import {useFileChangesWatcher} from "@services/file-changes-service";
-import {useFileManager} from "@services/file-manager";
 
 import React from "react";
 import {VscSave, VscWarning} from "react-icons/vsc";
@@ -86,7 +85,6 @@ export const DiffEditor: React.VFC = () => {
     const diffFileOrigin = useAppSelector(state => state.ui.diffFileOrigin);
     const currentDirectory = useAppSelector(state => state.files.directory);
     const dispatch = useAppDispatch();
-    const {fileManager} = useFileManager();
     const globalSettings = useGlobalSettings();
     const {snapshot} = useFileChangesWatcher();
 
@@ -208,7 +206,6 @@ export const DiffEditor: React.VFC = () => {
     }, [
         currentDirectory,
         dispatch,
-        fileManager,
         globalSettings.supportedFileExtensions,
         diffMainFilePath,
         diffUserFilePath,

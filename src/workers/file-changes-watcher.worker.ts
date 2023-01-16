@@ -1,4 +1,3 @@
-import {FileManager} from "@utils/file-manager";
 import {compareDirectories} from "@utils/file-system/operations";
 import {WorkingDirectory} from "@utils/file-system/working-directory";
 
@@ -14,7 +13,6 @@ import {Webworker} from "./worker-utils";
 
 // eslint-disable-next-line no-restricted-globals
 const webworker = new Webworker<FileChangesResponses, FileChangesRequests>({self});
-const fileManager = new FileManager();
 
 let currentDirectory: string | null = null;
 
@@ -42,5 +40,4 @@ self.setInterval(checkForFileChanges, 3000);
 
 webworker.on(FileChangesWatcherRequestType.SET_DIRECTORY, ({directory}) => {
     currentDirectory = directory;
-    fileManager.setCurrentDirectory(directory);
 });

@@ -1,5 +1,4 @@
 import {IDynamicPerson} from "@microsoft/mgt-components";
-import {useFileManager} from "@services/file-manager";
 
 import React from "react";
 
@@ -12,17 +11,15 @@ import {setDiffUserFile} from "@redux/reducers/ui";
 
 import {FileChange, FileChangeOrigin} from "@shared-types/file-changes";
 
-import path from "path";
-
 export type UserChangesBrowserItemProps = {
     change: FileChange;
 };
 
 export const OngoingChangesBrowserItem: React.FC<UserChangesBrowserItemProps> = props => {
     const [userDetails, setUserDetails] = React.useState<IDynamicPerson | null>(null);
-    const {fileManager} = useFileManager();
     const directory = useAppSelector(state => state.files.directory);
     const diffUserFile = useAppSelector(state => state.ui.diffUserFile);
+    const [userFile, setUserFile] = React.useState<File | null>(null);
 
     const dispatch = useAppDispatch();
 
@@ -36,13 +33,14 @@ export const OngoingChangesBrowserItem: React.FC<UserChangesBrowserItemProps> = 
         );
     };
 
+    React.useEffect(() => {
+        setUserFile(new File(props.change.relativePath, directory).getUserVersion(props.change.user));
+    }, [props.change.relativePath, props.change.user, directory]);
+
     return (
         <a
             className={`OngoingChangesBrowserItem${
-                fileManager.getUserFileIfExists(path.join(directory, props.change.relativePath), props.change.user) ===
-                diffUserFile
-                    ? " OngoingChangesBrowserItem--selected"
-                    : ""
+                userFile.absolutePath() === diffUserFile ? " OngoingChangesBrowserItem--selected" : ""
             }`}
             onClick={() => handleClick(props.change.relativePath, props.change.user)}
         >

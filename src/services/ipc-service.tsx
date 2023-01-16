@@ -11,11 +11,8 @@ import {saveFile} from "@redux/thunks";
 
 import {NotificationType} from "@shared-types/notifications";
 
-import {useFileManager} from "./file-manager";
-
 export const IpcService: React.FC = props => {
     const dispatch = useAppDispatch();
-    const {fileManager, copyUserDirectory} = useFileManager();
     const activeFilePath = useAppSelector(state => state.files.activeFile);
     const associatedWithFile = useAppSelector(
         state => state.files.files.find(el => el.filePath === state.files.activeFile)?.associatedWithFile || false
@@ -61,15 +58,7 @@ export const IpcService: React.FC = props => {
                 ipcRenderer.removeAllListeners(channelName);
             });
         };
-    }, [
-        activeFilePath,
-        currentEditorValue,
-        dispatch,
-        mainProcessData,
-        associatedWithFile,
-        fileManager,
-        copyUserDirectory,
-    ]);
+    }, [activeFilePath, currentEditorValue, dispatch, mainProcessData, associatedWithFile, workingDirectory]);
 
     return <>{props.children}</>;
 };

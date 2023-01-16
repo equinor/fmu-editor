@@ -1,4 +1,6 @@
-import {FileChange, FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
+import {FileChange, FileChangeOrigin, FileChangeType, } from "@shared-types/file-changes";
+import { ICommit } from "@shared-types/changelog";
+import { v4 } from "uuid";
 
 import {Directory} from "./directory";
 import {File} from "./file";
@@ -89,14 +91,14 @@ export const compareDirectories = (workingDirectory: string, user: string): File
         } else if (snapshot.fileExists(file.getMainVersion().relativePath())) {
             changes.push({
                 type: FileChangeType.DELETED,
-                relativePath: file.relativePath(),
+                relativePath: file.getMainVersion().relativePath(),
                 origin: FileChangeOrigin.MAIN,
                 user,
             });
         } else {
             changes.push({
                 type: FileChangeType.ADDED,
-                relativePath: file.relativePath(),
+                relativePath: file.getMainVersion().relativePath(),
                 origin: FileChangeOrigin.USER,
                 user,
             });
@@ -104,4 +106,32 @@ export const compareDirectories = (workingDirectory: string, user: string): File
     });
 
     return changes;
+};
+
+export const commitFiles = (fileChanges: FileChange[], username: string, commitSummary: string, commitDescription: string, workingDirectory: string): {notCommittedFiles: string[], commit: ICommit} => {
+    const committedFileChanges: FileChange[] = [];
+    const snapshot = new Snapshot(workingDirectory, username);
+
+    fileChanges.forEach(fileChange => {
+        const userFile = new File(fileChange.relativePath, workingDirectory).getUserVersion(username);
+        if (userFile.commit()) {
+            committedFileChanges.push(fileChange);
+            snapshot.updateModified(fileChange.relativePath);
+        }
+    });
+
+    const commit: ICommit = {
+        id: v4(),
+        author: username,
+        message: [commitSummary, commitDescription].join("\n"),
+        datetime: new Date().getTime(),
+        files: committedFileChanges.map(el => ({
+            path: el.relativePath,
+            action: el.type,
+        })),
+    };
+
+    return {
+        notCommittedFiles: fileChanges.filter(el => !committedFileChanges.includes(el)).map(el => el.relativePath), commit
+    };
 };

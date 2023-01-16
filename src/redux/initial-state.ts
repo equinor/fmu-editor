@@ -1,7 +1,6 @@
 import {ipcRenderer} from "electron";
 
 import electronStore from "@utils/electron-store";
-import {getFileContent} from "@utils/file-operations";
 import {generateHashCode} from "@utils/hash";
 
 import {EventSource, File, FilesState} from "@shared-types/files";
@@ -10,8 +9,9 @@ import {PreferencesState} from "@shared-types/preferences";
 import {ChangesBrowserView, Page, Themes, UiState, View} from "@shared-types/ui";
 import {UiCoachState} from "@shared-types/ui-coach";
 
-import fs from "fs";
 import {SelectionDirection} from "monaco-editor";
+import path from "path";
+import { File as FileInterface } from "@utils/file-system/file";
 
 const paneConfiguration = electronStore.get("ui.paneConfiguration");
 
@@ -67,10 +67,12 @@ const initialFilesState: FilesState = {
     eventSource: EventSource.Editor,
     files:
         electronStore.get("files.files")?.map((file: any): File => {
-            const fileContent = getFileContent(file.filePath);
+            const directory = electronStore.get("files.directory") || "";
+            const userFile = new FileInterface(path.relative(directory, file.filePath), directory);
+            const fileContent = userFile.readString();
             return {
                 filePath: file.filePath,
-                associatedWithFile: fs.existsSync(file.filePath),
+                associatedWithFile: userFile.exists(),
                 editorValue: fileContent,
                 editorViewState: file.editorViewState === "null" ? null : file.editorViewState,
                 hash: generateHashCode(fileContent),

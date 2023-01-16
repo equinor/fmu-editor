@@ -1,4 +1,4 @@
-import {FileChangeType} from "./file-changes";
+import {FileChange, FileChangeType} from "./file-changes";
 
 export enum FileOperationsRequestType {
     COPY_USER_DIRECTORY = "COPY_USER_DIRECTORY",
@@ -40,7 +40,9 @@ export type FileOperationsRequests = {
         directory: string;
     };
     [FileOperationsRequestType.COMMIT_USER_CHANGES]: {
-        files: string[];
+        fileChanges: FileChange[];
+        commitSummary: string;
+        commitDescription: string;
     };
 };
 
@@ -55,6 +57,7 @@ export type FileOperationsResponses = {
     };
     [FileOperationsResponseType.USER_DIRECTORY_INITIALIZED]: {};
     [FileOperationsResponseType.USER_CHANGES_COMMITTED]: {
-        success: boolean;
+        notCommittedFiles: string[];
+        commitMessageWritten: boolean;
     };
 };

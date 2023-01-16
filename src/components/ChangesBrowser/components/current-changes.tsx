@@ -1,28 +1,25 @@
 import {useFileChanges} from "@hooks/useFileChanges";
+import {LoadingButton} from "@mui/lab";
 import {Button, IconButton, Stack} from "@mui/material";
-import {useChangelogWatcher} from "@services/changelog-service";
 import {useEnvironment} from "@services/environment-service";
-import {useFileManager} from "@services/file-manager";
+import {CommitState, useFileOperationsService} from "@services/file-operations-service";
 
 import React from "react";
 import {VscClose} from "react-icons/vsc";
 
 import {File} from "@utils/file-system/file";
 
+import {ChangesList, ChangesListMode} from "@components/ChangesList/changes-list";
 import {Input} from "@components/Input";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
+import {addNotification} from "@redux/reducers/notifications";
 import {resetDiffFiles, setChangesBrowserView, setDiffFiles} from "@redux/reducers/ui";
 
-import {ICommit} from "@shared-types/changelog";
-import {FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
+import {FileChangeOrigin} from "@shared-types/file-changes";
+import {NotificationType} from "@shared-types/notifications";
 import {ChangesBrowserView} from "@shared-types/ui";
-
-import path from "path";
-import {v4} from "uuid";
-
-import {ChangesList, ChangesListMode} from "../../ChangesList/changes-list";
 
 const FILE_ORIGINS = [FileChangeOrigin.USER, FileChangeOrigin.BOTH];
 
@@ -35,13 +32,42 @@ export const CurrentChanges: React.VFC = () => {
 
     const dispatch = useAppDispatch();
     const {username} = useEnvironment();
-    const {fileManager} = useFileManager();
-    const changelog = useChangelogWatcher();
     const directory = useAppSelector(state => state.files.directory);
+    const {commitUserChanges, notCommittedFiles, commitState, resetCommitState} = useFileOperationsService();
 
     React.useEffect(() => {
         setStagedFiles(prev => prev.filter(el => userFileChanges.some(change => change.relativePath === el)));
     }, [userFileChanges]);
+
+    React.useEffect(() => {
+        if (commitState === CommitState.COMMITTED) {
+            if (notCommittedFiles.length === 0) {
+                dispatch(setChangesBrowserView(ChangesBrowserView.LoggedChanges));
+                dispatch(
+                    addNotification({
+                        type: NotificationType.SUCCESS,
+                        message: "All changes successfully committed",
+                    })
+                );
+                resetCommitState();
+                return;
+            }
+            dispatch(
+                addNotification({
+                    type: NotificationType.ERROR,
+                    message: "Some changes could not be committed",
+                })
+            );
+        } else if (commitState === CommitState.FAILED) {
+            dispatch(
+                addNotification({
+                    type: NotificationType.ERROR,
+                    message: "An error occurred while committing changes",
+                })
+            );
+        }
+        resetCommitState();
+    }, [commitState, notCommittedFiles, dispatch, resetCommitState]);
 
     const handleStageOrUnstageFile = React.useCallback(
         (filePath: string) => {
@@ -55,37 +81,14 @@ export const CurrentChanges: React.VFC = () => {
     );
 
     const handleCommit = React.useCallback(() => {
-        if (
-            fileManager.commitFileChanges(
-                stagedFiles.map(file =>
-                    fileManager.getUserFileIfExists(path.join(fileManager.getCurrentDirectory(), file))
-                )
-            ) &&
-            username
-        ) {
-            const commit: ICommit = {
-                id: v4(),
-                author: username,
-                message: [commitSummary, commitDescription].join("\n"),
-                datetime: new Date().getTime(),
-                files: stagedFiles.map(el => ({
-                    path: el,
-                    action: userFileChanges.find(change => change.relativePath === el)?.type || FileChangeType.MODIFIED,
-                })),
-            };
-            changelog.appendCommit(commit);
-            setCommitSummary("");
-            setCommitDescription("");
-            setStagedFiles([]);
-            dispatch(
-                setDiffFiles({
-                    mainFile: undefined,
-                    userFile: undefined,
-                    origin: undefined,
-                })
-            );
-        }
-    }, [stagedFiles, fileManager, username, changelog, commitSummary, commitDescription, userFileChanges, dispatch]);
+        if (stagedFiles.length === 0) return;
+
+        commitUserChanges(
+            userFileChanges.filter(el => stagedFiles.includes(el.relativePath)),
+            commitSummary,
+            commitDescription
+        );
+    }, [commitUserChanges, userFileChanges, stagedFiles, commitSummary, commitDescription]);
 
     const handleFileSelected = React.useCallback(
         (filePath: string, origin: FileChangeOrigin) => {
@@ -174,7 +177,7 @@ export const CurrentChanges: React.VFC = () => {
                 </div>
                 <div className="ChangesBrowserList">
                     <ChangesList
-                        mode={ChangesListMode.Staging}
+                        mode={ChangesListMode.Unstaging}
                         fileChanges={userFileChanges.filter(el => stagedFiles.includes(el.relativePath))}
                         onFileSelect={handleFileSelected}
                         onFileUnstage={handleStageOrUnstageFile}
@@ -197,13 +200,15 @@ export const CurrentChanges: React.VFC = () => {
                         fontSize="0.98rem"
                     />
                 </Stack>
-                <Button
+                <LoadingButton
                     onClick={() => handleCommit()}
                     disabled={stagedFiles.length === 0 || commitSummary.length === 0}
                     variant="contained"
+                    loadingPosition="start"
+                    loading={commitState === CommitState.COMMITTING}
                 >
-                    Commit changes
-                </Button>
+                    {commitState === CommitState.COMMITTING ? "Committing changes" : "Commit changes"}
+                </LoadingButton>
             </Stack>
         </>
     );

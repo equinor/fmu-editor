@@ -19,18 +19,18 @@ export const OverflowEllipsis: React.FC<OverflowEllipsisType> = props => {
     const ref = React.useRef<HTMLDivElement | null>(null);
     const size = useSize(ref.current);
 
-    const measureTextWidth = (text: string, font?: string): number => {
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-        if (context && ref.current) {
-            context.font = font || getComputedStyle(ref.current).font;
-
-            return context.measureText(text).width;
-        }
-        return 0;
-    };
-
     React.useLayoutEffect(() => {
+        const measureTextWidth = (text: string, font?: string): number => {
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+            if (context && ref.current) {
+                context.font = font || getComputedStyle(ref.current).font;
+
+                return context.measureText(text).width;
+            }
+            return 0;
+        };
+
         if (size[0] === 0) {
             return;
         }

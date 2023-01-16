@@ -41,3 +41,11 @@
     align-items: center;
     justify-content: center;
 }
+
+.CommitItem__Time {
+    font-size: var(--body-short-font-size);
+}
+
+.CommitItem--selected .CommitItem__Time {
+    color: var(--text-on-primary);
+}

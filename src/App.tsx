@@ -7,7 +7,8 @@
 import {ThemeProvider} from "@mui/material";
 import {ChangelogWatcherService} from "@services/changelog-service";
 import {EnvironmentService} from "@services/environment-service";
-import {FileManagerService} from "@services/file-manager";
+import {FileOperationsService} from "@services/file-operations-service";
+import {FileSystemWatcherService} from "@services/file-system-service";
 import {IpcService} from "@services/ipc-service";
 
 import React from "react";
@@ -59,16 +60,18 @@ const App = (): JSX.Element => {
                     <ThemeProvider theme={Theme(mode)}>
                         <NotificationsProvider>
                             <EnvironmentService>
-                                <FileManagerService>
+                                <FileOperationsService>
                                     <ChangelogWatcherService>
                                         <FileChangesWatcherService>
-                                            <IpcService>
-                                                <MainWindow />
-                                                <LoginDialog />
-                                            </IpcService>
+                                            <FileSystemWatcherService>
+                                                <IpcService>
+                                                    <MainWindow />
+                                                    <LoginDialog />
+                                                </IpcService>
+                                            </FileSystemWatcherService>
                                         </FileChangesWatcherService>
                                     </ChangelogWatcherService>
-                                </FileManagerService>
+                                </FileOperationsService>
                             </EnvironmentService>
                         </NotificationsProvider>
                     </ThemeProvider>

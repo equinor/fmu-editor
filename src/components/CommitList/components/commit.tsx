@@ -1,4 +1,4 @@
-import {ListItem, ListItemAvatar} from "@mui/material";
+import {ListItem, ListItemAvatar, ListItemSecondaryAction} from "@mui/material";
 
 import React from "react";
 
@@ -10,6 +10,7 @@ export type CommitProps = {
     id: string;
     message: string;
     user: string;
+    datetime: number;
     onClick?: () => void;
 };
 
@@ -27,6 +28,9 @@ export const Commit: React.FC<CommitProps> = props => {
                 <Avatar user={props.user} size={24} />
             </ListItemAvatar>
             {summary}
+            <ListItemSecondaryAction className="CommitItem__Time">
+                {new Date(props.datetime).toLocaleTimeString()}
+            </ListItemSecondaryAction>
         </ListItem>
     );
 };
