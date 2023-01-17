@@ -21,7 +21,6 @@ import {
 import {NotificationType} from "@shared-types/notifications";
 
 import path from "path";
-import {v4} from "uuid";
 
 import {FileComponent} from "./file-component";
 import {NewItem, NewItemType} from "./new-item";
@@ -330,7 +329,10 @@ export const DirectoryComponent: React.VFC<DirectoryComponentProps> = props => {
                     {props.level > 1 &&
                         Array(props.level - 1)
                             .fill(0)
-                            .map(_ => <div className="ExplorerPath" key={`${props.directory.baseName()}-${v4()}}`} />)}
+                            .map((_, index) => (
+                                // eslint-disable-next-line react/no-array-index-key
+                                <div className="ExplorerPath" key={`${props.directory.baseName()}-${index}}`} />
+                            ))}
                     <div className="ExplorerItemIcon">
                         {expanded ? <VscChevronDown fontSize="small" /> : <VscChevronRight fontSize="small" />}
                     </div>

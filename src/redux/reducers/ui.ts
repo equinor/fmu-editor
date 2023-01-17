@@ -45,13 +45,13 @@ export const uiSlice = createSlice({
             state: Draft<UiState>,
             action: PayloadAction<{userFile?: string; origin: FileChangeOrigin}>
         ) => {
-            state.diffUserFile = action.payload.userFile;
+            state.diff.modifiedRelativeFilePath = action.payload.userFile;
         },
         setDiffMainFile: (
             state: Draft<UiState>,
             action: PayloadAction<{mainFile?: string; origin: FileChangeOrigin}>
         ) => {
-            state.diffMainFile = action.payload.mainFile;
+            state.diff.originalRelativeFilePath = action.payload.mainFile;
         },
         setChangesBrowserView: (state: Draft<UiState>, action: PayloadAction<ChangesBrowserView>) => {
             state.changesBrowserView = action.payload;
@@ -63,14 +63,14 @@ export const uiSlice = createSlice({
             state: Draft<UiState>,
             action: PayloadAction<{mainFile?: string; userFile?: string; origin: FileChangeOrigin}>
         ) => {
-            state.diffMainFile = action.payload.mainFile;
-            state.diffUserFile = action.payload.userFile;
-            state.diffFileOrigin = action.payload.origin;
+            state.diff.originalRelativeFilePath = action.payload.mainFile;
+            state.diff.modifiedRelativeFilePath = action.payload.userFile;
+            state.diff.fileOrigin = action.payload.origin;
         },
         resetDiffFiles: (state: Draft<UiState>) => {
-            state.diffMainFile = undefined;
-            state.diffUserFile = undefined;
-            state.diffFileOrigin = undefined;
+            state.diff.originalRelativeFilePath = undefined;
+            state.diff.modifiedRelativeFilePath = undefined;
+            state.diff.fileOrigin = undefined;
         },
         setDragParentFolder: (state: Draft<UiState>, action: PayloadAction<string>) => {
             state.explorer.dragParentFolder = action.payload;

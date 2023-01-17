@@ -1,6 +1,7 @@
-import {FileChange, FileChangeOrigin, FileChangeType, } from "@shared-types/file-changes";
-import { ICommit } from "@shared-types/changelog";
-import { v4 } from "uuid";
+import {ICommit} from "@shared-types/changelog";
+import {FileChange, FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
+
+import {v4} from "uuid";
 
 import {Directory} from "./directory";
 import {File} from "./file";
@@ -108,13 +109,19 @@ export const compareDirectories = (workingDirectory: string, user: string): File
     return changes;
 };
 
-export const commitFiles = (fileChanges: FileChange[], username: string, commitSummary: string, commitDescription: string, workingDirectory: string): {notCommittedFiles: string[], commit: ICommit} => {
+export const pushFiles = (
+    fileChanges: FileChange[],
+    username: string,
+    commitSummary: string,
+    commitDescription: string,
+    workingDirectory: string
+): {notCommittedFiles: string[]; commit: ICommit} => {
     const committedFileChanges: FileChange[] = [];
     const snapshot = new Snapshot(workingDirectory, username);
 
     fileChanges.forEach(fileChange => {
         const userFile = new File(fileChange.relativePath, workingDirectory).getUserVersion(username);
-        if (userFile.commit()) {
+        if (userFile.push()) {
             committedFileChanges.push(fileChange);
             snapshot.updateModified(fileChange.relativePath);
         }
@@ -132,6 +139,19 @@ export const commitFiles = (fileChanges: FileChange[], username: string, commitS
     };
 
     return {
-        notCommittedFiles: fileChanges.filter(el => !committedFileChanges.includes(el)).map(el => el.relativePath), commit
+        notCommittedFiles: fileChanges.filter(el => !committedFileChanges.includes(el)).map(el => el.relativePath),
+        commit,
     };
+};
+
+export const pullFiles = (fileChanges: FileChange[], username: string, workingDirectory: string): string[] => {
+    const pulledFileChanges: FileChange[] = [];
+    fileChanges.forEach(fileChange => {
+        const file = new File(fileChange.relativePath, workingDirectory);
+        if (file.pull(username)) {
+            pulledFileChanges.push(fileChange);
+        }
+    });
+
+    return fileChanges.filter(el => !pulledFileChanges.includes(el)).map(el => el.relativePath);
 };

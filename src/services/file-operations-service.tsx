@@ -25,28 +25,63 @@ const fileOperationsWorker = new Webworker<FileOperationsRequests, FileOperation
     Worker: FileOperationsWorker,
 });
 
-export enum CommitState {
+export enum PushState {
     IDLE = "idle",
-    COMMITTING = "committing",
-    COMMITTED = "committed",
+    PUSHING = "pushing",
+    PUSHED = "pushed",
     FAILED = "failed",
+}
+
+export enum PullState {
+    IDLE = "idle",
+    PULLING = "pulling",
+    PULLED = "pulled",
+    FAILED = "failed",
+}
+
+export enum FileOperationsServiceEventTypes {
+    COPY_USER_DIRECTORY_PROGRESS = "COPY_USER_DIRECTORY_PROGRESS",
+    PUSH_STATE_CHANGED = "PUSH_STATE_CHANGED",
+    PULL_STATE_CHANGED = "PULL_STATE_CHANGED",
+}
+
+export interface FileOperationsServiceEvents {
+    [FileOperationsServiceEventTypes.COPY_USER_DIRECTORY_PROGRESS]: CustomEvent<
+        FileOperationsResponses[FileOperationsResponseType.COPY_USER_DIRECTORY_PROGRESS]
+    >;
+    [FileOperationsServiceEventTypes.PUSH_STATE_CHANGED]: CustomEvent<{state: PushState; notPushedFiles?: string[]}>;
+    [FileOperationsServiceEventTypes.PULL_STATE_CHANGED]: CustomEvent<{state: PullState; notPulledFiles?: string[]}>;
+}
+
+declare global {
+    interface Document {
+        addEventListener<K extends keyof FileOperationsServiceEvents>(
+            type: K,
+            listener: (this: Document, ev: FileOperationsServiceEvents[K]) => void
+        ): void;
+        dispatchEvent<K extends keyof FileOperationsServiceEvents>(ev: FileOperationsServiceEvents[K]): void;
+        removeEventListener<K extends keyof FileOperationsServiceEvents>(
+            type: K,
+            listener: (this: Document, ev: FileOperationsServiceEvents[K]) => void
+        ): void;
+    }
 }
 
 export type Context = {
     copyUserDirectory: () => void;
     changedFiles: ChangedFile[] | null;
-    commitState: CommitState;
-    commitUserChanges: (fileChanges: FileChange[], commitSummary: string, commitDescription: string) => void;
-    notCommittedFiles: string[];
-    resetCommitState: () => void;
+    pushState: PushState;
+    pullState: PullState;
+    pushUserChanges: (fileChanges: FileChange[], commitSummary: string, commitDescription: string) => void;
+    pullMainChanges: (fileChanges: FileChange[]) => void;
 };
 
 const [useFileOperationsContext, FileOperationsContextProvider] = createGenericContext<Context>();
 
 export const FileOperationsService: React.FC = props => {
     const [changedFiles, setChangedFiles] = React.useState<ChangedFile[] | null>(null);
-    const [commitState, setCommitState] = React.useState<CommitState>(CommitState.IDLE);
-    const [notCommittedFiles, setNotCommittedFiles] = React.useState<string[]>([]);
+    const [pushState, setPushState] = React.useState<PushState>(PushState.IDLE);
+    const [pullState, setPullState] = React.useState<PullState>(PullState.IDLE);
     const environment = useEnvironment();
     const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
     const currentDirectory = useAppSelector(state => state.files.directory);
@@ -71,37 +106,69 @@ export const FileOperationsService: React.FC = props => {
         }
     }, [environment, currentDirectory]);
 
-    const resetCommitState = React.useCallback(() => {
-        setCommitState(CommitState.IDLE);
-    }, []);
-
-    const commitUserChanges = React.useCallback(
+    const pushUserChanges = React.useCallback(
         (fileChanges: FileChange[], commitSummary: string, commitDescription: string) => {
             if (fileOperationsWorker) {
-                fileOperationsWorker.postMessage(FileOperationsRequestType.COMMIT_USER_CHANGES, {
+                fileOperationsWorker.postMessage(FileOperationsRequestType.PUSH_USER_CHANGES, {
                     fileChanges,
                     commitSummary,
                     commitDescription,
                 });
-                setCommitState(CommitState.COMMITTING);
+                document.dispatchEvent(
+                    new CustomEvent(FileOperationsServiceEventTypes.PUSH_STATE_CHANGED, {
+                        detail: {state: PullState.PULLING},
+                    })
+                );
+                setPushState(PushState.PUSHING);
             }
         },
         []
     );
 
+    const pullMainChanges = React.useCallback((fileChanges: FileChange[]) => {
+        if (fileOperationsWorker) {
+            fileOperationsWorker.postMessage(FileOperationsRequestType.PULL_MAIN_CHANGES, {
+                fileChanges,
+            });
+            document.dispatchEvent(
+                new CustomEvent(FileOperationsServiceEventTypes.PULL_STATE_CHANGED, {
+                    detail: {state: PushState.PUSHING},
+                })
+            );
+            setPullState(PullState.PULLING);
+        }
+    }, []);
+
     React.useEffect(() => {
         if (fileOperationsWorker) {
             fileOperationsWorker.on(FileOperationsResponseType.COPY_USER_DIRECTORY_PROGRESS, payload => {
-                document.dispatchEvent(new CustomEvent("copyUserDirectoryProgress", {detail: payload}));
+                document.dispatchEvent(
+                    new CustomEvent(FileOperationsServiceEventTypes.COPY_USER_DIRECTORY_PROGRESS, {detail: payload})
+                );
             });
 
             fileOperationsWorker.on(FileOperationsResponseType.CHANGED_FILES, payload => {
                 setChangedFiles(payload.changedFiles);
             });
 
-            fileOperationsWorker.on(FileOperationsResponseType.USER_CHANGES_COMMITTED, payload => {
-                setCommitState(payload.commitMessageWritten ? CommitState.COMMITTED : CommitState.FAILED);
-                setNotCommittedFiles(payload.notCommittedFiles);
+            fileOperationsWorker.on(FileOperationsResponseType.USER_CHANGES_PUSHED, payload => {
+                const newState = payload.commitMessageWritten ? PushState.PUSHED : PushState.FAILED;
+                setPushState(newState);
+                document.dispatchEvent(
+                    new CustomEvent(FileOperationsServiceEventTypes.PUSH_STATE_CHANGED, {
+                        detail: {state: newState, notPushedFiles: payload.notPushedFiles},
+                    })
+                );
+            });
+
+            fileOperationsWorker.on(FileOperationsResponseType.MAIN_CHANGES_PULLED, payload => {
+                const newState = payload.success ? PullState.PULLED : PullState.FAILED;
+                setPullState(newState);
+                document.dispatchEvent(
+                    new CustomEvent(FileOperationsServiceEventTypes.PUSH_STATE_CHANGED, {
+                        detail: {state: newState, notPulledFiles: payload.notPulledFiles},
+                    })
+                );
             });
         }
     }, [dispatch]);
@@ -111,10 +178,10 @@ export const FileOperationsService: React.FC = props => {
             value={{
                 copyUserDirectory,
                 changedFiles,
-                commitUserChanges,
-                commitState,
-                notCommittedFiles,
-                resetCommitState,
+                pushState,
+                pullState,
+                pushUserChanges,
+                pullMainChanges,
             }}
         >
             {props.children}

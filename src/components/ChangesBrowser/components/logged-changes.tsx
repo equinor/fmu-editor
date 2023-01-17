@@ -28,7 +28,7 @@ export const LoggedChanges: React.VFC = () => {
     const currentCommit = useAppSelector(state => state.ui.currentCommit);
     const dispatch = useAppDispatch();
     const environment = useEnvironment();
-    const diffMainFile = useAppSelector(state => state.ui.diffMainFile);
+    const originalRelativeFilePath = useAppSelector(state => state.ui.diff.originalRelativeFilePath);
     const directory = useAppSelector(state => state.files.directory);
 
     React.useEffect(() => {
@@ -103,7 +103,7 @@ export const LoggedChanges: React.VFC = () => {
                 {currentCommit.files.map(fileChange => (
                     <div
                         className={`ChangesBrowserListItem${
-                            fileChange.path === diffMainFile ? " ChangesBrowserListItemSelected" : ""
+                            fileChange.path === originalRelativeFilePath ? " ChangesBrowserListItemSelected" : ""
                         }`}
                         key={fileChange.path}
                         onClick={() => handleFileSelected(fileChange.path)}

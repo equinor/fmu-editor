@@ -25,8 +25,7 @@ export type ChangesListProps = {
 };
 
 export const ChangesList: React.FC<ChangesListProps> = props => {
-    const diffMainFile = useAppSelector(state => state.ui.diffMainFile);
-    const diffUserFile = useAppSelector(state => state.ui.diffUserFile);
+    const diff = useAppSelector(state => state.ui.diff);
 
     const handleStageOrUnstageChange = (e: React.MouseEvent<HTMLButtonElement>, relativePath: string) => {
         e.stopPropagation();
@@ -49,8 +48,9 @@ export const ChangesList: React.FC<ChangesListProps> = props => {
             {props.fileChanges.map(fileChange => (
                 <div
                     className={`ChangesBrowserListItem${
-                        (fileChange.type === FileChangeType.MODIFIED && fileChange.relativePath === diffMainFile) ||
-                        fileChange.relativePath === diffUserFile
+                        (fileChange.type === FileChangeType.MODIFIED &&
+                            fileChange.relativePath === diff.originalRelativeFilePath) ||
+                        fileChange.relativePath === diff.modifiedRelativeFilePath
                             ? " ChangesBrowserListItemSelected"
                             : ""
                     }`}

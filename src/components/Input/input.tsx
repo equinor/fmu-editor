@@ -13,6 +13,7 @@ export type InputProps = {
     rows?: number;
     multiline?: boolean;
     fontSize?: number | string;
+    disabled?: boolean;
 };
 
 export const Input: React.FC<InputProps> = props => {
@@ -40,6 +41,7 @@ export const Input: React.FC<InputProps> = props => {
             rows={props.rows}
             maxRows={props.maxRows}
             style={{fontSize: props.fontSize}}
+            disabled={props.disabled}
         />
     );
 };

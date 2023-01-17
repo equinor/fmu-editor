@@ -1,5 +1,7 @@
+import {Changelog} from "@utils/file-system/changelog";
 import {Directory} from "@utils/file-system/directory";
 import {File} from "@utils/file-system/file";
+import {pullFiles, pushFiles} from "@utils/file-system/operations";
 import {Snapshot} from "@utils/file-system/snapshot";
 
 import {
@@ -12,15 +14,13 @@ import {
 
 import path from "path";
 
-import { commitFiles } from "@utils/file-system/operations";
-import { Changelog } from "@utils/file-system/changelog";
 import {Webworker} from "./worker-utils";
 
 // eslint-disable-next-line no-restricted-globals
 const webworker = new Webworker<FileOperationsResponses, FileOperationsRequests>({self});
 
 let currentUsername: string = "";
-let currrentDirectory: string = "";
+let currentWorkingDirectory: string = "";
 
 const copyToUserDirectory = (directory: string, user: string): void => {
     const userDirectoryPath = path.join(".users", user);
@@ -66,11 +66,11 @@ const maybeInitUserDirectory = (directory: string, user: string): void => {
 };
 
 const ensureUserDirectoryExists = (): void => {
-    if (!currentUsername || !currrentDirectory) {
+    if (!currentUsername || !currentWorkingDirectory) {
         return;
     }
 
-    maybeInitUserDirectory(currrentDirectory, currentUsername);
+    maybeInitUserDirectory(currentWorkingDirectory, currentUsername);
 };
 
 // eslint-disable-next-line no-restricted-globals
@@ -78,20 +78,40 @@ self.setInterval(ensureUserDirectoryExists, 3000);
 
 webworker.on(FileOperationsRequestType.SET_USER_DIRECTORY, ({directory, username}) => {
     currentUsername = username;
-    currrentDirectory = directory;
+    currentWorkingDirectory = directory;
     maybeInitUserDirectory(directory, username);
 });
 
-webworker.on(FileOperationsRequestType.COMMIT_USER_CHANGES, ({fileChanges, commitSummary, commitDescription}) => {
-    if (currentUsername && currrentDirectory) {
-        const {notCommittedFiles, commit} = commitFiles(fileChanges, currentUsername, commitSummary, commitDescription, currrentDirectory);
+webworker.on(FileOperationsRequestType.PUSH_USER_CHANGES, ({fileChanges, commitSummary, commitDescription}) => {
+    if (currentUsername && currentWorkingDirectory) {
+        const {notCommittedFiles, commit} = pushFiles(
+            fileChanges,
+            currentUsername,
+            commitSummary,
+            commitDescription,
+            currentWorkingDirectory
+        );
 
         let commitMessageWritten = false;
         if (fileChanges.length > notCommittedFiles.length) {
-            const changelog = new Changelog(currrentDirectory);
+            const changelog = new Changelog(currentWorkingDirectory);
             commitMessageWritten = changelog.appendCommit(commit);
         }
 
-        webworker.postMessage(FileOperationsResponseType.USER_CHANGES_COMMITTED, {commitMessageWritten, notCommittedFiles});
+        webworker.postMessage(FileOperationsResponseType.USER_CHANGES_PUSHED, {
+            commitMessageWritten,
+            notPushedFiles: notCommittedFiles,
+        });
+    }
+});
+
+webworker.on(FileOperationsRequestType.PULL_MAIN_CHANGES, ({fileChanges}) => {
+    if (currentUsername && currentWorkingDirectory) {
+        const notPulledFiles = pullFiles(fileChanges, currentUsername, currentWorkingDirectory);
+
+        webworker.postMessage(FileOperationsResponseType.MAIN_CHANGES_PULLED, {
+            notPulledFiles,
+            success: notPulledFiles.length < fileChanges.length,
+        });
     }
 });

@@ -18,7 +18,7 @@ export type UserChangesBrowserItemProps = {
 export const OngoingChangesBrowserItem: React.FC<UserChangesBrowserItemProps> = props => {
     const [userDetails, setUserDetails] = React.useState<IDynamicPerson | null>(null);
     const directory = useAppSelector(state => state.files.directory);
-    const diffUserFile = useAppSelector(state => state.ui.diffUserFile);
+    const modifiedRelativeFilePath = useAppSelector(state => state.ui.diff.modifiedRelativeFilePath);
     const [userFile, setUserFile] = React.useState<File | null>(null);
 
     const dispatch = useAppDispatch();
@@ -40,7 +40,7 @@ export const OngoingChangesBrowserItem: React.FC<UserChangesBrowserItemProps> = 
     return (
         <a
             className={`OngoingChangesBrowserItem${
-                userFile.absolutePath() === diffUserFile ? " OngoingChangesBrowserItem--selected" : ""
+                userFile?.relativePath() === modifiedRelativeFilePath ? " OngoingChangesBrowserItem--selected" : ""
             }`}
             onClick={() => handleClick(props.change.relativePath, props.change.user)}
         >

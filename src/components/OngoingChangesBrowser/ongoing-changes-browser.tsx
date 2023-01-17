@@ -15,7 +15,7 @@ import {OngoingChangesBrowserItem} from "./components/ongoing-changes-browser-it
 import "./ongoing-changes-browser.css";
 
 export const OngoingChangesBrowser: React.VFC = () => {
-    const diffFile = useAppSelector(state => state.ui.diffMainFile);
+    const diffFile = useAppSelector(state => state.ui.diff.originalRelativeFilePath);
     const ongoingChanges = useOngoingChangesForFile(diffFile);
     const dispatch = useAppDispatch();
 

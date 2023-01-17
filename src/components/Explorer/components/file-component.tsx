@@ -21,8 +21,6 @@ import {FileChangeOrigin} from "@shared-types/file-changes";
 import {NotificationType} from "@shared-types/notifications";
 import {View} from "@shared-types/ui";
 
-import {v4} from "uuid";
-
 export type FileComponentProps = {
     file: File;
     level: number;
@@ -180,8 +178,9 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
             <ContextMenu template={contextMenuTemplate} parent={ref.current} />
             {Array(props.level)
                 .fill(0)
-                .map(_ => (
-                    <div className="ExplorerPath" key={`${props.file.relativePath()}-${v4()}`} />
+                .map((_, index) => (
+                    // eslint-disable-next-line react/no-array-index-key
+                    <div className="ExplorerPath" key={`${props.file.relativePath()}-${index}`} />
                 ))}
             <div className="ExplorerItemIcon">{getFileIcon(props.file.relativePath())}</div>
             {editMode ? (

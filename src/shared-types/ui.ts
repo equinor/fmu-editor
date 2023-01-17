@@ -29,20 +29,24 @@ export enum ChangesBrowserView {
 }
 
 export type UiState = {
-    view: View;
+    // Page is the main page of the app, e.g. editor, source control
     page: Page;
+    // View is the view of the current page, e.g. main, ongoing changes, single file changes, merge
+    view: View;
     settings: {
         theme: Themes;
         editorFontSize: number;
     };
     paneConfiguration: PaneConfiguration[];
     currentCommit?: ICommitExtended;
-    ongoingChangesFile?: string;
+    ongoingChangesRelativeFilePath?: string;
     changesBrowserView: ChangesBrowserView;
     previewOpen: boolean;
-    diffMainFile?: string;
-    diffUserFile?: string;
-    diffFileOrigin?: FileChangeOrigin;
+    diff: {
+        originalRelativeFilePath?: string;
+        modifiedRelativeFilePath?: string;
+        fileOrigin?: FileChangeOrigin;
+    };
     explorer: {
         activeItemPath: string;
         dragParentFolder: string | null;

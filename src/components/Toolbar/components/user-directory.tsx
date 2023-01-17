@@ -1,6 +1,7 @@
 import {useFileChanges} from "@hooks/useFileChanges";
 import {Button, CircularProgress, LinearProgress} from "@mui/material";
 import {useFileChangesWatcher} from "@services/file-changes-service";
+import {FileOperationsServiceEventTypes} from "@services/file-operations-service";
 
 import React from "react";
 import {VscFileSymlinkDirectory} from "react-icons/vsc";
@@ -35,15 +36,14 @@ export const UserDirectory: React.FC = () => {
     };
 
     React.useEffect(() => {
-        const adjustProgress = (e: Event) => {
-            // @ts-ignore
+        const adjustProgress = (e: CustomEvent) => {
             setProgress(Math.round(e.detail.progress * 100) as number);
         };
 
-        document.addEventListener("copyUserDirectoryProgress", adjustProgress);
+        document.addEventListener(FileOperationsServiceEventTypes.COPY_USER_DIRECTORY_PROGRESS, adjustProgress);
 
         return () => {
-            document.removeEventListener("copyUserDirectoryProgress", adjustProgress);
+            document.removeEventListener(FileOperationsServiceEventTypes.COPY_USER_DIRECTORY_PROGRESS, adjustProgress);
         };
     }, []);
 

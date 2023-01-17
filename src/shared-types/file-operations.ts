@@ -4,14 +4,16 @@ export enum FileOperationsRequestType {
     COPY_USER_DIRECTORY = "COPY_USER_DIRECTORY",
     SET_USER_DIRECTORY = "SET_USER_DIRECTORY",
     INIT_USER_DIRECTORY = "INIT_USER_DIRECTORY",
-    COMMIT_USER_CHANGES = "COMMIT_USER_CHANGES",
+    PUSH_USER_CHANGES = "PUSH_USER_CHANGES",
+    PULL_MAIN_CHANGES = "PULL_MAIN_CHANGES",
 }
 
 export enum FileOperationsResponseType {
     COPY_USER_DIRECTORY_PROGRESS,
     CHANGED_FILES,
     USER_DIRECTORY_INITIALIZED,
-    USER_CHANGES_COMMITTED,
+    USER_CHANGES_PUSHED,
+    MAIN_CHANGES_PULLED,
 }
 
 export enum FileOperationsStatus {
@@ -39,10 +41,13 @@ export type FileOperationsRequests = {
         username: string;
         directory: string;
     };
-    [FileOperationsRequestType.COMMIT_USER_CHANGES]: {
+    [FileOperationsRequestType.PUSH_USER_CHANGES]: {
         fileChanges: FileChange[];
         commitSummary: string;
         commitDescription: string;
+    };
+    [FileOperationsRequestType.PULL_MAIN_CHANGES]: {
+        fileChanges: FileChange[];
     };
 };
 
@@ -56,8 +61,12 @@ export type FileOperationsResponses = {
         changedFiles: ChangedFile[];
     };
     [FileOperationsResponseType.USER_DIRECTORY_INITIALIZED]: {};
-    [FileOperationsResponseType.USER_CHANGES_COMMITTED]: {
-        notCommittedFiles: string[];
+    [FileOperationsResponseType.USER_CHANGES_PUSHED]: {
+        notPushedFiles: string[];
         commitMessageWritten: boolean;
+    };
+    [FileOperationsResponseType.MAIN_CHANGES_PULLED]: {
+        notPulledFiles: string[];
+        success: boolean;
     };
 };

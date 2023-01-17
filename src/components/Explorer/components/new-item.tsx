@@ -9,7 +9,6 @@ import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {openFile} from "@redux/thunks";
 
 import path from "path";
-import {v4} from "uuid";
 
 import {useGlobalSettings} from "../../GlobalSettingsProvider/global-settings-provider";
 
@@ -67,8 +66,9 @@ export const NewItem: React.VFC<NewItemProps> = props => {
             <div className="ExplorerItem ExplorerItemNew" key="newFile" style={{paddingLeft: 16}}>
                 {Array(props.level)
                     .fill(0)
-                    .map(_ => (
-                        <div className="ExplorerPath" key={`${v4()}`} />
+                    .map((_, index) => (
+                        // eslint-disable-next-line react/no-array-index-key
+                        <div className="ExplorerPath" key={`${index}`} />
                     ))}
                 <div className="ExplorerItemIcon">
                     {props.type === NewItemType.FILE ? <VscListSelection /> : <VscNewFolder />}

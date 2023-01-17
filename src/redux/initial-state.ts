@@ -1,6 +1,7 @@
 import {ipcRenderer} from "electron";
 
 import electronStore from "@utils/electron-store";
+import {File as FileInterface} from "@utils/file-system/file";
 import {generateHashCode} from "@utils/hash";
 
 import {EventSource, File, FilesState} from "@shared-types/files";
@@ -11,7 +12,6 @@ import {UiCoachState} from "@shared-types/ui-coach";
 
 import {SelectionDirection} from "monaco-editor";
 import path from "path";
-import { File as FileInterface } from "@utils/file-system/file";
 
 const paneConfiguration = electronStore.get("ui.paneConfiguration");
 
@@ -27,11 +27,14 @@ const initialUiState: UiState = {
         sizes: paneConfiguration[key],
     })),
     currentCommit: undefined,
-    ongoingChangesFile: undefined,
+    ongoingChangesRelativeFilePath: undefined,
     changesBrowserView: ChangesBrowserView.LoggedChanges,
     previewOpen: electronStore.get("ui.settings.previewOpen") || false,
-    diffMainFile: undefined,
-    diffUserFile: undefined,
+    diff: {
+        originalRelativeFilePath: undefined,
+        modifiedRelativeFilePath: undefined,
+        fileOrigin: undefined,
+    },
     explorer: {
         activeItemPath: "",
         dragParentFolder: null,

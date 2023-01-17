@@ -2,7 +2,12 @@ import {useFileChanges} from "@hooks/useFileChanges";
 import {LoadingButton} from "@mui/lab";
 import {Button, IconButton, Stack} from "@mui/material";
 import {useEnvironment} from "@services/environment-service";
-import {CommitState, useFileOperationsService} from "@services/file-operations-service";
+import {
+    FileOperationsServiceEventTypes,
+    FileOperationsServiceEvents,
+    PushState,
+    useFileOperationsService,
+} from "@services/file-operations-service";
 
 import React from "react";
 import {VscClose} from "react-icons/vsc";
@@ -27,47 +32,61 @@ export const CurrentChanges: React.VFC = () => {
     const [stagedFiles, setStagedFiles] = React.useState<string[]>([]);
     const [commitSummary, setCommitSummary] = React.useState<string>("");
     const [commitDescription, setCommitDescription] = React.useState<string>("");
+    const [pushState, setPushState] = React.useState<PushState>(PushState.IDLE);
 
     const userFileChanges = useFileChanges(FILE_ORIGINS);
 
     const dispatch = useAppDispatch();
     const {username} = useEnvironment();
     const directory = useAppSelector(state => state.files.directory);
-    const {commitUserChanges, notCommittedFiles, commitState, resetCommitState} = useFileOperationsService();
+    const {pushUserChanges} = useFileOperationsService();
 
     React.useEffect(() => {
         setStagedFiles(prev => prev.filter(el => userFileChanges.some(change => change.relativePath === el)));
     }, [userFileChanges]);
 
     React.useEffect(() => {
-        if (commitState === CommitState.COMMITTED) {
-            if (notCommittedFiles.length === 0) {
-                dispatch(setChangesBrowserView(ChangesBrowserView.LoggedChanges));
+        const handlePushStateChanged = (
+            e: FileOperationsServiceEvents[FileOperationsServiceEventTypes.PUSH_STATE_CHANGED]
+        ) => {
+            setPushState(e.detail.state);
+            if (e.detail.state === PushState.PUSHED) {
+                if (stagedFiles.length === userFileChanges.length) {
+                    dispatch(setChangesBrowserView(ChangesBrowserView.LoggedChanges));
+                }
+                if (e.detail.notPushedFiles.length === 0) {
+                    dispatch(
+                        addNotification({
+                            type: NotificationType.SUCCESS,
+                            message: "All changes successfully committed",
+                        })
+                    );
+                    setCommitDescription("");
+                    setCommitSummary("");
+                    return;
+                }
                 dispatch(
                     addNotification({
-                        type: NotificationType.SUCCESS,
-                        message: "All changes successfully committed",
+                        type: NotificationType.ERROR,
+                        message: "Some changes could not be committed",
                     })
                 );
-                resetCommitState();
-                return;
+            } else if (e.detail.state === PushState.FAILED) {
+                dispatch(
+                    addNotification({
+                        type: NotificationType.ERROR,
+                        message: "An error occurred while committing changes",
+                    })
+                );
             }
-            dispatch(
-                addNotification({
-                    type: NotificationType.ERROR,
-                    message: "Some changes could not be committed",
-                })
-            );
-        } else if (commitState === CommitState.FAILED) {
-            dispatch(
-                addNotification({
-                    type: NotificationType.ERROR,
-                    message: "An error occurred while committing changes",
-                })
-            );
-        }
-        resetCommitState();
-    }, [commitState, notCommittedFiles, dispatch, resetCommitState]);
+        };
+
+        document.addEventListener(FileOperationsServiceEventTypes.PUSH_STATE_CHANGED, handlePushStateChanged);
+
+        return () => {
+            document.removeEventListener(FileOperationsServiceEventTypes.PUSH_STATE_CHANGED, handlePushStateChanged);
+        };
+    }, [dispatch, stagedFiles, userFileChanges]);
 
     const handleStageOrUnstageFile = React.useCallback(
         (filePath: string) => {
@@ -80,15 +99,23 @@ export const CurrentChanges: React.VFC = () => {
         [stagedFiles]
     );
 
-    const handleCommit = React.useCallback(() => {
+    const handlePush = React.useCallback(() => {
         if (stagedFiles.length === 0) return;
 
-        commitUserChanges(
+        pushUserChanges(
             userFileChanges.filter(el => stagedFiles.includes(el.relativePath)),
             commitSummary,
             commitDescription
         );
-    }, [commitUserChanges, userFileChanges, stagedFiles, commitSummary, commitDescription]);
+
+        dispatch(
+            setDiffFiles({
+                mainFile: undefined,
+                userFile: undefined,
+                origin: undefined,
+            })
+        );
+    }, [dispatch, pushUserChanges, userFileChanges, stagedFiles, commitSummary, commitDescription]);
 
     const handleFileSelected = React.useCallback(
         (filePath: string, origin: FileChangeOrigin) => {
@@ -190,6 +217,7 @@ export const CurrentChanges: React.VFC = () => {
                         onChange={e => setCommitSummary(e.target.value)}
                         value={commitSummary}
                         maxLength={70}
+                        disabled={pushState === PushState.PUSHING}
                     />
                     <Input
                         placeholder="Description"
@@ -198,16 +226,17 @@ export const CurrentChanges: React.VFC = () => {
                         onChange={e => setCommitDescription(e.target.value)}
                         value={commitDescription}
                         fontSize="0.98rem"
+                        disabled={pushState === PushState.PUSHING}
                     />
                 </Stack>
                 <LoadingButton
-                    onClick={() => handleCommit()}
+                    onClick={() => handlePush()}
                     disabled={stagedFiles.length === 0 || commitSummary.length === 0}
                     variant="contained"
                     loadingPosition="start"
-                    loading={commitState === CommitState.COMMITTING}
+                    loading={pushState === PushState.PUSHING}
                 >
-                    {commitState === CommitState.COMMITTING ? "Committing changes" : "Commit changes"}
+                    {pushState === PushState.PUSHING ? "Pushing changes" : "Push changes"}
                 </LoadingButton>
             </Stack>
         </>

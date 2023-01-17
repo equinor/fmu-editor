@@ -131,7 +131,7 @@ export class File extends FileBasic implements IFile {
         }
     }
 
-    public commit(): boolean {
+    public push(): boolean {
         if (!this.isUserFile() || !this.exists()) {
             return false;
         }
@@ -140,6 +140,22 @@ export class File extends FileBasic implements IFile {
                 fs.unlinkSync(this.getMainVersion().absolutePath());
             }
             fs.copyFileSync(this.absolutePath(), this.getMainVersion().absolutePath());
+            return true;
+        } catch (e) {
+            this._error = e;
+            return false;
+        }
+    }
+
+    public pull(username: string): boolean {
+        if (this.isUserFile() || !this.exists()) {
+            return false;
+        }
+        try {
+            if (this.getUserVersion(username).exists()) {
+                fs.unlinkSync(this.getUserVersion(username).absolutePath());
+            }
+            fs.copyFileSync(this.absolutePath(), this.getUserVersion(username).absolutePath());
             return true;
         } catch (e) {
             this._error = e;
