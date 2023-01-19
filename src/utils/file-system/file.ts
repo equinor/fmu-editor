@@ -10,6 +10,13 @@ export interface IFile extends IFileBasic {
     readString(): string | null;
     readJson(): any | null;
     getModifications(): Modification[];
+    writeString(str: string): boolean;
+    writeJson(json: any): boolean;
+    copyTo(destination: string): boolean;
+    push(): boolean;
+    pull(username: string): boolean;
+    isDirectory(): boolean;
+    compare(other: File): boolean;
 }
 
 export enum ModificationOwner {

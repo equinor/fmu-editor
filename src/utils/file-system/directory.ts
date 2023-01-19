@@ -8,6 +8,10 @@ import {File} from "./file";
 export interface IDirectory extends IFileBasic {
     getContent(): FileBasic[];
     getFilesRecursively(): File[];
+    makeIfNotExists(): boolean;
+    countFiles(recursively?: boolean): number;
+    getHash(recursive?: boolean): string;
+    isDirectory(): boolean;
 }
 
 export class Directory extends FileBasic implements IDirectory {

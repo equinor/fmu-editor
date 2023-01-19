@@ -19,6 +19,9 @@ export interface IFileBasic {
     equals(other: FileBasic): boolean;
     isWritable(): boolean;
     baseName(): string;
+    isSnapshotFile(): boolean;
+    getSnapshotVersion(snapshot: string): FileBasic;
+    rename(newName: string): boolean;
 }
 
 export class FileBasic implements IFileBasic {
