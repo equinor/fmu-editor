@@ -6,7 +6,6 @@ import {generateHashCode} from "@utils/hash";
 
 import {EventSource, File, FilesState} from "@shared-types/files";
 import {NotificationsState} from "@shared-types/notifications";
-import {PreferencesState} from "@shared-types/preferences";
 import {ChangesBrowserView, Page, Themes, UiState, View} from "@shared-types/ui";
 import {UiCoachState} from "@shared-types/ui-coach";
 
@@ -43,12 +42,6 @@ const initialUiState: UiState = {
     },
 };
 
-const initialPreferencesState: PreferencesState = {
-    pathToPythonInterpreter: electronStore.get("preferences.pathToPythonInterpreter") || "",
-    pathToYamlSchemaFile: electronStore.get("preferences.pathToYamlSchemaFile") || "",
-    webvizTheme: electronStore.get("preferences.webvizTheme") || "",
-};
-
 const initialUiCoachState: UiCoachState = {
     initialConfigurationDone: electronStore.get("uiCoach.initialConfigurationDone") || false,
 };
@@ -78,7 +71,7 @@ const initialFilesState: FilesState = {
                 associatedWithFile: userFile.exists(),
                 editorValue: fileContent,
                 editorViewState: file.editorViewState === "null" ? null : file.editorViewState,
-                hash: generateHashCode(fileContent),
+                hash: fileContent ? generateHashCode(fileContent) : "",
                 selection: {
                     startLineNumber: 0,
                     startColumn: 0,
@@ -105,7 +98,6 @@ const notificationsState: NotificationsState = {
 export default {
     ui: initialUiState,
     uiCoach: initialUiCoachState,
-    preferences: initialPreferencesState,
     files: initialFilesState,
     notifications: notificationsState,
 };

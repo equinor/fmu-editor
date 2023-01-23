@@ -4,7 +4,6 @@ import {createLogger} from "redux-logger";
 
 import {filesSlice} from "./reducers/files";
 import {notificationsSlice} from "./reducers/notifications";
-import {preferencesSlice} from "./reducers/preferences";
 import {uiSlice} from "./reducers/ui";
 import {uiCoachSlice} from "./reducers/uiCoach";
 
@@ -22,7 +21,6 @@ if (process.env.NODE_ENV === `development`) {
 const store = configureStore({
     reducer: {
         ui: uiSlice.reducer,
-        preferences: preferencesSlice.reducer,
         uiCoach: uiCoachSlice.reducer,
         files: filesSlice.reducer,
         notifications: notificationsSlice.reducer,

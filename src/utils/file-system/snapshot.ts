@@ -75,4 +75,9 @@ export class Snapshot implements ISnapshot {
         this.snapshot[relativeFilePath] = new Date().getTime();
         this.write();
     }
+
+    public delete(relativeFilePath: string): void {
+        delete this.snapshot[relativeFilePath];
+        this.write();
+    }
 }

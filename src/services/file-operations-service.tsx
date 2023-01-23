@@ -49,8 +49,16 @@ export interface FileOperationsServiceEvents {
     [FileOperationsServiceEventTypes.COPY_USER_DIRECTORY_PROGRESS]: CustomEvent<
         FileOperationsResponses[FileOperationsResponseType.COPY_USER_DIRECTORY_PROGRESS]
     >;
-    [FileOperationsServiceEventTypes.PUSH_STATE_CHANGED]: CustomEvent<{state: PushState; notPushedFiles?: string[]}>;
-    [FileOperationsServiceEventTypes.PULL_STATE_CHANGED]: CustomEvent<{state: PullState; notPulledFiles?: string[]}>;
+    [FileOperationsServiceEventTypes.PUSH_STATE_CHANGED]: CustomEvent<{
+        state: PushState;
+        notPushedFiles?: string[];
+        pushedFiles?: string[];
+    }>;
+    [FileOperationsServiceEventTypes.PULL_STATE_CHANGED]: CustomEvent<{
+        state: PullState;
+        notPulledFiles?: string[];
+        pulledFiles?: string[];
+    }>;
 }
 
 declare global {
@@ -86,7 +94,21 @@ export const FileOperationsService: React.FC = props => {
     const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
     const currentDirectory = useAppSelector(state => state.files.directory);
 
+    const pushTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const pullTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const dispatch = useAppDispatch();
+
+    React.useEffect(() => {
+        return () => {
+            if (pushTimeoutRef.current) {
+                clearTimeout(pushTimeoutRef.current);
+            }
+            if (pullTimeoutRef.current) {
+                clearTimeout(pullTimeoutRef.current);
+            }
+        };
+    }, []);
 
     React.useEffect(() => {
         if (currentDirectory && environment.username) {
@@ -116,7 +138,7 @@ export const FileOperationsService: React.FC = props => {
                 });
                 document.dispatchEvent(
                     new CustomEvent(FileOperationsServiceEventTypes.PUSH_STATE_CHANGED, {
-                        detail: {state: PullState.PULLING},
+                        detail: {state: PushState.PUSHING},
                     })
                 );
                 setPushState(PushState.PUSHING);
@@ -132,7 +154,7 @@ export const FileOperationsService: React.FC = props => {
             });
             document.dispatchEvent(
                 new CustomEvent(FileOperationsServiceEventTypes.PULL_STATE_CHANGED, {
-                    detail: {state: PushState.PUSHING},
+                    detail: {state: PullState.PULLING},
                 })
             );
             setPullState(PullState.PULLING);
@@ -154,9 +176,16 @@ export const FileOperationsService: React.FC = props => {
             fileOperationsWorker.on(FileOperationsResponseType.USER_CHANGES_PUSHED, payload => {
                 const newState = payload.commitMessageWritten ? PushState.PUSHED : PushState.FAILED;
                 setPushState(newState);
+                pushTimeoutRef.current = setTimeout(() => {
+                    setPushState(PushState.IDLE);
+                }, 3000);
                 document.dispatchEvent(
                     new CustomEvent(FileOperationsServiceEventTypes.PUSH_STATE_CHANGED, {
-                        detail: {state: newState, notPushedFiles: payload.notPushedFiles},
+                        detail: {
+                            state: newState,
+                            pushedFiles: payload.pushedFiles,
+                            notPushedFiles: payload.notPushedFiles,
+                        },
                     })
                 );
             });
@@ -164,9 +193,16 @@ export const FileOperationsService: React.FC = props => {
             fileOperationsWorker.on(FileOperationsResponseType.MAIN_CHANGES_PULLED, payload => {
                 const newState = payload.success ? PullState.PULLED : PullState.FAILED;
                 setPullState(newState);
+                pullTimeoutRef.current = setTimeout(() => {
+                    setPullState(PullState.IDLE);
+                }, 3000);
                 document.dispatchEvent(
-                    new CustomEvent(FileOperationsServiceEventTypes.PUSH_STATE_CHANGED, {
-                        detail: {state: newState, notPulledFiles: payload.notPulledFiles},
+                    new CustomEvent(FileOperationsServiceEventTypes.PULL_STATE_CHANGED, {
+                        detail: {
+                            state: newState,
+                            pulledFiles: payload.pulledFiles,
+                            notPulledFiles: payload.notPulledFiles,
+                        },
                     })
                 );
             });

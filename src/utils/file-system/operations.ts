@@ -115,15 +115,23 @@ export const pushFiles = (
     commitSummary: string,
     commitDescription: string,
     workingDirectory: string
-): {notCommittedFiles: string[]; commit: ICommit} => {
+): {pushedFiles: string[]; notPushedFiles: string[]; commit: ICommit} => {
     const committedFileChanges: FileChange[] = [];
     const snapshot = new Snapshot(workingDirectory, username);
 
     fileChanges.forEach(fileChange => {
-        const userFile = new File(fileChange.relativePath, workingDirectory).getUserVersion(username);
-        if (userFile.push()) {
-            committedFileChanges.push(fileChange);
-            snapshot.updateModified(fileChange.relativePath);
+        if (fileChange.type === FileChangeType.DELETED) {
+            const mainFile = new File(fileChange.relativePath, workingDirectory).getMainVersion();
+            if (mainFile.remove()) {
+                committedFileChanges.push(fileChange);
+                snapshot.delete(fileChange.relativePath);
+            }
+        } else {
+            const userFile = new File(fileChange.relativePath, workingDirectory).getUserVersion(username);
+            if (userFile.push()) {
+                committedFileChanges.push(fileChange);
+                snapshot.updateModified(fileChange.relativePath);
+            }
         }
     });
 
@@ -139,19 +147,34 @@ export const pushFiles = (
     };
 
     return {
-        notCommittedFiles: fileChanges.filter(el => !committedFileChanges.includes(el)).map(el => el.relativePath),
+        pushedFiles: committedFileChanges.map(el => el.relativePath),
+        notPushedFiles: fileChanges.filter(el => !committedFileChanges.includes(el)).map(el => el.relativePath),
         commit,
     };
 };
 
-export const pullFiles = (fileChanges: FileChange[], username: string, workingDirectory: string): string[] => {
+export const pullFiles = (fileChanges: FileChange[], username: string, workingDirectory: string): {
+    pulledFiles: string[];
+    notPulledFiles: string[];
+ } => {
+    const snapshot = new Snapshot(workingDirectory, username);
     const pulledFileChanges: FileChange[] = [];
+
     fileChanges.forEach(fileChange => {
         const file = new File(fileChange.relativePath, workingDirectory);
-        if (file.pull(username)) {
+        if (fileChange.type === FileChangeType.DELETED) {
+            if (file.getUserVersion(username).remove()) {
+                pulledFileChanges.push(fileChange);
+                snapshot.delete(fileChange.relativePath);
+            }
+        } else if (file.pull(username)) {
             pulledFileChanges.push(fileChange);
+            snapshot.updateModified(fileChange.relativePath);
         }
     });
 
-    return fileChanges.filter(el => !pulledFileChanges.includes(el)).map(el => el.relativePath);
+    return {
+        pulledFiles: pulledFileChanges.map(el => el.relativePath),
+        notPulledFiles: fileChanges.filter(el => !pulledFileChanges.includes(el)).map(el => el.relativePath)
+    };
 };

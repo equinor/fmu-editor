@@ -84,7 +84,7 @@ webworker.on(FileOperationsRequestType.SET_USER_DIRECTORY, ({directory, username
 
 webworker.on(FileOperationsRequestType.PUSH_USER_CHANGES, ({fileChanges, commitSummary, commitDescription}) => {
     if (currentUsername && currentWorkingDirectory) {
-        const {notCommittedFiles, commit} = pushFiles(
+        const {pushedFiles, notPushedFiles, commit} = pushFiles(
             fileChanges,
             currentUsername,
             commitSummary,
@@ -93,23 +93,25 @@ webworker.on(FileOperationsRequestType.PUSH_USER_CHANGES, ({fileChanges, commitS
         );
 
         let commitMessageWritten = false;
-        if (fileChanges.length > notCommittedFiles.length) {
+        if (fileChanges.length > notPushedFiles.length) {
             const changelog = new Changelog(currentWorkingDirectory);
             commitMessageWritten = changelog.appendCommit(commit);
         }
 
         webworker.postMessage(FileOperationsResponseType.USER_CHANGES_PUSHED, {
+            pushedFiles,
             commitMessageWritten,
-            notPushedFiles: notCommittedFiles,
+            notPushedFiles,
         });
     }
 });
 
 webworker.on(FileOperationsRequestType.PULL_MAIN_CHANGES, ({fileChanges}) => {
     if (currentUsername && currentWorkingDirectory) {
-        const notPulledFiles = pullFiles(fileChanges, currentUsername, currentWorkingDirectory);
+        const {pulledFiles, notPulledFiles} = pullFiles(fileChanges, currentUsername, currentWorkingDirectory);
 
         webworker.postMessage(FileOperationsResponseType.MAIN_CHANGES_PULLED, {
+            pulledFiles,
             notPulledFiles,
             success: notPulledFiles.length < fileChanges.length,
         });

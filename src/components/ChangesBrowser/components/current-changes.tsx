@@ -233,7 +233,6 @@ export const CurrentChanges: React.VFC = () => {
                     onClick={() => handlePush()}
                     disabled={stagedFiles.length === 0 || commitSummary.length === 0}
                     variant="contained"
-                    loadingPosition="start"
                     loading={pushState === PushState.PUSHING}
                 >
                     {pushState === PushState.PUSHING ? "Pushing changes" : "Push changes"}

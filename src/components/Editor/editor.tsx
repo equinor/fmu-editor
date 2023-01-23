@@ -1,12 +1,11 @@
 import {useYamlSchemas} from "@hooks/useYamlSchema";
-import {Error as ErrorIcon} from "@mui/icons-material";
-import {Badge, Button, Grid, IconButton, Typography, useTheme} from "@mui/material";
+import {Button, IconButton, Typography, useTheme} from "@mui/material";
 import useSize from "@react-hook/size";
 
 import {ipcRenderer} from "electron";
 
 import React from "react";
-import {VscCloseAll, VscError, VscInfo, VscLightbulb, VscPreview, VscSourceControl, VscWarning} from "react-icons/vsc";
+import {VscCloseAll, VscError, VscPreview, VscSourceControl} from "react-icons/vsc";
 import MonacoEditor, {EditorDidMount, EditorWillUnmount, monaco} from "react-monaco-editor";
 
 import {FileBasic} from "@utils/file-system/basic";
@@ -14,9 +13,9 @@ import {File} from "@utils/file-system/file";
 
 import {FileTabs} from "@components/FileTabs";
 import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
+import {IssuesList} from "@components/IssuesList";
 import {Preview} from "@components/Preview";
 import {ResizablePanels} from "@components/ResizablePanels";
-import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {closeAllFiles, setActiveFile, setEditorViewState, setValue} from "@redux/reducers/files";
@@ -32,8 +31,6 @@ import FmuLogo from "@assets/fmu-logo.svg";
 // @ts-ignore
 import {languages} from "monaco-editor";
 import path from "path";
-// @ts-ignore
-import {v4} from "uuid";
 
 import "./editor.css";
 
@@ -42,13 +39,6 @@ declare global {
         MonacoEnvironment?: monaco.Environment;
     }
 }
-
-const compareMarkers = (a: monaco.editor.IMarker, b: monaco.editor.IMarker): number => {
-    if (a.startLineNumber === b.startLineNumber) {
-        return a.startColumn - b.startColumn;
-    }
-    return a.startLineNumber - b.startLineNumber;
-};
 
 window.MonacoEnvironment = {
     getWorker(moduleId, label) {
@@ -99,7 +89,6 @@ type EditorProps = {};
 
 export const Editor: React.FC<EditorProps> = () => {
     const [noModels, setNoModels] = React.useState<boolean>(false);
-    const [markers, setMarkers] = React.useState<monaco.editor.IMarker[]>([]);
     const [userFilePath, setUserFilePath] = React.useState<string | null>(null);
     const [lastActiveFile, setLastActiveFile] = React.useState<string | null>(null);
     const [fileExists, setFileExists] = React.useState<boolean>(true);
@@ -163,19 +152,6 @@ export const Editor: React.FC<EditorProps> = () => {
         }
     };
 
-    const handleMarkersChange = () => {
-        if (!monacoRef.current || !monacoEditorRef.current) {
-            return;
-        }
-        setMarkers(
-            monacoRef.current.editor
-                .getModelMarkers({
-                    resource: monacoEditorRef.current.getModel()?.uri,
-                })
-                .sort(compareMarkers)
-        );
-    };
-
     const handleEditorViewStateChanged = () => {
         if (monacoEditorRef.current) {
             if (timeout.current) {
@@ -196,7 +172,6 @@ export const Editor: React.FC<EditorProps> = () => {
         monacoEditorRef.current.onDidChangeModelContent(handleEditorValueChange);
         monacoEditorRef.current.onDidChangeCursorPosition(handleEditorViewStateChanged);
         monacoEditorRef.current.onDidChangeCursorSelection(handleEditorViewStateChanged);
-        monacoRef.current.editor.onDidChangeMarkers(handleMarkersChange);
         monacoEditorRef.current.onDidLayoutChange(handleEditorViewStateChanged);
         monacoEditorRef.current.onDidScrollChange(handleEditorViewStateChanged);
     };
@@ -255,16 +230,6 @@ export const Editor: React.FC<EditorProps> = () => {
 
         setNoModels(false);
     }, [activeFile, files, editorMode, globalSettings, lastActiveFile, workingDirectory]);
-
-    const selectMarker = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, marker: monaco.editor.IMarker) => {
-        if (monacoEditorRef.current) {
-            monacoEditorRef.current.setSelection(
-                new monaco.Range(marker.startLineNumber, marker.startColumn, marker.endLineNumber, marker.endColumn)
-            );
-
-            monacoEditorRef.current.revealLinesInCenterIfOutsideViewport(marker.startLineNumber, marker.endLineNumber);
-        }
-    };
 
     React.useEffect(() => {
         if (noModels) {
@@ -414,37 +379,7 @@ export const Editor: React.FC<EditorProps> = () => {
                                 <Preview filePath={userFilePath} />
                             </ResizablePanels>
                         </div>
-                        <div className="Issues">
-                            <Surface elevation="raised" className="IssuesTitle">
-                                <Grid container columnSpacing={2} spacing={5} direction="row" alignItems="center">
-                                    <Grid item>
-                                        <Badge badgeContent={noModels ? 0 : markers.length} color="warning">
-                                            <ErrorIcon color="action" />
-                                        </Badge>
-                                    </Grid>
-                                    <Grid item>Issues</Grid>
-                                </Grid>
-                            </Surface>
-                            <div className="IssuesContent" style={{display: noModels ? "none" : "block"}}>
-                                {markers.map(marker => (
-                                    <a href="#" className="Issue" onClick={e => selectMarker(e, marker)} key={v4()}>
-                                        {marker.severity === monaco.MarkerSeverity.Error ? (
-                                            <VscError color={theme.palette.error.main} size={16} />
-                                        ) : marker.severity === monaco.MarkerSeverity.Warning ? (
-                                            <VscWarning color={theme.palette.warning.main} size={16} />
-                                        ) : marker.severity === monaco.MarkerSeverity.Info ? (
-                                            <VscInfo color={theme.palette.info.main} size={16} />
-                                        ) : (
-                                            <VscLightbulb color={theme.palette.secondary.main} size={16} />
-                                        )}{" "}
-                                        {marker.message}
-                                        <span className="IssuePosition">
-                                            [Ln {marker.startLineNumber}, Col {marker.startColumn}]
-                                        </span>
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
+                        <IssuesList monacoRef={monacoRef} monacoEditorRef={monacoEditorRef} visible={noModels} />
                     </ResizablePanels>
                 </div>
             </div>

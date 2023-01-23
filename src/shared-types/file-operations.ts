@@ -62,10 +62,12 @@ export type FileOperationsResponses = {
     };
     [FileOperationsResponseType.USER_DIRECTORY_INITIALIZED]: {};
     [FileOperationsResponseType.USER_CHANGES_PUSHED]: {
+        pushedFiles: string[];
         notPushedFiles: string[];
         commitMessageWritten: boolean;
     };
     [FileOperationsResponseType.MAIN_CHANGES_PULLED]: {
+        pulledFiles: string[];
         notPulledFiles: string[];
         success: boolean;
     };

@@ -1,0 +1,78 @@
+.Issues {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+}
+
+.IssuesTitle {
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    text-transform: uppercase;
+    font-weight: bold;
+    z-index: 10;
+}
+
+.IssuesTitle > strong {
+    margin-left: 8px;
+}
+
+.IssuesContent {
+    overflow: auto;
+    height: 90%;
+}
+
+.Issue {
+    padding: var(--spacing-s);
+    font-size: 0.8em;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-color);
+    text-decoration: none;
+    border: 1px transparent solid;
+}
+
+.Issue:hover {
+    background-color: var(--background-light);
+}
+
+.Issue:focus {
+    border: 1px inset var(--primary-hover-alt);
+    background-color: var(--primary);
+    color: var(--text-on-primary);
+}
+
+.Issue svg {
+    margin-right: 8px;
+}
+
+.IssuePosition {
+    margin-left: 8px;
+}
+
+.IssuesFileTitle {
+    padding: var(--spacing-s);
+    flex-direction: row;
+    align-items: center;
+    display: flex;
+    gap: var(--spacing-s);
+    cursor: pointer;
+}
+
+.IssuesFileTitle:hover {
+    background-color: var(--background-light);
+}
+
+.IssuesFileContent {
+    margin-left: var(--spacing-xl);
+}
+
+.IssuesFileName {
+    font-weight: bold;
+}
+
+.IssuesFilePath {
+    font-size: 0.8em;
+}

@@ -1,11 +1,19 @@
 import {useFileChanges} from "@hooks/useFileChanges";
+import {LoadingButton} from "@mui/lab";
 import {Button, IconButton, Stack} from "@mui/material";
 import {useEnvironment} from "@services/environment-service";
+import {
+    FileOperationsServiceEventTypes,
+    FileOperationsServiceEvents,
+    PullState,
+    useFileOperationsService,
+} from "@services/file-operations-service";
 
 import React from "react";
 import {VscClose} from "react-icons/vsc";
 
 import {File} from "@utils/file-system/file";
+import {adjustToPlural} from "@utils/string";
 
 import {ChangesList} from "@components/ChangesList";
 import {ChangesListMode} from "@components/ChangesList/changes-list";
@@ -14,9 +22,11 @@ import {ResizablePanels} from "@components/ResizablePanels";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
+import {addNotification} from "@redux/reducers/notifications";
 import {resetDiffFiles, setDiffFiles, setView} from "@redux/reducers/ui";
 
 import {FileChangeOrigin} from "@shared-types/file-changes";
+import {NotificationType} from "@shared-types/notifications";
 import {View} from "@shared-types/ui";
 
 const FILE_ORIGINS = [FileChangeOrigin.MAIN, FileChangeOrigin.BOTH];
@@ -28,6 +38,60 @@ export const Pull: React.VFC = () => {
     const directory = useAppSelector(state => state.files.directory);
     const dispatch = useAppDispatch();
     const {username} = useEnvironment();
+    const {pullMainChanges, pullState} = useFileOperationsService();
+
+    React.useEffect(() => {
+        const handlePullStateChanged = (
+            event: FileOperationsServiceEvents[FileOperationsServiceEventTypes.PULL_STATE_CHANGED]
+        ) => {
+            if (event.detail.state === PullState.PULLED) {
+                setStagedFiles(event.detail.notPulledFiles || []);
+                if (event.detail.notPulledFiles?.length === 0) {
+                    dispatch(
+                        addNotification({
+                            type: NotificationType.SUCCESS,
+                            message: `Successfully pulled ${event.detail.pulledFiles?.length} ${adjustToPlural(
+                                "file",
+                                event.detail.pulledFiles?.length || 0
+                            )}.`,
+                        })
+                    );
+                    dispatch(setView(View.Main));
+                    dispatch(resetDiffFiles());
+                } else {
+                    dispatch(
+                        addNotification({
+                            type: NotificationType.WARNING,
+                            message: `Successfully pulled ${event.detail.pulledFiles.length} ${adjustToPlural(
+                                "file",
+                                event.detail.pulledFiles?.length || 0
+                            )}, failed to pull ${event.detail.notPulledFiles.length} ${adjustToPlural(
+                                "file",
+                                event.detail.notPulledFiles?.length || 0
+                            )}.`,
+                        })
+                    );
+                }
+            }
+            if (event.detail.state === PullState.FAILED) {
+                dispatch(
+                    addNotification({
+                        type: NotificationType.ERROR,
+                        message: `Failed to pull ${event.detail.notPulledFiles} ${adjustToPlural(
+                            "file",
+                            event.detail.notPulledFiles?.length || 0
+                        )}.`,
+                    })
+                );
+            }
+        };
+
+        document.addEventListener(FileOperationsServiceEventTypes.PULL_STATE_CHANGED, handlePullStateChanged);
+
+        return () => {
+            document.removeEventListener(FileOperationsServiceEventTypes.PULL_STATE_CHANGED, handlePullStateChanged);
+        };
+    }, []);
 
     const handleFileSelected = React.useCallback(
         (filePath: string, origin: FileChangeOrigin) => {
@@ -63,8 +127,8 @@ export const Pull: React.VFC = () => {
     }, []);
 
     const handlePull = React.useCallback(() => {
-        console.log("pulled");
-    }, []);
+        pullMainChanges(fileChanges.filter(el => stagedFiles.includes(el.relativePath)));
+    }, [fileChanges, stagedFiles, pullMainChanges]);
 
     const handleResolveConflicts = React.useCallback(
         (relativeFilePath: string) => {
@@ -84,6 +148,29 @@ export const Pull: React.VFC = () => {
         dispatch(setView(View.Main));
         dispatch(resetDiffFiles());
     }, [dispatch]);
+
+    const pullButtonStateMap = {
+        [PullState.PULLING]: {
+            text: "Pulling changes...",
+            disabled: true,
+            color: undefined,
+        },
+        [PullState.PULLED]: {
+            text: "Changes successfully pulled",
+            disabled: false,
+            color: "success",
+        },
+        [PullState.FAILED]: {
+            text: "Error pulling changes",
+            disabled: false,
+            color: "warning",
+        },
+        [PullState.IDLE]: {
+            text: "Pull changes",
+            disabled: false,
+            color: undefined,
+        },
+    };
 
     return (
         <ResizablePanels direction="horizontal" id="pull" minSizes={[350, 0]}>
@@ -134,9 +221,15 @@ export const Pull: React.VFC = () => {
                         onFileSelect={handleFileSelected}
                         onFileStage={handleStageOrUnstageFile}
                     />
-                    <Button onClick={() => handlePull()} disabled={stagedFiles.length === 0} variant="contained">
-                        Pull changes
-                    </Button>
+                    <LoadingButton
+                        onClick={() => handlePull()}
+                        variant="contained"
+                        loading={pullState === PullState.PULLING}
+                        disabled={stagedFiles.length === 0 || pullButtonStateMap[pullState].disabled}
+                        color={pullButtonStateMap[pullState].color}
+                    >
+                        {pullButtonStateMap[pullState].text}
+                    </LoadingButton>
                 </Stack>
             </Surface>
             <DiffEditor />
