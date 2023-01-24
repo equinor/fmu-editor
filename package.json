@@ -190,7 +190,7 @@
         "start-script": "node ./scripts/start.js",
         "start": "NODE_ENV=development BABEL_ENV=development webpack serve --config webpack.config.js --no-open --port 3000 --static ./dist --no-client-overlay --hot",
         "webpack": "webpack --config webpack.config.js",
-        "build": "NODE_ENV=production BABEL_ENV=production webpack build --config webpack.config.js",
+        "build": "NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=production BABEL_ENV=production webpack build --config webpack.config.js",
         "test": "craco test --watchAll=false",
         "postinstall": "electron-builder install-app-deps",
         "electron:dev": "concurrently \"cross-env BROWSER=none npm run start\" \"wait-on http://localhost:3000 && tsc -p electron -w\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=development electron .\"",
