@@ -146,6 +146,9 @@ export class File extends FileBasic implements IFile {
             if (this.getMainVersion().exists()) {
                 fs.unlinkSync(this.getMainVersion().absolutePath());
             }
+            if (!fs.existsSync(this.getMainVersion().parentDirectoryPath())) {
+                fs.mkdirSync(this.getMainVersion().parentDirectoryPath(), {recursive: true});
+            }
             fs.copyFileSync(this.absolutePath(), this.getMainVersion().absolutePath());
             return true;
         } catch (e) {
@@ -161,6 +164,9 @@ export class File extends FileBasic implements IFile {
         try {
             if (this.getUserVersion(username).exists()) {
                 fs.unlinkSync(this.getUserVersion(username).absolutePath());
+            }
+            if (!fs.existsSync(this.getUserVersion(username).parentDirectoryPath())) {
+                fs.mkdirSync(this.getUserVersion(username).parentDirectoryPath(), {recursive: true});
             }
             fs.copyFileSync(this.absolutePath(), this.getUserVersion(username).absolutePath());
             return true;

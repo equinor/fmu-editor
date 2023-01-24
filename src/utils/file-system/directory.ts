@@ -1,4 +1,5 @@
-import { generateHashCode } from "@utils/hash";
+import {generateHashCode} from "@utils/hash";
+
 import fs from "fs";
 import path from "path";
 
@@ -63,14 +64,17 @@ export class Directory extends FileBasic implements IDirectory {
         return files;
     }
 
+    public isEmpty(): boolean {
+        return this.getContent().length === 0;
+    }
+
     public makeIfNotExists(): boolean {
         if (this.exists()) {
             return true;
         }
         try {
             fs.mkdirSync(this.absolutePath(), {recursive: true});
-        }
-        catch (e) {
+        } catch (e) {
             this._error = e;
             return false;
         }

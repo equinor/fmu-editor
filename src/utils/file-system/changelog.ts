@@ -138,6 +138,10 @@ export class Changelog {
             return [];
         }
 
+        if (!fs.existsSync(this.snapshotsPath())) {
+            return [];
+        }
+
         const snapshotFolders = fs.readdirSync(this.snapshotsPath()).filter(item => !/(^|\/)\.[^\/\.]/g.test(item));
         const snapshots: ISnapshotCommitBundle[] = [];
         snapshotFolders.forEach(folder => {

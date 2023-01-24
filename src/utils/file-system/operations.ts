@@ -1,6 +1,7 @@
 import {ICommit} from "@shared-types/changelog";
 import {FileChange, FileChangeOrigin, FileChangeType} from "@shared-types/file-changes";
 
+import path from "path";
 import {v4} from "uuid";
 
 import {Directory} from "./directory";
@@ -123,6 +124,13 @@ export const pushFiles = (
         if (fileChange.type === FileChangeType.DELETED) {
             const mainFile = new File(fileChange.relativePath, workingDirectory).getMainVersion();
             if (mainFile.remove()) {
+                const dir = new Directory(
+                    path.relative(workingDirectory, mainFile.parentDirectoryPath()),
+                    workingDirectory
+                );
+                if (dir.absolutePath() !== workingDirectory && dir.isEmpty()) {
+                    dir.remove();
+                }
                 committedFileChanges.push(fileChange);
                 snapshot.delete(fileChange.relativePath);
             }
@@ -153,10 +161,14 @@ export const pushFiles = (
     };
 };
 
-export const pullFiles = (fileChanges: FileChange[], username: string, workingDirectory: string): {
+export const pullFiles = (
+    fileChanges: FileChange[],
+    username: string,
+    workingDirectory: string
+): {
     pulledFiles: string[];
     notPulledFiles: string[];
- } => {
+} => {
     const snapshot = new Snapshot(workingDirectory, username);
     const pulledFileChanges: FileChange[] = [];
 
@@ -164,6 +176,13 @@ export const pullFiles = (fileChanges: FileChange[], username: string, workingDi
         const file = new File(fileChange.relativePath, workingDirectory);
         if (fileChange.type === FileChangeType.DELETED) {
             if (file.getUserVersion(username).remove()) {
+                const dir = new Directory(
+                    path.relative(workingDirectory, file.getMainVersion().parentDirectoryPath()),
+                    workingDirectory
+                );
+                if (dir.absolutePath() !== workingDirectory && dir.getUserVersion(username).isEmpty()) {
+                    dir.getUserVersion(username).remove();
+                }
                 pulledFileChanges.push(fileChange);
                 snapshot.delete(fileChange.relativePath);
             }
@@ -175,6 +194,6 @@ export const pullFiles = (fileChanges: FileChange[], username: string, workingDi
 
     return {
         pulledFiles: pulledFileChanges.map(el => el.relativePath),
-        notPulledFiles: fileChanges.filter(el => !pulledFileChanges.includes(el)).map(el => el.relativePath)
+        notPulledFiles: fileChanges.filter(el => !pulledFileChanges.includes(el)).map(el => el.relativePath),
     };
 };
