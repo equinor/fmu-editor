@@ -1,0 +1,10 @@
+.Input {
+    background-color: var(--background-light);
+    padding: var(--spacing-s) !important;
+    color: var(--text-color);
+}
+
+.Input--character-count-adornment {
+    opacity: 0.5;
+    padding-left: var(--padding);
+}

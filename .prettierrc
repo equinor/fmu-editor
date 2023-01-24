@@ -1,0 +1,28 @@
+{
+    "importOrder": [
+        "^electron?.+$",
+        "^react?.+$",
+        "^@reduxjs?.+$",
+        "^@rjsf?.+$",
+        "^@src",
+        "^@utils",
+        "^@components",
+        "^@workers",
+        "^@redux",
+        "^@stores",
+        "^@shared-types",
+        "^@assets",
+        "^(?![@\\.]).+$",
+        "^\\./",
+        "^\\.\\./",
+        "^\\.+\\/css$"
+    ],
+    "importOrderSeparation": true,
+    "importOrderSortSpecifiers": true,
+    "singleQuote": false,
+    "arrowParens": "avoid",
+    "bracketSpacing": false,
+    "semi": true,
+    "trailingComma": "es5",
+    "tabWidth": 4
+}

@@ -1,0 +1,40 @@
+.FileTabs {
+    display: flex;
+    flex-direction: row;
+    min-height: 38px;
+    height: 38px;
+    background-color: var(--background);
+    z-index: 10;
+}
+
+.FileTabsContent {
+    display: flex;
+    flex-direction: row;
+    min-height: 38px;
+    height: 38px;
+    overflow: overlay;
+    flex-grow: 4;
+}
+
+.FileTabsActions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-s);
+    padding: var(--spacing-s);
+}
+
+.FileTabsContent::-webkit-scrollbar {
+    height: 8px;
+}
+
+.FileTabsContent::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+.FileTabsContent::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}

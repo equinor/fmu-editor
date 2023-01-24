@@ -1,0 +1,109 @@
+name: fmu-editor-sign-notarize-publish
+
+on:
+    release:
+        types:
+            - published
+
+    workflow_dispatch:
+
+jobs:
+    build-and-upload-assets-on-linux:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: 📖 Context
+              env:
+                  GITHUB_CONTEXT: ${{ toJson(github) }}
+              run: echo "$GITHUB_CONTEXT"
+
+            - name: 📥 Checkout
+              uses: actions/checkout@v2
+
+            - name: 🏷️  Get Node Version
+              run: |
+                  cat .nvmrc
+                  echo "::set-output name=nodeversion::$(cat .nvmrc)"
+              id: get-node-version
+
+            - name: 🏷️  Use Node.js ${{ steps.get-node-version.outputs.nodeversion }}
+              if: ${{ !env.ACT }}
+              uses: actions/setup-node@v2
+              with:
+                  node-version: ${{ steps.get-node-version.outputs.nodeversion }}
+                  cache: "npm"
+
+            - name: 🏷️  Use Node.js ${{ steps.get-node-version.outputs.nodeversion }}
+              if: ${{ env.ACT }}
+              uses: actions/setup-node@v2
+              with:
+                  node-version: ${{ steps.get-node-version.outputs.nodeversion }}
+
+            - name: 📦 Install Dependencies
+              run: |
+                  env
+                  echo "npm: $(npm --version)"
+                  echo "node: $(node --version)"
+                  npm install
+            - name: 🔍 Verify Dependencies
+              run: |
+                  ls -la
+                  npm list --depth=1
+            - name: 🧰 Install Tools
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y jq binutils
+            - name: 🔨 Build
+              run: |
+                  npm run electron:build:ci
+              env:
+                  CI: false
+
+            - name: 📦 Package
+              id: package
+              run: |
+                  echo "::set-output name=TAG::v$(cat package.json | jq -r '.version')"
+                  npm exec -c "electron-builder --publish \"never\""
+              env:
+                  GITHUB_TOKEN: ${{ secrets.github_token }}
+                  EP_PRE_RELEASE: true
+                  USE_HARD_LINKS: false
+
+            - name: 🟩 Build Succeeded
+              run: |
+                  ls -alh dist | grep webviz-config-editor && du -sh dist || true
+              if: ${{ success() }}
+
+            - name: 📤 Upload .AppImage Release Assets
+              uses: shogo82148/actions-upload-release-asset@v1
+              with:
+                  upload_url: ${{ github.event.release.upload_url }}
+                  asset_path: dist/*.AppImage
+                  github_token: ${{ secrets.github_token }}
+                  overwrite: true
+
+            - name: 🗄️ Archive Binary
+              uses: actions/upload-artifact@v2
+              with:
+                  name: dist-nix
+                  path: dist
+              if: ${{ success() }}
+
+            - name: 🟥 Build Failed - Output Build Logs
+              run: |
+                  cat /Users/runner/.npm/_logs/*-debug.log || true
+              if: ${{ failure() || cancelled() }}
+
+            - name: 🟥 Build Failed - Archive Build Logs
+              uses: actions/upload-artifact@v2
+              with:
+                  name: logs
+                  path: /Users/runner/.npm/_logs
+              if: ${{ failure() || cancelled() }}
+
+            # Make sure no secrets or certs are left on the runner
+            - name: 🧹 Cleanup Files After Run
+              run: |
+                  rm -rf *
+                  ls -la
+              if: ${{ always() }}

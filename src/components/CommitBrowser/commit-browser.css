@@ -1,0 +1,26 @@
+.CommitBrowser {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.CommitBrowserHeader {
+    padding: var(--padding);
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.CommitBrowserContent {
+    padding: var(--padding);
+    overflow: auto;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.CommitBrowserEmpty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+}

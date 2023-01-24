@@ -1,0 +1,48 @@
+.MainWindow {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    height: 100vh;
+    width: 100vw;
+    border-top: 1px #ccc solid;
+    box-sizing: border-box;
+}
+
+.MenuBar {
+    z-index: 11;
+    display: block;
+    position: relative;
+}
+
+.ContentWrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    height: calc(100vh - 30px);
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100vh;
+}
+
+.InnerContentWrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    height: calc(100vh - 30px);
+    width: calc(100vw - 52px);
+    max-width: 100vw;
+    max-height: 100vh;
+}
+
+.Content {
+    display: flex;
+    flex-grow: 4;
+    flex-direction: row;
+}
+
+.GlobalSettings {
+    flex-grow: 4;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}

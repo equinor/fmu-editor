@@ -1,0 +1,40 @@
+.ContextMenuOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    background-color: transparent;
+}
+.ContextMenu {
+    border-radius: var(--border-radius);
+    position: absolute;
+    z-index: 1000;
+    background-color: var(--background-medium);
+    padding-top: var(--spacing-s);
+    padding-bottom: var(--spacing-s);
+    box-shadow: var(--elevation-overlay);
+}
+
+.ContextMenuItem {
+    color: var(--text-on-light);
+    padding-left: var(--spacing-m);
+    padding-right: var(--spacing-m);
+    padding-top: var(--spacing-s);
+    padding-bottom: var(--spacing-s);
+    cursor: pointer;
+}
+
+.ContextMenuItem:hover {
+    background-color: var(--background-semi-transparent);
+}
+
+.ContextMenuDivider {
+    border-top: 1px var(--background-scrim) solid;
+    margin-left: var(--spacing-m);
+    margin-right: var(--spacing-m);
+    margin-top: var(--spacing-s);
+    margin-bottom: var(--spacing-s);
+    box-sizing: border-box;
+}

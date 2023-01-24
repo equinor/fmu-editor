@@ -1,0 +1,146 @@
+.Overflow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    background-color: var(--background-scrim);
+}
+
+.Explorer {
+    flex-grow: 4;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-content: center;
+    margin-right: 1px;
+}
+
+.ExplorerTitle {
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: var(--spacing-x);
+    padding-left: var(--spacing-m);
+    height: 30px;
+    display: flex;
+    align-items: center;
+    background-color: var(--background-light);
+} 
+
+.ExplorerTitle > div {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    gap: 8px;
+    align-items: center;
+    flex-grow: 4;
+}
+
+.ExplorerPath {
+    border-left: 1px var(--text-color) solid;
+    margin-left: 4px;
+    width: 12px;
+    min-width: 12px;
+    height: 100%;
+    display: block;
+}
+
+.ExplorerItemText {
+    padding: 4px 16px 4px 4px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    flex-grow: 4;
+}
+
+.ExplorerItemInput {
+    z-Index: 1000;
+    position: relative;
+    margin-left: var(--spacing-s);
+    background-color: var(--background-light);
+    border: 1px var(--primary) solid;
+    outline: none;
+    color: var(--text-color);
+    width: 100%;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-xx);
+}
+
+.ExplorerItemIcon {
+    width: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ExplorerNoDirectory {
+    padding: 16px;
+}
+
+.ExplorerContent {
+    overflow-y: overlay;
+    padding: var(--spacing-s);
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.ExplorerItem {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    height: 24px;
+    padding-left: calc(2 * var(--spacing-s));
+    user-select: none;
+    text-decoration: none;
+    color: var(--text-color);
+    flex-wrap: nowrap;
+}
+
+.ExplorerItemNew {
+    z-Index: 1000;
+    position: relative;
+}
+
+.ExplorerItem:hover {
+    background-color: var(--primary-hover-alt);
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+.ExplorerItem:focus {
+    background-color: var(--primary);
+    outline: 1px var(--primary) solid;
+    color: var(--text-on-primary);
+}
+
+.ExplorerItem--active{
+    background-color: var(--secondary-highlight);
+    color: var(--text-color);
+}
+
+.DirectoryDrawer {
+    background-color: var(--primary);
+    color: var(--text-on-primary);
+    height: 100%;
+}
+
+.ExplorerItemDragging {
+    background-color: var(--primary);
+    color: var(--text-on-primary);
+    padding: var(--spacing-x);
+    position: fixed;
+    z-index: 1000;
+    margin-left: 5px;
+    margin-top: 5px;
+}
+
+.DirectoryDragOver {
+    background-color: var(--primary-hover-alt);
+}
+
+.RootDirectory {
+    height: 100%;
+}

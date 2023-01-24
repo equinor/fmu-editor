@@ -1,0 +1,73 @@
+@use "sass:map";
+@use "theme.module.scss" as *;
+
+:root {
+    @include theme;
+}
+
+html {
+    font-size: var(--font-size);
+    font-family: var(--font-family);
+    line-height: var(--body-long-line-height);
+}
+
+body[data-theme="light"] {
+    @include light-theme;
+    color: var(--text-color);
+}
+
+body[data-theme="dark"] {
+    @include dark-theme;
+    color: var(--text-color);
+}
+
+@media screen and (max-width: #{map.get($general, "grid-width-s")}) {
+    .wiz-gap {
+        gap: var(--grid-spacing-s);
+    }
+    .wiz-margin {
+        margin: var(--grid-margin-s);
+    }
+}
+
+@media screen and (max-width: #{map.get($general, "grid-width-m")}) {
+    .wiz-gap {
+        gap: var(--grid-spacing-m);
+    }
+    .wiz-margin {
+        margin: var(--grid-margin-m);
+    }
+}
+
+@media screen and (min-width: #{map.get($general, "grid-width-m")}) {
+    .wiz-gap {
+        gap: var(--grid-spacing-l);
+    }
+    .wiz-margin {
+        margin: var(--grid-margin-l);
+    }
+}
+
+.elevation-none {
+    box-shadow: var(--elevation-none);
+}
+
+.elevation-raised {
+    box-shadow: var(--elevation-raised);
+}
+
+.elevation-overlay {
+    box-shadow: var(--elevation-overlay);
+}
+
+.elevation-sticky {
+    box-shadow: var(--elevation-sticky);
+}
+
+.elevation-temporary-nav {
+    box-shadow: var(--elevation-temporary-nav);
+}
+
+.elevation-above-scrim {
+    box-shadow: var(--elevation-above-scrim);
+}

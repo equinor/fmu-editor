@@ -1,0 +1,51 @@
+.CommitSnapshotBundle {
+    padding: 0;
+    border-left: 2px solid transparent;
+    border-bottom: 1px solid var(--background-light);
+    padding-bottom: var(--spacing-m);
+}
+
+.CommitSnapshotBundle:hover, .CommitSnapshotBundle--selected {
+    border-left: 2px solid var(--primary);
+}
+
+.CommitSnapshotBundleHeader {
+    background-color: transparent !important;
+    font-weight: var(--h6-font-weight) !important;
+    font-size: var(--h6-font-size) !important;
+    text-transform: uppercase;
+}
+
+.CommitItem {
+    list-style: none;
+    border-left: 2px solid transparent;
+}
+
+.CommitItem:hover {
+    list-style: none;
+    background-color: var(--background-semi-transparent);
+    border-left: 2px solid var(--primary);
+    cursor: pointer;
+}
+
+.CommitItem--selected, .CommitItem--selected:hover {
+     background-color: var(--primary);
+     color: var(--text-on-primary);
+     border-left: 2px solid var(--primary);
+}
+
+.CommitList__NoCommits {
+    padding: var(--padding-s);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.CommitItem__Time {
+    font-size: var(--body-short-font-size);
+}
+
+.CommitItem--selected .CommitItem__Time {
+    color: var(--text-on-primary);
+}

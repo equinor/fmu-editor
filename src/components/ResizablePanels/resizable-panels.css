@@ -1,0 +1,86 @@
+.ResizablePanelsWrapperHorizontal {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+    position: relative;
+    height: 100%;
+}
+
+.ResizablePanelsWrapperVertical {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+.ResizablePanelsOverlayHorizontal {
+    background-color: transparent;
+    z-index: 1100;
+    position: absolute;
+    cursor: ew-resize;
+}
+
+.ResizablePanelsOverlayVertical {
+    background-color: transparent;
+    z-index: 1100;
+    position: absolute;
+    cursor: ns-resize;
+}
+
+.ResizeDragBar {
+    background-color: var(--text-tertiary);
+    transition: background-color 0.5s ease-out 100ms,
+        border-color 0.5s ease-out 100ms;
+    z-index: 100;
+    position: relative;
+}
+
+.ResizeDragBar__horizontal {
+    cursor: ew-resize;
+    width: 1px;
+}
+
+.ResizeDragBar__vertical {
+    cursor: ns-resize;
+    height: 1px;
+}
+
+.ResizeDragBar:hover {
+    border-color: 1px var(--primary);
+    background-color: var(--primary);
+}
+
+.ResizeDragBar__vertical:hover::after, 
+.ResizeDragBar__vertical:active::after {
+    content: "";
+    position: absolute;
+    top: -1px;
+    width: 100%;
+    height: 3px;
+    pointer-events: none;
+    background-color: var(--primary);
+}
+
+.ResizeDragBar__horizontal:hover::after, 
+.ResizeDragBar__horizontal:active::after {
+    content: "";
+    position: absolute;
+    left: -1px;
+    height: 100%;
+    width: 3px;
+    pointer-events: none;
+    background-color: var(--primary);
+}
+
+.ResizeDragBar--active {
+    border-color: 1px var(--primary);
+    background-color: var(--primary);
+}
+
+.ResizablePanel {
+    flex-grow: 4;
+    overflow: hidden;
+}

@@ -1,0 +1,10 @@
+{
+    "extends": "../../../tsconfig.json",
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "strictPropertyInitialization": false,
+        "strictNullChecks": false,
+        "noImplicitAny": false,
+        "noImplicitThis": false
+    }
+}

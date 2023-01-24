@@ -1,0 +1,53 @@
+.Toolbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: center;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    background-color: var(--primary);
+    color: var(--text-on-primary);
+    z-index: 50;
+    height: 30px;
+    gap: var(--spacing-m);
+}
+
+.ToolbarFmuLogo {
+    filter: brightness(0) invert(1);
+    width: 16px;
+}
+
+.Toolbar button {
+    text-transform: none;
+    color: var(--text-on-primary);
+    display: flex;
+    gap: var(--spacing-s);
+    border-radius: 0;
+    margin: 0;
+    height: 30px;
+    overflow: hidden;
+}
+
+.Toolbar button > svg {
+    font-size: 16px;
+}
+
+.Toolbar button > span:first-of-type {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1rem;
+}
+
+.Toolbar button:hover {
+    background-color: var(--primary-hover);
+}
+
+.Toolbar button.error {
+    background-color: var(--warning);
+    color: var(--text-on-light);
+}
+
+.Toolbar button.error:hover {
+    background-color: var(--warning-hover);
+}

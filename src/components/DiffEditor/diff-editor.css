@@ -1,0 +1,171 @@
+.EditorWrapper {
+    position: relative;
+    height: 100%;
+}
+
+.Editor {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    height: 100%;
+}
+
+.EditorContainer {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    height: 100%;
+    flex-grow: 4;
+}
+
+.EditorInput {
+    flex-grow: 4;
+}
+
+.EditorSettings {
+    max-height: 40px;
+    padding: 8px;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.EditorInfo {
+    text-align: right;
+    flex-grow: 4;
+}
+
+.Editor__CurrentObjectDecoration {
+    background: rgb(255, 208, 54);
+    width: 5px !important;
+    margin-left: 4px;
+}
+
+.YamlEditor {
+    height: auto;
+    box-sizing: border-box;
+}
+
+.Issues {
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.IssuesTitle {
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.IssuesTitle > strong {
+    margin-left: 8px;
+}
+
+.IssuesContent {
+    overflow: auto;
+}
+
+.Issue {
+    padding: 8px;
+    font-size: 0.8em;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.Issue svg {
+    margin-right: 8px;
+}
+
+.IssuePosition {
+    margin-left: 8px;
+}
+
+.DiffEditorHeader {
+    font-weight: 800;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-s);
+    background-color: var(--background-light);
+    text-transform: uppercase;
+    height: 38px;
+}
+
+.EditorHeaderTitle {
+    display: flex;
+}
+
+.EditorHeaderTitle > div {
+    padding: var(--spacing-s);
+    padding-left: var(--spacing-m);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+}
+
+.EditorHeaderTitle > div strong {
+    margin-right: var(--spacing-s);
+}
+
+.EditorHeaderTitle > div i {
+    text-transform: none;
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.EditorHeaderActions {
+    flex-grow: 4;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    gap: var(--spacing-s);
+    min-width: 50px;
+}
+
+.DiffEditorHeader > div:nth-child(2){
+    border-left: 1px var(--background-medium) solid;
+}
+
+.MergeEditorFile {
+    display: flex;
+    flex-direction: row;
+    padding: var(--spacing-s);
+    gap: var(--spacing-s);
+    align-items: center;
+    height: 38px;
+    box-sizing: border-box;
+}
+
+.MergeEditorFile > div {
+    flex-grow: 4;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    gap: var(--spacing-s);
+}
+
+.EditorOverlay {
+    position: absolute;
+    height: 100%;
+    z-index: 999;
+    background: var(--background-color) repeating-linear-gradient(
+        -45deg,
+        var(--background-color),
+        var(--background-color) 6px,
+        var(--background-light) 6px,
+        var(--background-light) 8px
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+}
