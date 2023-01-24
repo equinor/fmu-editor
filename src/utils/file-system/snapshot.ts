@@ -1,6 +1,6 @@
 import path from "path";
-import { Directory } from "./directory";
 
+import {Directory} from "./directory";
 import {File} from "./file";
 
 export interface ISnapshot {}
@@ -37,7 +37,7 @@ export class Snapshot implements ISnapshot {
 
     public exists(): boolean {
         return this.snapshotFile.exists();
-    };
+    }
 
     private write(): void {
         const snapshot: ISnapshotFile = {

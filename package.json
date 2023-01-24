@@ -190,7 +190,7 @@
         "start-script": "node ./scripts/start.js",
         "start": "NODE_ENV=development BABEL_ENV=development webpack serve --config webpack.config.js --no-open --port 3000 --static ./dist --no-client-overlay --hot",
         "webpack": "webpack --config webpack.config.js",
-        "build": "craco --max_old_space_size=4096 build",
+        "build": "NODE_ENV=production BABEL_ENV=production webpack build --config webpack.config.js",
         "test": "craco test --watchAll=false",
         "postinstall": "electron-builder install-app-deps",
         "electron:dev": "concurrently \"cross-env BROWSER=none npm run start\" \"wait-on http://localhost:3000 && tsc -p electron -w\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=development electron .\"",
@@ -211,93 +211,33 @@
         "release:major": "standard-version --release-as major"
     },
     "build": {
-        "appId": "io.equinor.configeditor",
-        "productName": "webviz-config-editor",
-        "copyright": "Copyright © 2022 ${author}",
-        "mac": {
-            "category": "public.app-category.utilities",
-            "icon": "build/icon.png",
-            "hardenedRuntime": true,
-            "gatekeeperAssess": false,
-            "entitlements": "./electron/src/entitlements.mac.inherit.plist",
-            "entitlementsInherit": "./electron/src/entitlements.mac.inherit.plist",
-            "target": [
-                {
-                    "target": "default",
-                    "arch": [
-                        "universal"
-                    ]
-                }
-            ]
-        },
-        "artifactName": "${productName}-${os}-${version}-${arch}.${ext}",
-        "afterSign": "./notarization/afterSignHook.js",
-        "dmg": {
-            "icon": "build/icon.png",
-            "writeUpdateInfo": true
-        },
-        "win": {
-            "target": "nsis",
-            "icon": "build/icon.ico"
-        },
-        "nsis": {
-            "oneClick": false,
-            "installerIcon": "build/icon.ico",
-            "uninstallerIcon": "build/icon.ico",
-            "installerHeaderIcon": "build/icon.ico",
-            "differentialPackage": true,
-            "perMachine": true,
-            "allowElevation": true,
-            "allowToChangeInstallationDirectory": true,
-            "runAfterFinish": true,
-            "createDesktopShortcut": false,
-            "menuCategory": "Webviz",
-            "shortcutName": "Config Editor"
-        },
+        "appId": "io.equinor.fmueditor",
+        "productName": "fmu-editor",
+        "copyright": "Copyright © 2023 ${author}",
         "linux": {
             "target": [
                 {
-                    "target": "deb",
-                    "arch": [
-                        "x64",
-                        "arm64"
-                    ]
-                },
-                {
-                    "target": "rpm",
-                    "arch": [
-                        "x64",
-                        "arm64"
-                    ]
-                },
-                {
                     "target": "AppImage",
                     "arch": [
-                        "x64",
-                        "arm64"
+                        "x64"
                     ]
                 }
             ],
             "icon": "../assets/icons/png/",
             "category": "Development",
-            "maintainer": "Webviz",
+            "maintainer": "FMU",
             "vendor": "Equinor",
-            "executableName": "webviz-config-editor",
-            "synopsis": "Efficiently create Webviz Dashboards",
-            "description": "An open-source editor for creating Webviz dashboards."
+            "executableName": "fmu-editor",
+            "synopsis": "Efficiently edit FMU files and log/compare changes.",
+            "description": "An editor and source control manager for the FMU directory in Equinor."
         },
         "appImage": {
             "artifactName": "${productName}-${os}-${version}-${arch}.${ext}"
         },
-        "deb": {
-            "packageCategory": "Webviz",
-            "priority": "standard"
-        },
-        "asar": true,
+        "asar": false,
         "extends": null,
         "files": [
             "build/**/*",
-            "python/*",
             "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
             "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
             "!**/node_modules/*.d.ts",
@@ -336,10 +276,6 @@
             {
                 "from": "resources",
                 "to": "app"
-            },
-            {
-                "from": "python",
-                "to": "python"
             }
         ],
         "directories": {

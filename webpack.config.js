@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const resolve = require("resolve");
 const webpack = require("webpack");
 
 const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
@@ -12,24 +11,11 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const ModuleNotFoundPlugin = require("react-dev-utils/ModuleNotFoundPlugin");
-const ForkTsCheckerWebpackPlugin =
-    process.env.TSC_COMPILE_ON_ERROR === "true"
-        ? require("react-dev-utils/ForkTsCheckerWarningWebpackPlugin")
-        : require("react-dev-utils/ForkTsCheckerWebpackPlugin");
 const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
 const ESLintPlugin = require("eslint-webpack-plugin");
-const getClientEnvironment = require("./webpack-utils/env");
-
-const reactRefreshRuntimeEntry = require.resolve("react-refresh/runtime");
-const reactRefreshWebpackPluginRuntimeEntry = require.resolve("@pmmmwh/react-refresh-webpack-plugin");
-const babelRuntimeEntry = require.resolve("babel-preset-react-app");
-const babelRuntimeEntryHelpers = require.resolve("@babel/runtime/helpers/esm/assertThisInitialized", {
-    paths: [babelRuntimeEntry],
-});
-const babelRuntimeRegenerator = require.resolve("@babel/runtime/regenerator", {
-    paths: [babelRuntimeEntry],
-});
 const getCSSModuleLocalIdent = require("react-dev-utils/getCSSModuleLocalIdent");
+const getPublicUrlOrPath = require("react-dev-utils/getPublicUrlOrPath");
+const getClientEnvironment = require("./webpack-utils/env");
 
 const imageInlineSizeLimit = parseInt(process.env.IMAGE_INLINE_SIZE_LIMIT || "10000", 10);
 const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== "false";
@@ -56,7 +42,6 @@ const hasJsxRuntime = (() => {
 
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
-const getPublicUrlOrPath = require("react-dev-utils/getPublicUrlOrPath");
 
 // We use `PUBLIC_URL` environment variable or "homepage" field to infer
 // "public path" at which the app is served.
@@ -66,12 +51,14 @@ const getPublicUrlOrPath = require("react-dev-utils/getPublicUrlOrPath");
 // like /todos/42/static/js/bundle.7289d.js. We have to know the root.
 const publicUrlOrPath = getPublicUrlOrPath(
     process.env.NODE_ENV === "development",
+    /* eslint-disable-next-line import/no-dynamic-require */
     require(resolveApp("package.json")).homepage,
     process.env.PUBLIC_URL
 );
 
 const paths = {
     src: resolveApp("src"),
+    build: resolveApp("build"),
     dist: resolveApp("dist"),
     public: resolveApp("public"),
     assets: resolveApp("static"),
@@ -82,15 +69,15 @@ const paths = {
     appTsBuildInfoFile: resolveApp("node_modules/.cache/tsconfig.tsbuildinfo"),
 };
 
-module.exports = webpackEnv => {
-    const isEnvDevelopment = true;
-    const isEnvProduction = false;
-
+module.exports = () => {
     // We will provide `paths.publicUrlOrPath` to our app
     // as %PUBLIC_URL% in `index.html` and `process.env.PUBLIC_URL` in JavaScript.
     // Omit trailing slash as %PUBLIC_URL%/xyz looks better than %PUBLIC_URL%xyz.
     // Get environment variables to inject into our app.
     const env = getClientEnvironment(paths.publicUrlOrPath.slice(0, -1));
+
+    const isEnvDevelopment = env.raw.NODE_ENV === "development";
+    const isEnvProduction = !isEnvDevelopment;
 
     // common function to get style loaders
     const getStyleLoaders = (cssOptions, preProcessor) => {
@@ -144,7 +131,7 @@ module.exports = webpackEnv => {
                     loader: require.resolve("resolve-url-loader"),
                     options: {
                         sourceMap: isEnvProduction ? shouldUseSourceMap : isEnvDevelopment,
-                        root: paths.appSrc,
+                        root: paths.src,
                     },
                 },
                 {
@@ -171,16 +158,16 @@ module.exports = webpackEnv => {
             : {main: path.join(paths.src, "index.tsx")},
         devtool: isEnvProduction ? "source-map" : isEnvDevelopment && "cheap-module-source-map",
         output: {
-            path: paths.dist,
+            path: paths.build,
             pathinfo: isEnvDevelopment,
             filename: "static/js/[name].bundle.js",
             chunkFilename: isEnvProduction
                 ? "static/js/[name].[contenthash:8].chunk.js"
                 : isEnvDevelopment && "static/js/[name].chunk.js",
             assetModuleFilename: "static/media/[name].[hash][ext]",
-            publicPath: path.join(__dirname, "/public"),
+            publicPath: publicUrlOrPath,
             devtoolModuleFilenameTemplate: isEnvProduction
-                ? info => path.relative(paths.appSrc, info.absoluteResourcePath).replace(/\\/g, "/")
+                ? info => path.relative(paths.src, info.absoluteResourcePath).replace(/\\/g, "/")
                 : isEnvDevelopment && (info => path.resolve(info.absoluteResourcePath).replace(/\\/g, "/")),
         },
         module: {
@@ -431,7 +418,7 @@ module.exports = webpackEnv => {
                 formatter: require.resolve("react-dev-utils/eslintFormatter"),
                 eslintPath: require.resolve("eslint"),
                 failOnError: !(isEnvDevelopment && emitErrorsAsWarnings),
-                context: paths.appSrc,
+                context: paths.src,
                 cache: true,
                 cacheLocation: path.resolve(paths.appNodeModules, ".cache/.eslintcache"),
                 // ESLint class options
