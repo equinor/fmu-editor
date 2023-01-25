@@ -229,8 +229,7 @@
             "vendor": "Equinor",
             "executableName": "fmu-editor",
             "synopsis": "Efficiently edit FMU files and log/compare changes.",
-            "description": "An editor and source control manager for the FMU directory in Equinor.",
-            "name": "FMU Editor"
+            "description": "An editor and source control manager for the FMU directory in Equinor."
         },
         "appImage": {
             "artifactName": "${productName}-${os}-${version}-${arch}.${ext}"
