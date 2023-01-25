@@ -9,7 +9,7 @@ on:
 
 jobs:
     build-and-upload-assets-on-linux:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-18.04
 
         steps:
             - name: 📖 Context
