@@ -2,7 +2,6 @@ import {BrowserWindow, Menu, MenuItemConstructorOptions, app} from "electron";
 
 import * as path from "path";
 
-import {openFile} from "./commands";
 import {PROCESS_ENV} from "./env";
 import {RecentFiles, RecentFilesManager} from "./recent-files";
 
@@ -26,7 +25,7 @@ function createPreviewWindow() {
     if (isDev) {
         win.loadURL("http://localhost:3000/preview.html");
     } else {
-        win.loadURL(`file://${__dirname}/../preview.html`);
+        win.loadURL(`file://${__dirname}/preview.html`);
     }
 
     return win;
@@ -85,30 +84,6 @@ export const createMenu = (
             label: "File",
             enabled: !args.allActionsDisabled,
             submenu: [
-                {
-                    label: "New File",
-                    accelerator: "CmdOrCtrl+N",
-                    click() {
-                        const window = BrowserWindow.getFocusedWindow();
-                        if (window) {
-                            window.webContents.send("new-file");
-                        }
-                    },
-                    enabled: !args.allActionsDisabled,
-                },
-                {
-                    label: "Open File...",
-                    accelerator: "CmdOrCtrl+O",
-                    click() {
-                        openFile();
-                    },
-                    enabled: !args.allActionsDisabled,
-                },
-                {
-                    label: "Open Recent",
-                    submenu: recentDocuments,
-                    enabled: !args.allActionsDisabled,
-                },
                 {
                     label: "Save",
                     accelerator: "CmdOrCtrl+S",
@@ -173,7 +148,7 @@ export const createMenu = (
                     click: async () => {
                         /* eslint-disable global-require */
                         const {shell} = require("electron");
-                        await shell.openExternal("https://equinor.github.io/webviz-subsurface");
+                        await shell.openExternal("https://equinor.github.io/fmu-editor");
                     },
                     enabled: !args.allActionsDisabled,
                 },
@@ -182,7 +157,7 @@ export const createMenu = (
                     click: async () => {
                         /* eslint-disable global-require */
                         const {shell} = require("electron");
-                        await shell.openExternal("https://github.com/equinor/webviz-config-editor/issues");
+                        await shell.openExternal("https://github.com/equinor/fmu-editor/issues");
                     },
                     enabled: !args.allActionsDisabled,
                 },
