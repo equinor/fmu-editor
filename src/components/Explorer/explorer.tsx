@@ -23,11 +23,8 @@ import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setFileTreeStates, setWorkingDirectoryPath} from "@redux/reducers/files";
-import {addNotification} from "@redux/reducers/notifications";
 import {setActiveItemPath, setCreateFile, setCreateFolder} from "@redux/reducers/ui";
 import {selectFmuDirectory} from "@redux/thunks";
-
-import {Notification, NotificationType} from "@shared-types/notifications";
 
 import path from "path";
 
@@ -52,20 +49,6 @@ export const Explorer: React.FC = () => {
     const activeItemPath = useAppSelector(state => state.ui.explorer.activeItemPath);
 
     React.useEffect(() => {
-        if (workingDirectoryPath !== undefined && workingDirectoryPath !== "" && username) {
-            try {
-                setDirectory(new Directory("", workingDirectoryPath).getUserVersion(username));
-            } catch (e) {
-                const notification: Notification = {
-                    type: NotificationType.ERROR,
-                    message: `Could not read content of '${workingDirectoryPath}'. ${e}`,
-                };
-                dispatch(addNotification(notification));
-            }
-        }
-    }, [workingDirectoryPath, dispatch, username]);
-
-    React.useEffect(() => {
         const relativePath = path.relative(workingDirectoryPath, activeItemPath);
         if (
             workingDirectoryPath &&
@@ -79,12 +62,18 @@ export const Explorer: React.FC = () => {
     }, [workingDirectoryPath, username, dispatch, activeItemPath]);
 
     React.useEffect(() => {
-        setFmuDirectory(new Directory("", fmuDirectoryPath));
+        const dir = new Directory("", fmuDirectoryPath);
+        if (dir.exists()) {
+            setFmuDirectory(dir);
+        }
     }, [availableWorkingDirectoriesLastChangedMs, fmuDirectoryPath]);
 
     const refreshExplorer = React.useCallback(() => {
         if (workingDirectoryPath !== undefined && workingDirectoryPath !== "" && username) {
-            setDirectory(new Directory("", workingDirectoryPath).getUserVersion(username));
+            const dir = new Directory("", workingDirectoryPath);
+            if (dir.exists()) {
+                setDirectory(dir.getUserVersion(username));
+            }
         }
     }, [workingDirectoryPath, username]);
 

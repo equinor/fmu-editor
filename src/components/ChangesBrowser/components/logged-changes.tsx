@@ -108,16 +108,14 @@ export const LoggedChanges: React.VFC = () => {
                         key={fileChange.path}
                         onClick={() => handleFileSelected(fileChange.path)}
                     >
-                        <div>
-                            {fileChange.action === FileChangeType.MODIFIED && <Edit color="warning" fontSize="small" />}
-                            {fileChange.action === FileChangeType.ADDED && <Add color="success" fontSize="small" />}
-                            {fileChange.action === FileChangeType.DELETED && <Remove color="error" fontSize="small" />}
-                            <OverflowEllipsis
-                                text={fileChange.path}
-                                ellipsisPosition={EllipsisPosition.LEFT}
-                                showFullTextAsTitle
-                            />
-                        </div>
+                        {fileChange.action === FileChangeType.MODIFIED && <Edit color="warning" fontSize="small" />}
+                        {fileChange.action === FileChangeType.ADDED && <Add color="success" fontSize="small" />}
+                        {fileChange.action === FileChangeType.DELETED && <Remove color="error" fontSize="small" />}
+                        <OverflowEllipsis
+                            text={fileChange.path}
+                            ellipsisPosition={EllipsisPosition.LEFT}
+                            showFullTextAsTitle
+                        />
                     </div>
                 ))}
             </div>

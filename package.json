@@ -234,7 +234,7 @@
         "appImage": {
             "artifactName": "${productName}-${os}-${version}-${arch}.${ext}"
         },
-        "asar": false,
+        "asar": true,
         "extends": null,
         "files": [
             "build/**/*",

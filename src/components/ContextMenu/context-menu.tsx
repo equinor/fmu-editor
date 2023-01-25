@@ -77,9 +77,27 @@ export const ContextMenu: React.VFC<ContextMenuProps> = props => {
         setVisible(false);
     };
 
+    const makeStyle = () => {
+        let style = {
+            left: position.x,
+            top: position.y,
+            bottom: undefined,
+            right: undefined,
+        };
+        if (position.x > 0.5 * window.innerWidth) {
+            style.left = undefined;
+            style.right = window.innerWidth - position.x;
+        }
+        if (position.y > 0.5 * window.innerHeight) {
+            style.top = undefined;
+            style.bottom = window.innerHeight - position.y;
+        }
+        return style;
+    };
+
     return (
         <div className="ContextMenuOverlay" ref={overlayRef}>
-            <div className="ContextMenu" style={{left: position.x, top: position.y}}>
+            <div className="ContextMenu" style={makeStyle()}>
                 {props.template.map(item =>
                     item.divider ? (
                         <div key={v4()} className="ContextMenuDivider" />

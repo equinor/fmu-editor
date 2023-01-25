@@ -53,7 +53,11 @@ export const Preview: React.VFC<PreviewProps> = props => {
                 No preview available
             </div>
             <webview
-                src="http://localhost:3000/preview.html"
+                src={
+                    process.env.NODE_ENV === "development"
+                        ? "http://localhost:3000/preview.html"
+                        : `file://${__dirname}/preview.html`
+                }
                 nodeintegration={trueAsStr}
                 className="Preview__Webview"
             />
