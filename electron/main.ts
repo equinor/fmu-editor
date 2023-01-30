@@ -1,7 +1,7 @@
 /* eslint-disable import/order */
 
 /* eslint-disable import/first */
-import {DataProtectionScope, PersistenceCachePlugin, PersistenceCreator} from "@azure/msal-node-extensions";
+// import {DataProtectionScope, PersistenceCachePlugin, PersistenceCreator} from "@azure/msal-node-extensions";
 import {ElectronAuthenticator, MsalElectronConfig} from "@microsoft/mgt-electron-provider/dist/Authenticator";
 
 import {BrowserWindow, app} from "electron";
@@ -51,6 +51,8 @@ async function createWindow() {
         },
     });
 
+    /* NOT AVAILABLE AS LONG AS WE ARE RUNNING ON RHEL 7 (due to glibc version)
+
     const persistenceConfiguration = {
         cachePath: path.join(app.getPath("userData"), "./msal.cache.json"),
         dataProtectionScope: DataProtectionScope.CurrentUser,
@@ -60,13 +62,14 @@ async function createWindow() {
     };
 
     const filePersistence = await PersistenceCreator.createPersistence(persistenceConfiguration);
+    */
 
     const config: MsalElectronConfig = {
         clientId: "6f2755e8-06e5-4f2e-8129-029c1c71d347",
         authority: "https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0",
         mainWindow: win,
         scopes: ["user.readbasic.all"],
-        cachePlugin: new PersistenceCachePlugin(filePersistence),
+        // cachePlugin: new PersistenceCachePlugin(filePersistence),
     };
     ElectronAuthenticator.initialize(config);
 
