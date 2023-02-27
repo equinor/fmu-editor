@@ -32,6 +32,48 @@ export type Context = {
     allChanges: ISnapshotCommitBundle[];
 };
 
+export class ChangelogWatcherServiceClass {
+    private changelogWatcherWorker: Webworker<ChangelogWatcherRequests, ChangelogWatcherResponses>;
+    private subscribers: (() => void)[] = [];
+    constructor() {
+        this.changelogWatcherWorker = new Webworker<ChangelogWatcherRequests, ChangelogWatcherResponses>({
+            Worker: worker,
+        });
+
+        this.changelogWatcherWorker.on(ChangelogWatcherResponseTypes.COMMIT_APPENDED, () => {
+            dispatch(
+                addNotification({
+                    type: NotificationType.SUCCESS,
+                    message: "Commit appended",
+                })
+            );
+        });
+        this.changelogWatcherWorker.on(ChangelogWatcherResponseTypes.MODIFIED, () => {
+            document.dispatchEvent(new Event("changelog-modified"));
+        });
+        this.changelogWatcherWorker.on(ChangelogWatcherResponseTypes.CHANGES_FOR_FILE, ({changes}) => {
+            setChangesForFile(changes);
+        });
+        this.changelogWatcherWorker.on(ChangelogWatcherResponseTypes.ALL_CHANGES, ({changes}) => {
+            setAllChanges(changes);
+        });
+    }
+
+    public appendCommit(commit: ICommit) {
+        this.changelogWatcherWorker.postMessage(ChangelogWatcherRequestTypes.APPEND_COMMIT, {commit});
+    }
+
+    public getChangesForFile(filePath: string) {
+        this.changelogWatcherWorker.postMessage(ChangelogWatcherRequestTypes.GET_CHANGES_FOR_FILE, {filePath});
+    }
+
+    public getAllChanges() {
+        this.changelogWatcherWorker.postMessage(ChangelogWatcherRequestTypes.GET_ALL_CHANGES);
+    }
+
+    private;
+}
+
 const [useChangelogWatcherServiceContext, ChangelogWatcherServiceContextProvider] = createGenericContext<Context>();
 
 export const ChangelogWatcherService: React.FC = props => {

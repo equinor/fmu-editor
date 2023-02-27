@@ -9,6 +9,7 @@ export enum IpcMessages {
     ERROR = "error",
     LOGGED_IN = "logged-in",
     LOGGED_OUT = "logged-out",
+    FILE_OPENED = "file-opened",
 }
 
 export enum IpcDebugMessages {

@@ -12,12 +12,10 @@ import ElectronStore from "electron-store";
 import moduleAlias from "module-alias";
 import path from "path";
 
-import {PROCESS_ENV} from "./env";
-import {initIpc} from "./ipc-messages";
-import {createMenu} from "./menu";
-import {getAppIcon} from "./utils";
-
-import terminal from "../cli/terminal";
+import {PROCESS_ENV} from "./src/env";
+import {initIpc} from "./src/ipc-messages";
+import {createMenu} from "./src/menu";
+import {getAppIcon} from "./src/utils";
 
 Object.assign(console, ElectronLog.functions);
 moduleAlias.addAliases({
@@ -121,9 +119,3 @@ const openApplication = async () => {
 };
 
 openApplication();
-
-if (process.platform === "darwin") {
-    terminal()
-        // eslint-disable-next-line no-console
-        .catch(e => console.log(e));
-}

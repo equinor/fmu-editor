@@ -2,11 +2,10 @@ import {app, ipcMain} from "electron";
 
 import {FileExplorerOptions, FileOptions} from "@shared-types/file-explorer-options";
 
+import {IpcMessages} from "@shared-types/ipc";
 import {saveFileDialog, selectFileDialog} from "./commands";
 import {PROCESS_ENV} from "./env";
 import {createMenu} from "./menu";
-
-import {IpcMessages} from "../src/shared-types/ipc";
 
 let signedIn = false;
 

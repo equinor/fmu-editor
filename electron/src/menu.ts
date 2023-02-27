@@ -1,9 +1,6 @@
-import {BrowserWindow, Menu, MenuItemConstructorOptions, app} from "electron";
-
-import * as path from "path";
+import {BrowserWindow, Menu, MenuItemConstructorOptions} from "electron";
 
 import {PROCESS_ENV} from "./env";
-import {RecentFiles, RecentFilesManager} from "./recent-files";
 
 const isDev = PROCESS_ENV.NODE_ENV === "development";
 
@@ -42,44 +39,7 @@ export const createMenu = (
     args.allActionsDisabled = args.allActionsDisabled || false;
     args.disabledSaveActions = args.disabledSaveActions || false;
 
-    const listOfRecentDocuments = RecentFiles.getRecentFiles();
-    const recentDocuments = listOfRecentDocuments.map(doc => ({
-        label: path.basename(doc),
-        click() {
-            const window = BrowserWindow.getFocusedWindow();
-            if (window) {
-                window.webContents.send("file-opened", [doc]);
-            }
-        },
-    }));
-    recentDocuments.push({
-        label: "Clear Recent",
-        click() {
-            RecentFilesManager.clearRecentFiles();
-        },
-    });
-
     let template = [
-        // { role: 'appMenu' }
-        ...(isMac
-            ? [
-                  {
-                      label: app.name,
-                      submenu: [
-                          {role: "about"},
-                          {type: "separator"},
-                          {role: "services"},
-                          {type: "separator"},
-                          {role: "hide"},
-                          {role: "hideOthers"},
-                          {role: "unhide"},
-                          {type: "separator"},
-                          {role: "quit"},
-                      ],
-                  },
-              ]
-            : []),
-        // { role: 'fileMenu' }
         {
             label: "File",
             enabled: !args.allActionsDisabled,
@@ -111,7 +71,6 @@ export const createMenu = (
                     : {role: "quit", enabled: !args.allActionsDisabled},
             ],
         },
-        // { role: 'viewMenu' }
         {
             label: "View",
             enabled: !args.allActionsDisabled,
@@ -123,7 +82,6 @@ export const createMenu = (
                 {role: "togglefullscreen", enabled: !args.allActionsDisabled},
             ],
         },
-        // { role: 'windowMenu' }
         {
             label: "Window",
             enabled: !args.allActionsDisabled,
@@ -180,7 +138,7 @@ export const createMenu = (
                           },
                           {
                               label: "Open Preview",
-                              click(_: any, browserWindow: BrowserWindow) {
+                              click() {
                                   createPreviewWindow();
                               },
                           },

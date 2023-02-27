@@ -11,5 +11,8 @@
         "resolveJsonModule": true,
         "skipLibCheck": true
     },
+    "include": [
+        "./src/**/*.ts",
+    ],
     "extends": "../paths.json"
 }
