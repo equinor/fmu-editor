@@ -10,6 +10,7 @@ export enum IpcMessages {
     LOGGED_IN = "logged-in",
     LOGGED_OUT = "logged-out",
     FILE_OPENED = "file-opened",
+    PUSH_NOTIFICATION = "push-notification",
 }
 
 export enum IpcDebugMessages {

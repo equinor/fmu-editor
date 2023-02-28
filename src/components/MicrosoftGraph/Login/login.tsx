@@ -3,13 +3,13 @@ import {getUserWithPhoto} from "@microsoft/mgt-components/src/graph/graph.userWi
 import {IDynamicPerson, ProviderState, Providers} from "@microsoft/mgt-react";
 import {Logout, Person} from "@mui/icons-material";
 import {Avatar, CircularProgress, IconButton, ListItemIcon, Menu, MenuItem} from "@mui/material";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 
-import {NotificationType} from "@components/Notifications";
-
 import {useAppDispatch} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
+
+import {NotificationType} from "@shared-types/notifications";
 
 import uniqolor from "uniqolor";
 
@@ -62,12 +62,10 @@ export const Login: React.VFC = () => {
     };
 
     const handleLoginFailed = () => {
-        dispatch(
-            addNotification({
-                type: NotificationType.ERROR,
-                message: `Login failed.`,
-            })
-        );
+        notificationsService.publishNotification({
+            type: NotificationType.ERROR,
+            message: `Login failed.`,
+        });
     };
 
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {

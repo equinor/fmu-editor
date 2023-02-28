@@ -1,11 +1,11 @@
 import {Button} from "@mui/material";
 import {useEnvironment} from "@services/environment-service";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 import {VscGlobe} from "react-icons/vsc";
 
 import {useAppDispatch} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
 
 import {Notification, NotificationType} from "@shared-types/notifications";
 
@@ -28,7 +28,7 @@ export const Environment: React.FC = () => {
                       }`,
                   };
 
-        dispatch(addNotification(notification));
+        notificationsService.publishNotification(notification);
     };
 
     return (

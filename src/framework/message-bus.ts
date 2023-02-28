@@ -1,26 +1,40 @@
-export interface IBusMessage {
-    type: string;
-    data: any;
+export interface IMessageBusMessage {
+    [type: string]: Record<string, any> | null;
 }
 
-export class MessageBus {
-    private _messageHandlers: { [messageType: string]: Function[] };
+type SubscribersMap<T extends IMessageBusMessage, K extends keyof T> = Record<K, Set<(payload?: T[K]) => void>>;
+
+export class MessageBus<MessageTypes extends IMessageBusMessage> {
+    private _subscribers: SubscribersMap<MessageTypes, keyof MessageTypes>;
 
     constructor() {
-        this._messageHandlers = {};
+        this._subscribers = {} as SubscribersMap<MessageTypes, keyof MessageTypes>;
     }
-    
-    public subscribe(messageType: string, handler: Function) {
-        if (!this._messageHandlers[messageType]) {
-            this._messageHandlers[messageType] = [];
+
+    public subscribe(
+        messageType: keyof MessageTypes,
+        handler: (payload?: MessageTypes[keyof MessageTypes]) => void
+    ): () => void {
+        if (!this._subscribers[messageType]) {
+            this._subscribers[messageType] = new Set();
         }
-    
-        this._messageHandlers[messageType].push(handler);
+        this._subscribers[messageType].add(handler);
+
+        return () => this.unsubscribe(messageType, handler);
     }
-    
-    public publish(messageType: string, message: any) {
-        if (this._messageHandlers[messageType]) {
-            this._messageHandlers[messageType].forEach(handler => handler(message));
+
+    public unsubscribe(
+        messageType: keyof MessageTypes,
+        handler: (payload?: MessageTypes[keyof MessageTypes]) => void
+    ): void {
+        if (this._subscribers[messageType]) {
+            this._subscribers[messageType].delete(handler);
+        }
+    }
+
+    public publish(messageType: string, payload?: MessageTypes[keyof MessageTypes]): void {
+        if (this._subscribers[messageType]) {
+            this._subscribers[messageType].forEach(handler => handler(payload));
         }
     }
 }

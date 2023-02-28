@@ -5,7 +5,6 @@ import {File as FileInterface} from "@utils/file-system/file";
 import {generateHashCode} from "@utils/hash";
 
 import {EventSource, File, FilesState} from "@shared-types/files";
-import {NotificationsState} from "@shared-types/notifications";
 import {ChangesBrowserView, Page, Themes, UiState, View} from "@shared-types/ui";
 import {UiCoachState} from "@shared-types/ui-coach";
 
@@ -91,13 +90,8 @@ if (initialFilesState.files.length === 0) {
     initialFilesState.activeFile = "";
 }
 
-const notificationsState: NotificationsState = {
-    notifications: [],
-};
-
 export default {
     ui: initialUiState,
     uiCoach: initialUiCoachState,
     files: initialFilesState,
-    notifications: notificationsState,
 };

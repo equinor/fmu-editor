@@ -8,6 +8,7 @@ import {
     PullState,
     useFileOperationsService,
 } from "@services/file-operations-service";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 import {VscClose} from "react-icons/vsc";
@@ -22,7 +23,6 @@ import {ResizablePanels} from "@components/ResizablePanels";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
 import {resetDiffFiles, setDiffFiles, setView} from "@redux/reducers/ui";
 
 import {FileChangeOrigin} from "@shared-types/file-changes";
@@ -47,42 +47,36 @@ export const Pull: React.VFC = () => {
             if (event.detail.state === PullState.PULLED) {
                 setStagedFiles(event.detail.notPulledFiles || []);
                 if (event.detail.notPulledFiles?.length === 0) {
-                    dispatch(
-                        addNotification({
-                            type: NotificationType.SUCCESS,
-                            message: `Successfully pulled ${event.detail.pulledFiles?.length} ${adjustToPlural(
-                                "file",
-                                event.detail.pulledFiles?.length || 0
-                            )}.`,
-                        })
-                    );
+                    notificationsService.publishNotification({
+                        type: NotificationType.SUCCESS,
+                        message: `Successfully pulled ${event.detail.pulledFiles?.length} ${adjustToPlural(
+                            "file",
+                            event.detail.pulledFiles?.length || 0
+                        )}.`,
+                    });
                     dispatch(setView(View.Main));
                     dispatch(resetDiffFiles());
                 } else {
-                    dispatch(
-                        addNotification({
-                            type: NotificationType.WARNING,
-                            message: `Successfully pulled ${event.detail.pulledFiles.length} ${adjustToPlural(
-                                "file",
-                                event.detail.pulledFiles?.length || 0
-                            )}, failed to pull ${event.detail.notPulledFiles.length} ${adjustToPlural(
-                                "file",
-                                event.detail.notPulledFiles?.length || 0
-                            )}.`,
-                        })
-                    );
-                }
-            }
-            if (event.detail.state === PullState.FAILED) {
-                dispatch(
-                    addNotification({
-                        type: NotificationType.ERROR,
-                        message: `Failed to pull ${event.detail.notPulledFiles} ${adjustToPlural(
+                    notificationsService.publishNotification({
+                        type: NotificationType.WARNING,
+                        message: `Successfully pulled ${event.detail.pulledFiles.length} ${adjustToPlural(
+                            "file",
+                            event.detail.pulledFiles?.length || 0
+                        )}, failed to pull ${event.detail.notPulledFiles.length} ${adjustToPlural(
                             "file",
                             event.detail.notPulledFiles?.length || 0
                         )}.`,
-                    })
-                );
+                    });
+                }
+            }
+            if (event.detail.state === PullState.FAILED) {
+                notificationsService.publishNotification({
+                    type: NotificationType.ERROR,
+                    message: `Failed to pull ${event.detail.notPulledFiles} ${adjustToPlural(
+                        "file",
+                        event.detail.notPulledFiles?.length || 0
+                    )}.`,
+                });
             }
         };
 

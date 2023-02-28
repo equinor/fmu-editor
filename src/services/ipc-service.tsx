@@ -5,11 +5,12 @@ import React from "react";
 import {useMainProcessDataProvider} from "@components/MainProcessDataProvider/main-process-data-provider";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
 import {setInitialConfigurationDone} from "@redux/reducers/uiCoach";
 import {saveFile} from "@redux/thunks";
 
 import {NotificationType} from "@shared-types/notifications";
+
+import {notificationsService} from "./notifications-service";
 
 export const IpcService: React.FC = props => {
     const dispatch = useAppDispatch();
@@ -35,22 +36,22 @@ export const IpcService: React.FC = props => {
         });
 
         addListener("error", (_, errorMessage) => {
-            dispatch(
-                addNotification({
-                    type: NotificationType.ERROR,
-                    message: errorMessage,
-                })
-            );
+            notificationsService.publishNotification({
+                type: NotificationType.ERROR,
+                message: errorMessage,
+            });
         });
 
         addListener("debug:reset", () => {
             dispatch(setInitialConfigurationDone(false));
-            dispatch(
-                addNotification({
-                    type: NotificationType.SUCCESS,
-                    message: "Initial configuration state reset.",
-                })
-            );
+            notificationsService.publishNotification({
+                type: NotificationType.SUCCESS,
+                message: "Initial configuration state reset.",
+            });
+        });
+
+        addListener("push-notification", (_, notification) => {
+            notificationsService.publishNotification(notification);
         });
 
         return () => {

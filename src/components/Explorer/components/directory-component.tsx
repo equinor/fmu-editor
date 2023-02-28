@@ -1,3 +1,5 @@
+import {notificationsService} from "@services/notifications-service";
+
 import React from "react";
 import {VscChevronDown, VscChevronRight} from "react-icons/vsc";
 
@@ -9,7 +11,6 @@ import {ContextMenu} from "@components/ContextMenu";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {renameDirectory, renameFile, setFileTreeStates} from "@redux/reducers/files";
-import {addNotification} from "@redux/reducers/notifications";
 import {
     resetDragParentFolder,
     setActiveItemPath,
@@ -110,22 +111,18 @@ export const DirectoryComponent: React.VFC<DirectoryComponentProps> = props => {
 
     const handleDelete = React.useCallback(() => {
         if (props.directory.remove()) {
-            dispatch(
-                addNotification({
-                    type: NotificationType.SUCCESS,
-                    message: `Directory '${props.directory.baseName()}' successfully deleted.`,
-                })
-            );
+            notificationsService.publishNotification({
+                type: NotificationType.SUCCESS,
+                message: `Directory '${props.directory.baseName()}' successfully deleted.`,
+            });
             setDeleted(true);
         } else {
-            dispatch(
-                addNotification({
-                    type: NotificationType.ERROR,
-                    message: `Directory '${props.directory.baseName()}' could not be deleted.`,
-                })
-            );
+            notificationsService.publishNotification({
+                type: NotificationType.ERROR,
+                message: `Directory '${props.directory.baseName()}' could not be deleted.`,
+            });
         }
-    }, [props.directory, dispatch]);
+    }, [props.directory]);
 
     const contextMenuTemplate = React.useMemo(() => {
         const template: ContextMenuTemplate = [
@@ -176,20 +173,16 @@ export const DirectoryComponent: React.VFC<DirectoryComponentProps> = props => {
             const oldPath = props.directory.absolutePath();
             if (props.directory.rename(name)) {
                 dispatch(renameDirectory({oldFilePath: oldPath, newFilePath: props.directory.absolutePath()}));
-                dispatch(
-                    addNotification({
-                        type: NotificationType.SUCCESS,
-                        message: `Directory successfully renamed from '${oldName}' to '${name}'.`,
-                    })
-                );
+                notificationsService.publishNotification({
+                    type: NotificationType.SUCCESS,
+                    message: `Directory successfully renamed from '${oldName}' to '${name}'.`,
+                });
                 setDirName(name);
             } else {
-                dispatch(
-                    addNotification({
-                        type: NotificationType.ERROR,
-                        message: `Directory '${oldName}' could not be renamed to '${name}'.`,
-                    })
-                );
+                notificationsService.publishNotification({
+                    type: NotificationType.ERROR,
+                    message: `Directory '${oldName}' could not be renamed to '${name}'.`,
+                });
             }
             setEditMode(false);
         },
@@ -249,19 +242,15 @@ export const DirectoryComponent: React.VFC<DirectoryComponentProps> = props => {
                 const oldPath = droppedAsset.absolutePath();
                 if (droppedAsset.moveToDir(props.directory.absolutePath())) {
                     dispatch(renameFile({oldFilePath: oldPath, newFilePath: droppedAsset.absolutePath()}));
-                    dispatch(
-                        addNotification({
-                            type: NotificationType.SUCCESS,
-                            message: `'${droppedAsset.relativePath()}' successfully moved to '${props.directory.relativePath()}'.`,
-                        })
-                    );
+                    notificationsService.publishNotification({
+                        type: NotificationType.SUCCESS,
+                        message: `'${droppedAsset.relativePath()}' successfully moved to '${props.directory.relativePath()}'.`,
+                    });
                 } else {
-                    dispatch(
-                        addNotification({
-                            type: NotificationType.ERROR,
-                            message: `'${droppedAsset.relativePath()}' could not be moved to '${props.directory.relativePath()}'.`,
-                        })
-                    );
+                    notificationsService.publishNotification({
+                        type: NotificationType.ERROR,
+                        message: `'${droppedAsset.relativePath()}' could not be moved to '${props.directory.relativePath()}'.`,
+                    });
                 }
             }
             e.dataTransfer.clearData();

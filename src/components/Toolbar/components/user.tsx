@@ -1,18 +1,14 @@
 import {Button} from "@mui/material";
 import {useEnvironment} from "@services/environment-service";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 import {VscAccount} from "react-icons/vsc";
-
-import {useAppDispatch} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
 
 import {Notification, NotificationType} from "@shared-types/notifications";
 
 export const User: React.FC = () => {
     const environment = useEnvironment();
-
-    const dispatch = useAppDispatch();
 
     const handleUsernameClick = () => {
         const notification: Notification = !environment.usernameError
@@ -25,7 +21,7 @@ export const User: React.FC = () => {
                   message: `Could not read username from OS. ${environment.usernameError || ""}`,
               };
 
-        dispatch(addNotification(notification));
+        notificationsService.publishNotification(notification);
     };
 
     return (

@@ -1,16 +1,12 @@
 import {Close} from "@mui/icons-material";
-import {Alert, AlertColor, Button, IconButton, Snackbar} from "@mui/material";
+import {AlertColor, Button, IconButton} from "@mui/material";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 
-import {useAppSelector} from "@redux/hooks";
+import {NotificationType} from "@shared-types/notifications";
 
-export enum NotificationType {
-    ERROR = 0,
-    WARNING,
-    INFORMATION,
-    SUCCESS,
-}
+import {SnackbarKey, useSnackbar} from "notistack";
 
 const notificationTypeMap: {[key: number]: AlertColor} = {
     [NotificationType.ERROR]: "error",
@@ -30,72 +26,44 @@ export type Notification = {
     action?: NotificationAction;
 };
 
-export const NotificationsProvider: React.FC = props => {
-    const [open, setOpen] = React.useState(false);
-    const notifications = useAppSelector(
-        state => state.notifications.notifications
-    );
+const autoHideDuration = 6000;
 
-    React.useEffect(() => {
-        setOpen(true);
-    }, [notifications]);
-
-    const handleClose = (
-        _: Event | React.SyntheticEvent<any, Event>,
-        reason?: string
-    ) => {
-        if (reason === "clickaway") {
-            return;
-        }
-
-        setOpen(false);
-    };
-
-    const lastNotification = notifications[notifications.length - 1];
-    const close = (
-        <IconButton
-            size="small"
-            aria-label="close"
-            color="inherit"
-            onClick={handleClose}
-        >
+const makeActions = (
+    closeSnackbar: (snackbarId: SnackbarKey) => void,
+    action?: NotificationAction
+): ((snackbarId: number) => React.ReactNode) => {
+    const close = (snackbarId: SnackbarKey) => (
+        <IconButton size="small" aria-label="close" color="inherit" onClick={() => closeSnackbar(snackbarId)}>
             <Close fontSize="small" />
         </IconButton>
     );
-    const action =
-        lastNotification && lastNotification.action ? (
-            <>
-                <Button
-                    color="secondary"
-                    size="small"
-                    onClick={lastNotification.action.action}
-                >
-                    {lastNotification.action.label}
-                </Button>
-                {close}
-            </>
-        ) : (
-            close
-        );
 
-    return (
+    if (!action) return close;
+
+    return (snackbarId: number) => (
         <>
-            {props.children}
-            {lastNotification && (
-                <Snackbar
-                    autoHideDuration={6000}
-                    open={open}
-                    anchorOrigin={{vertical: "bottom", horizontal: "right"}}
-                    onClose={handleClose}
-                >
-                    <Alert
-                        severity={notificationTypeMap[lastNotification.type]}
-                    >
-                        {lastNotification.message}
-                        {action}
-                    </Alert>
-                </Snackbar>
-            )}
+            <Button color="secondary" size="small" onClick={() => action.action}>
+                {action.label}
+            </Button>
+            {close(snackbarId)}
         </>
     );
+};
+
+export const NotificationsProvider: React.FC = props => {
+    const {enqueueSnackbar, closeSnackbar} = useSnackbar();
+
+    React.useEffect(() => {
+        const unsubscribeFunc = notificationsService.subscribe(payload => {
+            enqueueSnackbar(payload.message, {
+                variant: notificationTypeMap[payload.type],
+                action: makeActions(closeSnackbar, payload.action),
+                autoHideDuration,
+            });
+        });
+
+        return unsubscribeFunc;
+    }, [enqueueSnackbar, closeSnackbar]);
+
+    return <>{props.children}</>;
 };

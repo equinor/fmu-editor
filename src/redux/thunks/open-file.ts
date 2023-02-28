@@ -1,7 +1,8 @@
+import {notificationsService} from "@services/notifications-service";
+
 import {File} from "@utils/file-system/file";
 
 import {addFile} from "@redux/reducers/files";
-import {addNotification} from "@redux/reducers/notifications";
 import {AppDispatch} from "@redux/store";
 
 import {GlobalSettings} from "@shared-types/global-settings";
@@ -17,14 +18,13 @@ export function openFile(
     permanentOpen = false
 ) {
     if (!globalSettings.supportedFileExtensions.includes(path.extname(filePath))) {
-        dispatch(
-            addNotification({
-                type: NotificationType.WARNING,
-                message: `Can only open files with the following extensions: ${globalSettings.supportedFileExtensions.join(
-                    ", "
-                )}.`,
-            } as Notification)
-        );
+        const notification = {
+            type: NotificationType.WARNING,
+            message: `Can only open files with the following extensions: ${globalSettings.supportedFileExtensions.join(
+                ", "
+            )}.`,
+        };
+        notificationsService.publishNotification(notification);
         return;
     }
     try {
@@ -35,6 +35,6 @@ export function openFile(
             type: NotificationType.ERROR,
             message: `Could not open file '${filePath}'. ${e}`,
         };
-        dispatch(addNotification(notification));
+        notificationsService.publishNotification(notification);
     }
 }

@@ -1,7 +1,8 @@
+import {notificationsService} from "@services/notifications-service";
+
 import {ipcRenderer} from "electron";
 
 import {setFmuDirectoryPath} from "@redux/reducers/files";
-import {addNotification} from "@redux/reducers/notifications";
 import {AppDispatch} from "@redux/store";
 
 import {FileExplorerOptions} from "@shared-types/file-explorer-options";
@@ -20,7 +21,7 @@ export function selectFmuDirectory(fmuDirectory: string, dispatch: AppDispatch) 
                 type: NotificationType.SUCCESS,
                 message: `FMU directory successfully set to '${result}'.`,
             };
-            dispatch(addNotification(notification));
+            notificationsService.publishNotification(notification);
         }
     });
 }

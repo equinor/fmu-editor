@@ -3,6 +3,7 @@ import {Close} from "@mui/icons-material";
 import {Button, IconButton, useTheme} from "@mui/material";
 import useSize from "@react-hook/size";
 import {useFileChangesWatcher} from "@services/file-changes-service";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 import {VscSave, VscWarning} from "react-icons/vsc";
@@ -14,7 +15,6 @@ import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-setti
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
 import {setDiffFiles} from "@redux/reducers/ui";
 
 import {FileChangeOrigin} from "@shared-types/file-changes";
@@ -150,14 +150,12 @@ export const DiffEditor: React.VFC = () => {
                 diff.modifiedRelativeFilePath &&
                 !globalSettings.supportedFileExtensions.includes(path.extname(diff.originalRelativeFilePath))
             ) {
-                dispatch(
-                    addNotification({
-                        type: NotificationType.INFORMATION,
-                        message: `You can only use the diff editor for files with the following extensions: ${globalSettings.supportedFileExtensions.join(
-                            ", "
-                        )}`,
-                    })
-                );
+                notificationsService.publishNotification({
+                    type: NotificationType.INFORMATION,
+                    message: `You can only use the diff editor for files with the following extensions: ${globalSettings.supportedFileExtensions.join(
+                        ", "
+                    )}`,
+                });
             }
             return;
         }
@@ -223,21 +221,17 @@ export const DiffEditor: React.VFC = () => {
             const userModel = monaco.editor.getModel(monaco.Uri.file(diff.modifiedRelativeFilePath));
             if (userModel && mergeUserFile.writeString(userModel.getValue())) {
                 snapshot.updateModified(diff.originalRelativeFilePath);
-                dispatch(
-                    addNotification({
-                        type: NotificationType.INFORMATION,
-                        message: "Saved merged file",
-                    })
-                );
+                notificationsService.publishNotification({
+                    type: NotificationType.INFORMATION,
+                    message: "Saved merged file",
+                });
                 dispatch(setDiffFiles({mainFile: undefined, userFile: undefined, origin: undefined}));
                 setVisible(false);
             } else {
-                dispatch(
-                    addNotification({
-                        type: NotificationType.ERROR,
-                        message: "Failed to save merged file",
-                    })
-                );
+                notificationsService.publishNotification({
+                    type: NotificationType.ERROR,
+                    message: "Failed to save merged file",
+                });
             }
         }
     };

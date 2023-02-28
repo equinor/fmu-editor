@@ -1,5 +1,6 @@
 import {IconButton, Stack} from "@mui/material";
-import {useChangelogWatcher} from "@services/changelog-service";
+import {changelogWatcherService} from "@services/changelog-service";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 import {VscClose} from "react-icons/vsc";
@@ -12,6 +13,7 @@ import {resetDiffFiles, setDiffUserFile, setView} from "@redux/reducers/ui";
 
 import {ISnapshotCommitBundle} from "@shared-types/changelog";
 import {FileChangeOrigin} from "@shared-types/file-changes";
+import {NotificationType} from "@shared-types/notifications";
 import {View} from "@shared-types/ui";
 
 import path from "path";
@@ -22,19 +24,22 @@ export const SingleFileChangesBrowser: React.VFC = () => {
     const [fileChanges, setFileChanges] = React.useState<ISnapshotCommitBundle[]>([]);
     const activeFile = useAppSelector(state => state.files.activeFile);
 
-    const changelogWatcher = useChangelogWatcher();
     const directory = useAppSelector(state => state.files.directory);
     const dispatch = useAppDispatch();
 
     React.useEffect(() => {
-        if (activeFile) {
-            changelogWatcher.getChangesForFile(activeFile);
-        }
-    }, [activeFile, changelogWatcher]);
-
-    React.useEffect(() => {
-        setFileChanges(changelogWatcher.changesForFile);
-    }, [changelogWatcher.changesForFile]);
+        changelogWatcherService
+            .getChangesForFile(activeFile)
+            .then(result => {
+                setFileChanges(result);
+            })
+            .catch(error => {
+                notificationsService.publishNotification({
+                    type: NotificationType.ERROR,
+                    message: error,
+                });
+            });
+    }, [activeFile]);
 
     React.useEffect(() => {
         dispatch(setDiffUserFile({userFile: path.relative(directory, activeFile), origin: FileChangeOrigin.USER}));

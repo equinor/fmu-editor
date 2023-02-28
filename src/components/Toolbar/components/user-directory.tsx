@@ -2,12 +2,12 @@ import {useFileChanges} from "@hooks/useFileChanges";
 import {Button, CircularProgress, LinearProgress} from "@mui/material";
 import {useFileChangesWatcher} from "@services/file-changes-service";
 import {FileOperationsServiceEventTypes} from "@services/file-operations-service";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 import {VscFileSymlinkDirectory} from "react-icons/vsc";
 
 import {useAppDispatch} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
 import {setView} from "@redux/reducers/ui";
 
 import {FileChangeOrigin} from "@shared-types/file-changes";
@@ -25,14 +25,20 @@ export const UserDirectory: React.FC = () => {
 
     const handleUserDirectoryClick = () => {
         if (!initialized || fileChanges === null) {
-            addNotification({type: NotificationType.INFORMATION, message: "Scanning your user directory..."});
+            notificationsService.publishNotification({
+                type: NotificationType.INFORMATION,
+                message: "Scanning your user directory...",
+            });
             return;
         }
         if (fileChanges.length > 0) {
             dispatch(setView(View.Merge));
             return;
         }
-        dispatch(addNotification({type: NotificationType.INFORMATION, message: "Your user directory is up to date."}));
+        notificationsService.publishNotification({
+            type: NotificationType.INFORMATION,
+            message: "Your user directory is up to date.",
+        });
     };
 
     React.useEffect(() => {

@@ -51,11 +51,12 @@ export enum ChangelogWatcherRequestTypes {
 }
 
 export enum ChangelogWatcherResponseTypes {
-    MODIFIED = "refresh",
+    MODIFIED = "modified",
     SUCCESS = "success",
     COMMIT_APPENDED = "commit-appended",
-    CHANGES_FOR_FILE = "get-changes-for-file",
+    CHANGES_FOR_FILE = "changes-for-file",
     ALL_CHANGES = "all-changes",
+    ERROR = "error",
 }
 
 export type ChangelogWatcherRequests = {
@@ -80,5 +81,8 @@ export type ChangelogWatcherResponses = {
     };
     [ChangelogWatcherResponseTypes.ALL_CHANGES]: {
         changes: ISnapshotCommitBundle[];
+    };
+    [ChangelogWatcherResponseTypes.ERROR]: {
+        error: string;
     };
 };

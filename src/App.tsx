@@ -5,7 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 import {ThemeProvider} from "@mui/material";
-import {ChangelogWatcherService} from "@services/changelog-service";
 import {EnvironmentService} from "@services/environment-service";
 import {FileOperationsService} from "@services/file-operations-service";
 import {FileSystemWatcherService} from "@services/file-system-service";
@@ -23,6 +22,8 @@ import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setTheme} from "@redux/reducers/ui";
 
 import {Themes} from "@shared-types/ui";
+
+import {SnackbarProvider} from "notistack";
 
 import "./App.css";
 import {FileChangesWatcherService} from "./services/file-changes-service";
@@ -54,14 +55,19 @@ const App = (): JSX.Element => {
     }, [mode]);
 
     return (
-        <GlobalSettingsProvider>
-            <MainProcessDataProvider>
-                <ColorModeContext.Provider value={colorMode}>
-                    <ThemeProvider theme={Theme(mode)}>
-                        <NotificationsProvider>
-                            <EnvironmentService>
-                                <FileOperationsService>
-                                    <ChangelogWatcherService>
+        <SnackbarProvider
+            preventDuplicate
+            autoHideDuration={3000}
+            maxSnack={3}
+            anchorOrigin={{vertical: "bottom", horizontal: "right"}}
+        >
+            <GlobalSettingsProvider>
+                <MainProcessDataProvider>
+                    <ColorModeContext.Provider value={colorMode}>
+                        <ThemeProvider theme={Theme(mode)}>
+                            <NotificationsProvider>
+                                <EnvironmentService>
+                                    <FileOperationsService>
                                         <FileChangesWatcherService>
                                             <FileSystemWatcherService>
                                                 <IpcService>
@@ -70,14 +76,14 @@ const App = (): JSX.Element => {
                                                 </IpcService>
                                             </FileSystemWatcherService>
                                         </FileChangesWatcherService>
-                                    </ChangelogWatcherService>
-                                </FileOperationsService>
-                            </EnvironmentService>
-                        </NotificationsProvider>
-                    </ThemeProvider>
-                </ColorModeContext.Provider>
-            </MainProcessDataProvider>
-        </GlobalSettingsProvider>
+                                    </FileOperationsService>
+                                </EnvironmentService>
+                            </NotificationsProvider>
+                        </ThemeProvider>
+                    </ColorModeContext.Provider>
+                </MainProcessDataProvider>
+            </GlobalSettingsProvider>
+        </SnackbarProvider>
     );
 };
 

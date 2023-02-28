@@ -8,6 +8,7 @@ import {
     PushState,
     useFileOperationsService,
 } from "@services/file-operations-service";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 import {VscClose} from "react-icons/vsc";
@@ -19,7 +20,6 @@ import {Input} from "@components/Input";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
 import {resetDiffFiles, setChangesBrowserView, setDiffFiles} from "@redux/reducers/ui";
 
 import {FileChangeOrigin} from "@shared-types/file-changes";
@@ -55,29 +55,23 @@ export const CurrentChanges: React.VFC = () => {
                     dispatch(setChangesBrowserView(ChangesBrowserView.LoggedChanges));
                 }
                 if (e.detail.notPushedFiles.length === 0) {
-                    dispatch(
-                        addNotification({
-                            type: NotificationType.SUCCESS,
-                            message: "All changes successfully committed",
-                        })
-                    );
+                    notificationsService.publishNotification({
+                        type: NotificationType.SUCCESS,
+                        message: "All changes successfully committed",
+                    });
                     setCommitDescription("");
                     setCommitSummary("");
                     return;
                 }
-                dispatch(
-                    addNotification({
-                        type: NotificationType.ERROR,
-                        message: "Some changes could not be committed",
-                    })
-                );
+                notificationsService.publishNotification({
+                    type: NotificationType.ERROR,
+                    message: "Some changes could not be committed",
+                });
             } else if (e.detail.state === PushState.FAILED) {
-                dispatch(
-                    addNotification({
-                        type: NotificationType.ERROR,
-                        message: "An error occurred while committing changes",
-                    })
-                );
+                notificationsService.publishNotification({
+                    type: NotificationType.ERROR,
+                    message: "An error occurred while committing changes",
+                });
             }
         };
 
