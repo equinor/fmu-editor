@@ -26,7 +26,7 @@ export type NewItemProps = {
 };
 
 export const NewItem: React.VFC<NewItemProps> = props => {
-    const workingDirectory = useAppSelector(state => state.files.directory);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
 
     const dispatch = useAppDispatch();
     const globalSettings = useGlobalSettings();
@@ -34,16 +34,16 @@ export const NewItem: React.VFC<NewItemProps> = props => {
     const handleSubmit = React.useCallback(
         (name: string) => {
             if (props.type === NewItemType.FILE) {
-                const newFile = new File(path.join(props.directoryRelativePath, name), workingDirectory);
+                const newFile = new File(path.join(props.directoryRelativePath, name), workingDirectoryPath);
                 newFile.writeString("");
-                openFile(newFile.absolutePath(), workingDirectory, dispatch, globalSettings, true);
+                openFile(newFile.absolutePath(), workingDirectoryPath, dispatch, globalSettings, true);
             } else if (props.type === NewItemType.DIRECTORY) {
-                const newDirectory = new Directory(path.join(props.directoryRelativePath, name), workingDirectory);
+                const newDirectory = new Directory(path.join(props.directoryRelativePath, name), workingDirectoryPath);
                 newDirectory.makeIfNotExists();
             }
             props.onSubmit(name);
         },
-        [props, dispatch, globalSettings, workingDirectory]
+        [props, dispatch, globalSettings, workingDirectoryPath]
     );
 
     const handleKeyDown = React.useCallback(

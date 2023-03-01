@@ -38,8 +38,8 @@ export type Modification = {
 export class File extends FileBasic implements IFile {
     private _hash: string | null;
 
-    constructor(filePath: string, workingDirectory: string) {
-        super(filePath, workingDirectory);
+    constructor(filePath: string, workingDirectoryPath: string) {
+        super(filePath, workingDirectoryPath);
         this._hash = null;
     }
 

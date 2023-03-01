@@ -20,12 +20,12 @@ import {Webworker} from "./worker-utils";
 const webworker = new Webworker<FileOperationsResponses, FileOperationsRequests>({self});
 
 let currentUsername: string = "";
-let currentWorkingDirectory: string = "";
+let currentWorkingDirectoryPath: string = "";
 
-const copyToUserDirectory = (directory: string, user: string): void => {
+const copyToUserDirectory = (workingDirectoryPath: string, user: string): void => {
     const userDirectoryPath = path.join(".users", user);
-    const mainDirectory = new Directory("", directory);
-    const userDirectory = new Directory(userDirectoryPath, directory);
+    const mainDirectory = new Directory("", workingDirectoryPath);
+    const userDirectory = new Directory(userDirectoryPath, workingDirectoryPath);
 
     userDirectory.makeIfNotExists();
 
@@ -51,26 +51,31 @@ const copyToUserDirectory = (directory: string, user: string): void => {
     });
 };
 
-const maybeInitUserDirectory = (directory: string, user: string): void => {
-    const userDirectoryPath = path.join(".users", user);
-    const userDirectory = new Directory(userDirectoryPath, directory);
-
-    if (!userDirectory.exists()) {
-        copyToUserDirectory(directory, user);
+const maybeInitUserDirectory = (workingDirectoryPath: string, user: string): void => {
+    const workingDirectory = new Directory("", currentWorkingDirectoryPath);
+    if (!workingDirectory.exists()) {
+        return;
     }
 
-    const snapshot = new Snapshot(directory, user);
+    const userDirectoryPath = path.join(".users", user);
+    const userDirectory = new Directory(userDirectoryPath, workingDirectoryPath);
+
+    if (!userDirectory.exists()) {
+        copyToUserDirectory(workingDirectoryPath, user);
+    }
+
+    const snapshot = new Snapshot(workingDirectoryPath, user);
     if (!snapshot.exists()) {
         snapshot.make();
     }
 };
 
 const ensureUserDirectoryExists = (): void => {
-    if (!currentUsername || !currentWorkingDirectory) {
+    if (!currentUsername || !currentWorkingDirectoryPath) {
         return;
     }
 
-    maybeInitUserDirectory(currentWorkingDirectory, currentUsername);
+    maybeInitUserDirectory(currentWorkingDirectoryPath, currentUsername);
 };
 
 // eslint-disable-next-line no-restricted-globals
@@ -78,23 +83,23 @@ self.setInterval(ensureUserDirectoryExists, 3000);
 
 webworker.on(FileOperationsRequestType.SET_USER_DIRECTORY, ({directory, username}) => {
     currentUsername = username;
-    currentWorkingDirectory = directory;
+    currentWorkingDirectoryPath = directory;
     maybeInitUserDirectory(directory, username);
 });
 
 webworker.on(FileOperationsRequestType.PUSH_USER_CHANGES, ({fileChanges, commitSummary, commitDescription}) => {
-    if (currentUsername && currentWorkingDirectory) {
+    if (currentUsername && currentWorkingDirectoryPath) {
         const {pushedFiles, notPushedFiles, commit} = pushFiles(
             fileChanges,
             currentUsername,
             commitSummary,
             commitDescription,
-            currentWorkingDirectory
+            currentWorkingDirectoryPath
         );
 
         let commitMessageWritten = false;
         if (fileChanges.length > notPushedFiles.length) {
-            const changelog = new Changelog(currentWorkingDirectory);
+            const changelog = new Changelog(currentWorkingDirectoryPath);
             commitMessageWritten = changelog.appendCommit(commit);
         }
 
@@ -107,8 +112,13 @@ webworker.on(FileOperationsRequestType.PUSH_USER_CHANGES, ({fileChanges, commitS
 });
 
 webworker.on(FileOperationsRequestType.PULL_MAIN_CHANGES, ({fileChanges}) => {
-    if (currentUsername && currentWorkingDirectory) {
-        const {pulledFiles, notPulledFiles} = pullFiles(fileChanges, currentUsername, currentWorkingDirectory);
+    if (currentUsername && currentWorkingDirectoryPath) {
+        const workingDirectory = new Directory("", currentWorkingDirectoryPath);
+        if (!workingDirectory.exists()) {
+            return;
+        }
+ 
+        const {pulledFiles, notPulledFiles} = pullFiles(fileChanges, currentUsername, currentWorkingDirectoryPath);
 
         webworker.postMessage(FileOperationsResponseType.MAIN_CHANGES_PULLED, {
             pulledFiles,

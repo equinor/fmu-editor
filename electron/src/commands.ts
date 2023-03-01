@@ -3,8 +3,8 @@ import {BrowserWindow, dialog} from "electron";
 import {
     FileExplorerOptions,
     FileOptions,
-} from "@shared-types/file-explorer-options";
-import { IpcMessages } from "@shared-types/ipc";
+} from "../../src/shared-types/file-explorer-options";
+import { IpcMessages } from "../../src/shared-types/ipc";
 
 export const openFile = () => {
     dialog

@@ -36,13 +36,13 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
     const userChanges = useOngoingChangesForFile(props.file.getMainVersion().relativePath());
     const dispatch = useAppDispatch();
     const globalSettings = useGlobalSettings();
-    const workingDirectory = useAppSelector(state => state.files.directory);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const activeItemPath = useAppSelector(state => state.ui.explorer.activeItemPath);
 
     const handleFileClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         if (editMode) return;
         dispatch(setActiveItemPath(props.file.absolutePath()));
-        openFile(props.file.absolutePath(), workingDirectory, dispatch, globalSettings);
+        openFile(props.file.absolutePath(), workingDirectoryPath, dispatch, globalSettings);
         e.preventDefault();
         e.stopPropagation();
     };

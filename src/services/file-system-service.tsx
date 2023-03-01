@@ -1,10 +1,8 @@
-import React from "react";
-
-import {createGenericContext} from "@utils/generic-context";
+import {MessageBus} from "@src/framework/message-bus";
 
 import {Webworker} from "@workers/worker-utils";
 
-import {useAppDispatch, useAppSelector} from "@redux/hooks";
+import store from "@redux/store";
 
 import {
     FileSystemWatcherRequestType,
@@ -17,55 +15,62 @@ import {
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import worker from "worker-loader!@workers/file-system-watcher.worker";
 
-import {useEnvironment} from "./environment-service";
+import {EnvironmentService} from "./environment-service";
 
-const fileSystemWatcherWorker = new Webworker<FileSystemWatcherRequests, FileSystemWatcherResponses>({Worker: worker});
+export enum FileSystemWatcherMessageTypes {
+    AVAILABLE_WORKING_DIRECTORIES_CHANGED = "AVAILABLE_WORKING_DIRECTORIES_CHANGED",
+    WORKING_DIRECTORY_CONTENT_CHANGED = "WORKING_DIRECTORY_CONTENT_CHANGED",
+}
 
-export type Context = {
-    currentWorkingDirectoryLastChangedMs: number;
-    availableWorkingDirectoriesLastChangedMs: number;
+type FileSystemWatcherMessages = {
+    [FileSystemWatcherMessageTypes.AVAILABLE_WORKING_DIRECTORIES_CHANGED]: undefined;
+    [FileSystemWatcherMessageTypes.WORKING_DIRECTORY_CONTENT_CHANGED]: undefined;
 };
 
-const [useFileSystemWatcherServiceContext, FileSystemWatcherServiceContextProvider] = createGenericContext<Context>();
+class FileSystemWatcherService {
+    private fileSystemWatcherWorker: Webworker<FileSystemWatcherRequests, FileSystemWatcherResponses>;
+    private messageBus: MessageBus<FileSystemWatcherMessages>;
+    private unsubscribeFunc: () => void;
+    private username: string;
 
-export const FileSystemWatcherService: React.FC = props => {
-    const [availableWorkingDirectoriesLastChangedMs, setAvailableWorkingDirectoriesLastChangedMs] =
-        React.useState<number>(0);
-    const [currentWorkingDirectoryLastChangedMs, setCurrentWorkingDirectoryLastChangedMs] = React.useState<number>(0);
+    constructor() {
+        this.fileSystemWatcherWorker = new Webworker<FileSystemWatcherRequests, FileSystemWatcherResponses>({
+            Worker: worker,
+        });
 
-    const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
-    const directory = useAppSelector(state => state.files.directory);
-    const dispatch = useAppDispatch();
-    const {username} = useEnvironment();
+        this.username = EnvironmentService.getUsername();
 
-    React.useEffect(() => {
-        if (fileSystemWatcherWorker) {
-            fileSystemWatcherWorker.on(FileSystemWatcherResponseType.AVAILABLE_WORKING_DIRECTORIES_CHANGED, () => {
-                setAvailableWorkingDirectoriesLastChangedMs(new Date().getTime());
-            });
-            fileSystemWatcherWorker.on(FileSystemWatcherResponseType.WORKING_DIRECTORY_CONTENT_CHANGED, () => {
-                setCurrentWorkingDirectoryLastChangedMs(new Date().getTime());
-            });
-        }
-    }, [dispatch]);
+        this.messageBus = new MessageBus<FileSystemWatcherMessages>();
 
-    React.useEffect(() => {
-        if (fileSystemWatcherWorker) {
-            fileSystemWatcherWorker.postMessage(FileSystemWatcherRequestType.UPDATE_VALUES, {
-                fmuDirectory,
-                username,
-                directory,
-            });
-        }
-    }, [fmuDirectory, username, directory]);
+        this.unsubscribeFunc = store.subscribe(() => {
+            const {fmuDirectoryPath, workingDirectoryPath} = store.getState().files;
+            this.updateValues(fmuDirectoryPath, workingDirectoryPath);
+        });
 
-    return (
-        <FileSystemWatcherServiceContextProvider
-            value={{currentWorkingDirectoryLastChangedMs, availableWorkingDirectoriesLastChangedMs}}
-        >
-            {props.children}
-        </FileSystemWatcherServiceContextProvider>
-    );
-};
+        this.fileSystemWatcherWorker.on(FileSystemWatcherResponseType.AVAILABLE_WORKING_DIRECTORIES_CHANGED, () => {
+            this.messageBus.publish(FileSystemWatcherMessageTypes.AVAILABLE_WORKING_DIRECTORIES_CHANGED);
+        });
 
-export const useFileSystemWatcher = (): Context => useFileSystemWatcherServiceContext();
+        this.fileSystemWatcherWorker.on(FileSystemWatcherResponseType.WORKING_DIRECTORY_CONTENT_CHANGED, () => {
+            this.messageBus.publish(FileSystemWatcherMessageTypes.WORKING_DIRECTORY_CONTENT_CHANGED);
+        });
+    }
+
+    public getMessageBus(): MessageBus<FileSystemWatcherMessages> {
+        return this.messageBus;
+    }
+
+    destructor() {
+        this.unsubscribeFunc();
+    }
+
+    public updateValues(fmuDirectory: string, directory: string): void {
+        this.fileSystemWatcherWorker.postMessage(FileSystemWatcherRequestType.UPDATE_VALUES, {
+            fmuDirectory,
+            username: this.username,
+            directory,
+        });
+    }
+}
+
+export const fileSystemWatcherService = new FileSystemWatcherService();

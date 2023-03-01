@@ -28,7 +28,7 @@ export class Snapshot implements ISnapshot {
 
     public make(): void {
         this.snapshot = {};
-        const folder = new Directory("", this.snapshotFile.workingDirectory());
+        const folder = new Directory("", this.snapshotFile.workingDirectoryPath());
         folder.getFilesRecursively().forEach(file => {
             this.snapshot[file.relativePath()] = file.modifiedTime();
         });

@@ -1,7 +1,7 @@
 import {useFileChanges} from "@hooks/useFileChanges";
 import {Close} from "@mui/icons-material";
 import {useTheme} from "@mui/material";
-import {useEnvironment} from "@services/environment-service";
+import {useEnvironmentService} from "@services/environment-service";
 
 import React from "react";
 import {VscCircleFilled} from "react-icons/vsc";
@@ -37,13 +37,13 @@ export const FileTab: React.FC<FileTabProps> = props => {
     const theme = useTheme();
     const dispatch = useAppDispatch();
     const file = useAppSelector(state => state.files.files.find(el => el.filePath === props.filePath));
-    const directory = useAppSelector(state => state.files.directory);
-    const activeFilePath = useAppSelector(state => state.files.activeFile);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
+    const activeFilePath = useAppSelector(state => state.files.activeFilePath);
     const fileChanges = useFileChanges(FILE_ORIGINS);
-    const {username} = useEnvironment();
+    const {username} = useEnvironmentService();
 
     React.useLayoutEffect(() => {
-        const currentFile = new File(path.relative(directory, props.filePath), directory);
+        const currentFile = new File(path.relative(workingDirectoryPath, props.filePath), workingDirectoryPath);
         const checkFile = () => {
             if (!currentFile.exists()) {
                 setExists(false);
@@ -60,7 +60,7 @@ export const FileTab: React.FC<FileTabProps> = props => {
                 clearInterval(interval.current);
             }
         };
-    }, [props.filePath, file, directory]);
+    }, [props.filePath, file, workingDirectoryPath]);
 
     React.useLayoutEffect(() => {
         if (!file) {
@@ -72,14 +72,14 @@ export const FileTab: React.FC<FileTabProps> = props => {
     React.useEffect(() => {
         setUncommitted(
             fileChanges.some(change => {
-                const changeFile = new File(change.relativePath, directory);
+                const changeFile = new File(change.relativePath, workingDirectoryPath);
                 return (
                     changeFile.getUserVersion(username).relativePath() ===
-                    path.relative(directory, file?.filePath || "")
+                    path.relative(workingDirectoryPath, file?.filePath || "")
                 );
             })
         );
-    }, [fileChanges, file?.filePath, directory, username]);
+    }, [fileChanges, file?.filePath, workingDirectoryPath, username]);
 
     React.useEffect(() => {
         setActive(props.filePath === activeFilePath);

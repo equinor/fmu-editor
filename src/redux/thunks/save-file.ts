@@ -9,8 +9,8 @@ import {Notification, NotificationType} from "@shared-types/notifications";
 
 import path from "path";
 
-export function saveFile(filePath: string, value: string, workingDirectory: string, dispatch: AppDispatch): void {
-    const file = new File(path.relative(workingDirectory, filePath), workingDirectory);
+export function saveFile(filePath: string, value: string, workingDirectoryPath: string, dispatch: AppDispatch): void {
+    const file = new File(path.relative(workingDirectoryPath, filePath), workingDirectoryPath);
 
     if (file.writeString(value)) {
         dispatch(markAsSaved(filePath));
@@ -32,10 +32,10 @@ export function saveFileAs(
     oldFilePath: string,
     newFilePath: string,
     value: string,
-    workingDirectory: string,
+    workingDirectoryPath: string,
     dispatch: AppDispatch
 ) {
-    const file = new File(path.relative(workingDirectory, newFilePath), workingDirectory);
+    const file = new File(path.relative(workingDirectoryPath, newFilePath), workingDirectoryPath);
 
     if (file.writeString(value)) {
         dispatch(changeFilePath({oldFilePath, newFilePath}));

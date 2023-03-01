@@ -42,7 +42,7 @@ export const DirectoryComponent: React.VFC<DirectoryComponentProps> = props => {
     const [creatingNewFile, setCreatingNewFile] = React.useState<boolean>(false);
     const [creatingNewDir, setCreatingNewDir] = React.useState<boolean>(false);
 
-    const fileTreeStates = useAppSelector(state => state.files.fileTreeStates[state.files.directory]);
+    const fileTreeStates = useAppSelector(state => state.files.fileTreeStates[state.files.workingDirectoryPath]);
     const dragParentFolder = useAppSelector(state => state.ui.explorer.dragParentFolder);
     const activeItemPath = useAppSelector(state => state.ui.explorer.activeItemPath);
     const createFile = useAppSelector(state => state.ui.explorer.createFile);
@@ -69,8 +69,8 @@ export const DirectoryComponent: React.VFC<DirectoryComponentProps> = props => {
 
     React.useEffect(() => {
         const fileBasic = new FileBasic(
-            path.relative(props.directory.workingDirectory(), activeItemPath),
-            props.directory.workingDirectory()
+            path.relative(props.directory.workingDirectoryPath(), activeItemPath),
+            props.directory.workingDirectoryPath()
         );
         if (
             createFile &&
@@ -86,8 +86,8 @@ export const DirectoryComponent: React.VFC<DirectoryComponentProps> = props => {
 
     React.useEffect(() => {
         const fileBasic = new FileBasic(
-            path.relative(props.directory.workingDirectory(), activeItemPath),
-            props.directory.workingDirectory()
+            path.relative(props.directory.workingDirectoryPath(), activeItemPath),
+            props.directory.workingDirectoryPath()
         );
         if (
             createFolder &&
@@ -237,7 +237,7 @@ export const DirectoryComponent: React.VFC<DirectoryComponentProps> = props => {
             if (dragParentFolder !== props.directory.absolutePath()) {
                 const droppedAsset = new FileBasic(
                     e.dataTransfer.getData("text/plain"),
-                    props.directory.workingDirectory()
+                    props.directory.workingDirectoryPath()
                 );
                 const oldPath = droppedAsset.absolutePath();
                 if (droppedAsset.moveToDir(props.directory.absolutePath())) {

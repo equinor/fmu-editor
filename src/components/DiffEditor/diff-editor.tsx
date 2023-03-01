@@ -76,7 +76,7 @@ export const DiffEditor: React.VFC = () => {
 
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
     const diff = useAppSelector(state => state.ui.diff);
-    const currentDirectory = useAppSelector(state => state.files.directory);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
 
     const dispatch = useAppDispatch();
     const theme = useTheme();
@@ -117,22 +117,22 @@ export const DiffEditor: React.VFC = () => {
 
     React.useLayoutEffect(() => {
         if (diff.originalRelativeFilePath) {
-            const originalFile = new File(diff.originalRelativeFilePath, currentDirectory);
+            const originalFile = new File(diff.originalRelativeFilePath, workingDirectoryPath);
             setOriginalFileExists(originalFile.exists());
             setRelativeFilePath(originalFile.getMainVersion().relativePath());
             return;
         }
         setOriginalFileExists(false);
-    }, [diff.originalRelativeFilePath, currentDirectory]);
+    }, [diff.originalRelativeFilePath, workingDirectoryPath]);
 
     React.useLayoutEffect(() => {
         if (diff.modifiedRelativeFilePath) {
-            const originalFile = new File(diff.modifiedRelativeFilePath, currentDirectory);
+            const originalFile = new File(diff.modifiedRelativeFilePath, workingDirectoryPath);
             setModifiedFileExists(originalFile.exists());
             return;
         }
         setModifiedFileExists(false);
-    }, [diff.modifiedRelativeFilePath, currentDirectory]);
+    }, [diff.modifiedRelativeFilePath, workingDirectoryPath]);
 
     React.useEffect(() => {
         if (
@@ -164,7 +164,7 @@ export const DiffEditor: React.VFC = () => {
 
         if (diff.modifiedRelativeFilePath && diff.originalRelativeFilePath) {
             let userModel = monaco.editor.getModel(monaco.Uri.file(diff.modifiedRelativeFilePath));
-            const mergeUserFile = new File(diff.modifiedRelativeFilePath, currentDirectory);
+            const mergeUserFile = new File(diff.modifiedRelativeFilePath, workingDirectoryPath);
             if (!userModel) {
                 userModel = monaco.editor.createModel(
                     mergeUserFile.readString(),
@@ -176,7 +176,7 @@ export const DiffEditor: React.VFC = () => {
             }
 
             let mainModel = monaco.editor.getModel(monaco.Uri.file(diff.originalRelativeFilePath));
-            const mergeMainFile = new File(diff.originalRelativeFilePath, currentDirectory);
+            const mergeMainFile = new File(diff.originalRelativeFilePath, workingDirectoryPath);
             if (!mainModel) {
                 mainModel = monaco.editor.createModel(
                     mergeMainFile.readString(),
@@ -198,7 +198,7 @@ export const DiffEditor: React.VFC = () => {
             }
         }
     }, [
-        currentDirectory,
+        workingDirectoryPath,
         dispatch,
         globalSettings.supportedFileExtensions,
         diff.originalRelativeFilePath,
@@ -217,7 +217,7 @@ export const DiffEditor: React.VFC = () => {
 
     const handleSave = () => {
         if (diff.modifiedRelativeFilePath && diff.originalRelativeFilePath) {
-            const mergeUserFile = new File(diff.modifiedRelativeFilePath, currentDirectory);
+            const mergeUserFile = new File(diff.modifiedRelativeFilePath, workingDirectoryPath);
             const userModel = monaco.editor.getModel(monaco.Uri.file(diff.modifiedRelativeFilePath));
             if (userModel && mergeUserFile.writeString(userModel.getValue())) {
                 snapshot.updateModified(diff.originalRelativeFilePath);

@@ -47,23 +47,23 @@ const initialUiCoachState: UiCoachState = {
 
 const prepareInitialFileTreeStates = () => {
     const fileTreeStates = electronStore.get("files.fileTreeStates") || {};
-    const directory = electronStore.get("files.directory") || "";
-    if (directory && !fileTreeStates[directory]) {
-        fileTreeStates[directory] = [];
+    const workingDirectoryPath = electronStore.get("files.workingDirectoryPath") || "";
+    if (workingDirectoryPath && !fileTreeStates[workingDirectoryPath]) {
+        fileTreeStates[workingDirectoryPath] = [];
     }
     return fileTreeStates;
 };
 
 const initialFilesState: FilesState = {
-    fmuDirectory: electronStore.get("files.fmuDirectory") || "",
-    directory: electronStore.get("files.directory") || "",
+    fmuDirectoryPath: electronStore.get("files.fmuDirectoryPath") || "",
+    workingDirectoryPath: electronStore.get("files.workingDirectoryPath") || "",
     fileTreeStates: prepareInitialFileTreeStates(),
-    activeFile: electronStore.get("files.activeFile"),
+    activeFilePath: electronStore.get("files.activeFile"),
     eventSource: EventSource.Editor,
     files:
         electronStore.get("files.files")?.map((file: any): File => {
-            const directory = electronStore.get("files.directory") || "";
-            const userFile = new FileInterface(path.relative(directory, file.filePath), directory);
+            const workingDirectoryPath = electronStore.get("files.workingDirectoryPath") || "";
+            const userFile = new FileInterface(path.relative(workingDirectoryPath, file.filePath), workingDirectoryPath);
             const fileContent = userFile.readString();
             return {
                 filePath: file.filePath,
@@ -87,7 +87,7 @@ const initialFilesState: FilesState = {
 ipcRenderer.send("set-recent-files", electronStore.get("files.recentFiles") || []);
 
 if (initialFilesState.files.length === 0) {
-    initialFilesState.activeFile = "";
+    initialFilesState.activeFilePath = "";
 }
 
 export default {

@@ -92,7 +92,7 @@ export const FileOperationsService: React.FC = props => {
     const [pullState, setPullState] = React.useState<PullState>(PullState.IDLE);
     const environment = useEnvironment();
     const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
-    const currentDirectory = useAppSelector(state => state.files.directory);
+    const currentDirectory = useAppSelector(state => state.files.workingDirectoryPath);
 
     const pushTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const pullTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);

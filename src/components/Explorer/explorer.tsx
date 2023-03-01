@@ -12,7 +12,8 @@ import {
     Typography,
     useTheme,
 } from "@mui/material";
-import {useFileSystemWatcher} from "@services/file-system-service";
+import {useEnvironmentService} from "@services/environment-service";
+import {FileSystemWatcherMessageTypes, fileSystemWatcherService} from "@services/file-system-service";
 
 import React from "react";
 import {VscCheck, VscChevronDown, VscCollapseAll, VscLock, VscNewFile, VscNewFolder, VscRefresh} from "react-icons/vsc";
@@ -31,12 +32,10 @@ import path from "path";
 import {DirectoryComponent} from "./components/directory-component";
 import "./explorer.css";
 
-import {useEnvironment} from "../../services/environment-service";
-
 export const Explorer: React.FC = () => {
-    const fmuDirectoryPath = useAppSelector(state => state.files.fmuDirectory);
-    const workingDirectoryPath = useAppSelector(state => state.files.directory);
-    const {username} = useEnvironment();
+    const fmuDirectoryPath = useAppSelector(state => state.files.fmuDirectoryPath);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
+    const {username} = useEnvironmentService();
     const [fmuDirectory, setFmuDirectory] = React.useState<Directory | null>(null);
     const [directory, setDirectory] = React.useState<Directory | null>(null);
     const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
@@ -45,7 +44,6 @@ export const Explorer: React.FC = () => {
 
     const dispatch = useAppDispatch();
     const theme = useTheme();
-    const {availableWorkingDirectoriesLastChangedMs, currentWorkingDirectoryLastChangedMs} = useFileSystemWatcher();
     const activeItemPath = useAppSelector(state => state.ui.explorer.activeItemPath);
 
     React.useEffect(() => {
@@ -62,24 +60,43 @@ export const Explorer: React.FC = () => {
     }, [workingDirectoryPath, username, dispatch, activeItemPath]);
 
     React.useEffect(() => {
-        const dir = new Directory("", fmuDirectoryPath);
-        if (dir.exists()) {
-            setFmuDirectory(dir);
-        }
-    }, [availableWorkingDirectoriesLastChangedMs, fmuDirectoryPath]);
+        const handleWorkingDirectoriesChange = () => {
+            const dir = new Directory("", fmuDirectoryPath);
+            if (dir.exists()) {
+                setFmuDirectory(dir);
+            } else {
+                setFmuDirectory(null);
+            }
+        };
+
+        const unsubscribeFunc = fileSystemWatcherService
+            .getMessageBus()
+            .subscribe(
+                FileSystemWatcherMessageTypes.AVAILABLE_WORKING_DIRECTORIES_CHANGED,
+                handleWorkingDirectoriesChange
+            );
+
+        return unsubscribeFunc;
+    }, [fmuDirectoryPath]);
 
     const refreshExplorer = React.useCallback(() => {
         if (workingDirectoryPath !== undefined && workingDirectoryPath !== "" && username) {
             const dir = new Directory("", workingDirectoryPath);
             if (dir.exists()) {
                 setDirectory(dir.getUserVersion(username));
+            } else {
+                setDirectory(null);
             }
         }
     }, [workingDirectoryPath, username]);
 
     React.useEffect(() => {
-        refreshExplorer();
-    }, [currentWorkingDirectoryLastChangedMs, workingDirectoryPath, username, refreshExplorer]);
+        const unsubscribeFunc = fileSystemWatcherService
+            .getMessageBus()
+            .subscribe(FileSystemWatcherMessageTypes.WORKING_DIRECTORY_CONTENT_CHANGED, refreshExplorer);
+
+        return unsubscribeFunc;
+    }, [refreshExplorer]);
 
     const handleWorkingDirectoryChange = (dir: string) => {
         dispatch(setWorkingDirectoryPath({path: dir}));
@@ -109,7 +126,7 @@ export const Explorer: React.FC = () => {
             dispatch(setFileTreeStates([]));
         };
 
-        if (fmuDirectoryPath === undefined || fmuDirectoryPath === "") {
+        if (fmuDirectory === null) {
             return (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
                     <Button variant="contained" onClick={handleOpenDirectoryClick}>
@@ -119,7 +136,7 @@ export const Explorer: React.FC = () => {
                 </Stack>
             );
         }
-        if (username === undefined || directory === undefined || directory === null) {
+        if (username === undefined || directory === null) {
             return (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
                     <Button variant="contained" onClick={toggleDrawer(true)}>

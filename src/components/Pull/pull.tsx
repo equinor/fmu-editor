@@ -1,7 +1,7 @@
 import {useFileChanges} from "@hooks/useFileChanges";
 import {LoadingButton} from "@mui/lab";
 import {Button, IconButton, Stack} from "@mui/material";
-import {useEnvironment} from "@services/environment-service";
+import {useEnvironmentService} from "@services/environment-service";
 import {
     FileOperationsServiceEventTypes,
     FileOperationsServiceEvents,
@@ -35,9 +35,9 @@ export const Pull: React.VFC = () => {
     const [stagedFiles, setStagedFiles] = React.useState<string[]>([]);
 
     const fileChanges = useFileChanges(FILE_ORIGINS);
-    const directory = useAppSelector(state => state.files.directory);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const dispatch = useAppDispatch();
-    const {username} = useEnvironment();
+    const {username} = useEnvironmentService();
     const {pullMainChanges, pullState} = useFileOperationsService();
 
     React.useEffect(() => {
@@ -89,7 +89,7 @@ export const Pull: React.VFC = () => {
 
     const handleFileSelected = React.useCallback(
         (filePath: string, origin: FileChangeOrigin) => {
-            const file = new File(filePath, directory);
+            const file = new File(filePath, workingDirectoryPath);
             dispatch(
                 setDiffFiles({
                     mainFile: file.getMainVersion().relativePath(),
@@ -98,7 +98,7 @@ export const Pull: React.VFC = () => {
                 })
             );
         },
-        [dispatch, directory, username]
+        [dispatch, workingDirectoryPath, username]
     );
 
     const handleStageOrUnstageFile = React.useCallback(
@@ -126,7 +126,7 @@ export const Pull: React.VFC = () => {
 
     const handleResolveConflicts = React.useCallback(
         (relativeFilePath: string) => {
-            const file = new File(relativeFilePath, directory);
+            const file = new File(relativeFilePath, workingDirectoryPath);
             dispatch(
                 setDiffFiles({
                     mainFile: file.getMainVersion().relativePath(),
@@ -135,7 +135,7 @@ export const Pull: React.VFC = () => {
                 })
             );
         },
-        [dispatch, directory, username]
+        [dispatch, workingDirectoryPath, username]
     );
 
     const handleClose = React.useCallback(() => {

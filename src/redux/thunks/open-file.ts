@@ -12,7 +12,7 @@ import path from "path";
 
 export function openFile(
     filePath: string,
-    workingDirectory: string,
+    workingDirectoryPath: string,
     dispatch: AppDispatch,
     globalSettings: GlobalSettings,
     permanentOpen = false
@@ -28,7 +28,7 @@ export function openFile(
         return;
     }
     try {
-        const file = new File(path.relative(workingDirectory, filePath), workingDirectory);
+        const file = new File(path.relative(workingDirectoryPath, filePath), workingDirectoryPath);
         dispatch(addFile({filePath, fileContent: file.readString() || "", permanentOpen}));
     } catch (e) {
         const notification: Notification = {

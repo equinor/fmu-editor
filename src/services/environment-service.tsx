@@ -1,63 +1,37 @@
 import React from "react";
 
-import {createGenericContext} from "@utils/generic-context";
-
-import {useAppDispatch} from "@redux/hooks";
-
-import {NotificationType} from "@shared-types/notifications";
-
 import {execSync} from "child_process";
 import os from "os";
 
-import {notificationsService} from "./notifications-service";
+export class EnvironmentService {
+    private constructor() {}
 
-type Context = {
-    username: string | null;
-    usernameError?: string;
-    environmentPath: string | null;
-    environmentPathError?: string;
-};
-
-const [useEnvironmentContext, EnvironmentContextProvider] = createGenericContext<Context>();
-
-export const EnvironmentService: React.FC = props => {
-    const [username, setUsername] = React.useState<string | null>(null);
-    const [usernameError, setUsernameError] = React.useState<string | undefined>(undefined);
-    const [environmentPath, setEnvironmentPath] = React.useState<string | null>(null);
-    const [environmentPathError, setEnvironmentPathError] = React.useState<string | undefined>(undefined);
-
-    const dispatch = useAppDispatch();
-
-    React.useEffect(() => {
+    public static getUsername(): string | null {
         try {
-            setUsername(os.userInfo().username);
+            return os.userInfo().username;
         } catch (e) {
-            setUsernameError(`${e}`);
-            notificationsService.publishNotification({
-                type: NotificationType.ERROR,
-                message: `Could not read username from OS. ${e}`,
-            });
+            return null;
         }
-    }, [setUsernameError, dispatch]);
+    }
 
-    React.useEffect(() => {
+    public static getEnvironmentPath(): string | null {
         try {
             const path = execSync("echo $VIRTUAL_ENV").toString().trim();
-            setEnvironmentPath(path === "" ? null : path);
+            return path === "" ? null : path;
         } catch (e) {
-            setEnvironmentPathError(`${e}`);
-            notificationsService.publishNotification({
-                type: NotificationType.ERROR,
-                message: `Could not detect Komodo environment. JSON schema files cannot be loaded. ${e}`,
-            });
+            return null;
         }
-    }, [setEnvironmentPathError, dispatch]);
+    }
+}
 
-    return (
-        <EnvironmentContextProvider value={{username, usernameError, environmentPath, environmentPathError}}>
-            {props.children}
-        </EnvironmentContextProvider>
-    );
+export const useEnvironmentService = (): {username: string | null; environmentPath: string | null} => {
+    const [username, setUsername] = React.useState<string | null>(null);
+    const [environmentPath, setEnvironmentPath] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        setUsername(EnvironmentService.getUsername());
+        setEnvironmentPath(EnvironmentService.getEnvironmentPath());
+    }, []);
+
+    return {username, environmentPath};
 };
-
-export const useEnvironment = (): Context => useEnvironmentContext();

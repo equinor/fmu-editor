@@ -25,11 +25,10 @@ const appTitle = "FMU Editor";
 const msalDeactivated = process.argv.includes("--deactivate-msal");
 const msalPersistence = process.argv.includes("--msal-persistence");
 
+
 initIpc();
 
 async function createWindow() {
-    console.log("blablabla");
-    console.log(msalDeactivated, msalPersistence);
     const win = new BrowserWindow({
         title: appTitle,
         icon: getAppIcon(),

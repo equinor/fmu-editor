@@ -8,11 +8,11 @@ import {AppDispatch} from "@redux/store";
 import {FileExplorerOptions} from "@shared-types/file-explorer-options";
 import {Notification, NotificationType} from "@shared-types/notifications";
 
-export function selectFmuDirectory(fmuDirectory: string, dispatch: AppDispatch) {
+export function selectFmuDirectory(fmuDirectoryPath: string, dispatch: AppDispatch) {
     const opts: FileExplorerOptions = {
         isDirectoryExplorer: true,
         title: "Open FMU Directory",
-        defaultPath: fmuDirectory,
+        defaultPath: fmuDirectoryPath,
     };
     ipcRenderer.invoke("select-file", opts).then(result => {
         if (result) {

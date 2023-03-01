@@ -33,8 +33,8 @@ export const MainWindow: React.FC = () => {
     const view = useAppSelector(state => state.ui.view);
 
     React.useEffect(() => {
-        if (page === Page.Editor && files && files.activeFile !== "") {
-            document.title = `${path.basename(files.activeFile)} - FMU Editor`;
+        if (page === Page.Editor && files && files.activeFilePath !== "") {
+            document.title = `${path.basename(files.activeFilePath)} - FMU Editor`;
             return;
         }
         if (page === Page.SourceControl) {

@@ -22,9 +22,9 @@ import "./single-file-changes-browser.css";
 
 export const SingleFileChangesBrowser: React.VFC = () => {
     const [fileChanges, setFileChanges] = React.useState<ISnapshotCommitBundle[]>([]);
-    const activeFile = useAppSelector(state => state.files.activeFile);
+    const activeFile = useAppSelector(state => state.files.activeFilePath);
 
-    const directory = useAppSelector(state => state.files.directory);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const dispatch = useAppDispatch();
 
     React.useEffect(() => {
@@ -42,8 +42,10 @@ export const SingleFileChangesBrowser: React.VFC = () => {
     }, [activeFile]);
 
     React.useEffect(() => {
-        dispatch(setDiffUserFile({userFile: path.relative(directory, activeFile), origin: FileChangeOrigin.USER}));
-    }, [activeFile, dispatch, directory]);
+        dispatch(
+            setDiffUserFile({userFile: path.relative(workingDirectoryPath, activeFile), origin: FileChangeOrigin.USER})
+        );
+    }, [activeFile, dispatch, workingDirectoryPath]);
 
     const handleClose = React.useCallback(() => {
         dispatch(resetDiffFiles());
@@ -62,7 +64,7 @@ export const SingleFileChangesBrowser: React.VFC = () => {
             </Surface>
             <Stack direction="column" className="ChangesBrowserContent" spacing={2}>
                 <div className="ChangesBrowserContentHeader">File</div>
-                <div className="ChangesBrowserText">{path.relative(directory, activeFile)}</div>
+                <div className="ChangesBrowserText">{path.relative(workingDirectoryPath, activeFile)}</div>
                 <div className="ChangesBrowserContentHeader">Commits</div>
                 <div>
                     <CommitList commitBundles={fileChanges} />

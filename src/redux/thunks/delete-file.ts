@@ -7,8 +7,8 @@ import {AppDispatch} from "@redux/store";
 
 import {Notification, NotificationType} from "@shared-types/notifications";
 
-export function deleteFile(filePath: string, workingDirectory: string, dispatch: AppDispatch) {
-    const file = new File(filePath, workingDirectory);
+export function deleteFile(filePath: string, workingDirectoryPath: string, dispatch: AppDispatch) {
+    const file = new File(filePath, workingDirectoryPath);
     if (file.remove()) {
         dispatch(closeFile(filePath));
         const notification: Notification = {

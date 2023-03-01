@@ -19,7 +19,7 @@ import {
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import worker from "worker-loader!@workers/file-changes-watcher.worker";
 
-import {useEnvironment} from "./environment-service";
+import {useEnvironmentService} from "./environment-service";
 
 const changelogWatcherWorker = new Webworker<FileChangesRequests, FileChangesResponses>({Worker: worker});
 
@@ -35,15 +35,15 @@ export const FileChangesWatcherService: React.FC = props => {
     const [fileChanges, setFileChanges] = React.useState<FileChange[]>([]);
     const [initialized, setInitialized] = React.useState(false);
     const snapshot = React.useRef<Snapshot>(null);
-    const directory = useAppSelector(state => state.files.directory);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const dispatch = useAppDispatch();
-    const {username} = useEnvironment();
+    const {username} = useEnvironmentService();
 
     React.useEffect(() => {
-        if (username && directory) {
-            snapshot.current = new Snapshot(directory, username);
+        if (username && workingDirectoryPath) {
+            snapshot.current = new Snapshot(workingDirectoryPath, username);
         }
-    }, [username, directory]);
+    }, [username, workingDirectoryPath]);
 
     React.useEffect(() => {
         if (changelogWatcherWorker) {
@@ -56,9 +56,11 @@ export const FileChangesWatcherService: React.FC = props => {
 
     React.useEffect(() => {
         if (changelogWatcherWorker) {
-            changelogWatcherWorker.postMessage(FileChangesWatcherRequestType.SET_DIRECTORY, {directory});
+            changelogWatcherWorker.postMessage(FileChangesWatcherRequestType.SET_DIRECTORY, {
+                directory: workingDirectoryPath,
+            });
         }
-    }, [directory]);
+    }, [workingDirectoryPath]);
 
     return (
         <FileChangesWatcherServiceContextProvider value={{fileChanges, snapshot: snapshot.current, initialized}}>

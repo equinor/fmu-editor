@@ -17,7 +17,7 @@ export const FileTabs: React.FC<FileTabsProps> = props => {
     const timeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const files = useAppSelector(state => state.files.files);
-    const activeFile = useAppSelector(state => state.files.activeFile);
+    const activeFile = useAppSelector(state => state.files.activeFilePath);
 
     React.useEffect(() => {
         return () => {

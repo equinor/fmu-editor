@@ -1,7 +1,7 @@
 import {useFileChanges} from "@hooks/useFileChanges";
 import {LoadingButton} from "@mui/lab";
 import {Button, IconButton, Stack} from "@mui/material";
-import {useEnvironment} from "@services/environment-service";
+import {useEnvironmentService} from "@services/environment-service";
 import {
     FileOperationsServiceEventTypes,
     FileOperationsServiceEvents,
@@ -37,8 +37,8 @@ export const CurrentChanges: React.VFC = () => {
     const userFileChanges = useFileChanges(FILE_ORIGINS);
 
     const dispatch = useAppDispatch();
-    const {username} = useEnvironment();
-    const directory = useAppSelector(state => state.files.directory);
+    const {username} = useEnvironmentService();
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const {pushUserChanges} = useFileOperationsService();
 
     React.useEffect(() => {
@@ -113,7 +113,7 @@ export const CurrentChanges: React.VFC = () => {
 
     const handleFileSelected = React.useCallback(
         (filePath: string, origin: FileChangeOrigin) => {
-            const file = new File(filePath, directory);
+            const file = new File(filePath, workingDirectoryPath);
             dispatch(
                 setDiffFiles({
                     mainFile: file.getMainVersion().relativePath(),
@@ -122,7 +122,7 @@ export const CurrentChanges: React.VFC = () => {
                 })
             );
         },
-        [dispatch, username, directory]
+        [dispatch, username, workingDirectoryPath]
     );
 
     const handleStageAll = React.useCallback(() => {
@@ -140,7 +140,7 @@ export const CurrentChanges: React.VFC = () => {
 
     const handleResolveConflicts = React.useCallback(
         (relativeFilePath: string) => {
-            const file = new File(relativeFilePath, directory);
+            const file = new File(relativeFilePath, workingDirectoryPath);
             dispatch(
                 setDiffFiles({
                     mainFile: file.getMainVersion().relativePath(),
@@ -149,7 +149,7 @@ export const CurrentChanges: React.VFC = () => {
                 })
             );
         },
-        [dispatch, directory, username]
+        [dispatch, workingDirectoryPath, username]
     );
 
     return (

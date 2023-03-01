@@ -18,6 +18,6 @@ export class WorkingDirectory extends Directory implements IWorkingDirectory {
     }
 
     public getUserDirectory(username: string): Directory {
-        return new Directory(path.relative(this.workingDirectory(), path.join(this.usersDir(), username)), this.workingDirectory());
+        return new Directory(path.relative(this.workingDirectoryPath(), path.join(this.usersDir(), username)), this.workingDirectoryPath());
     }
 }

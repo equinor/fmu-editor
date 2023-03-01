@@ -56,10 +56,10 @@ export type Selection = {
 };
 
 export type FilesState = {
-    fmuDirectory: string;
-    directory: string;
+    fmuDirectoryPath: string;
+    workingDirectoryPath: string;
     fileTreeStates: {[key: string]: string[]};
     files: File[];
-    activeFile: string;
+    activeFilePath: string;
     eventSource: EventSource;
 };

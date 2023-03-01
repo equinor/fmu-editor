@@ -7,16 +7,16 @@ import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {selectFmuDirectory} from "@redux/thunks";
 
 export const FmuDirectory: React.FC = () => {
-    const fmuDirectory = useAppSelector(state => state.files.fmuDirectory);
+    const fmuDirectoryPath = useAppSelector(state => state.files.fmuDirectoryPath);
     const dispatch = useAppDispatch();
 
     const handleOpenDirectoryClick = () => {
-        selectFmuDirectory(fmuDirectory, dispatch);
+        selectFmuDirectory(fmuDirectoryPath, dispatch);
     };
     return (
         <Button size="small" onClick={handleOpenDirectoryClick} title="Current FMU directory. Click to change.">
             <VscFolderActive />
-            <span>{fmuDirectory === "" ? <i>No FMU directory selected</i> : fmuDirectory}</span>
+            <span>{fmuDirectoryPath === "" ? <i>No FMU directory selected</i> : fmuDirectoryPath}</span>
         </Button>
     );
 };
