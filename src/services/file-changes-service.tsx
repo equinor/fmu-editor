@@ -1,11 +1,8 @@
-import React from "react";
-
 import {Snapshot} from "@utils/file-system/snapshot";
-import {createGenericContext} from "@utils/generic-context";
 
 import {Webworker} from "@workers/worker-utils";
 
-import {useAppDispatch, useAppSelector} from "@redux/hooks";
+import store from "@redux/store";
 
 import {
     FileChange,
@@ -19,54 +16,48 @@ import {
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import worker from "worker-loader!@workers/file-changes-watcher.worker";
 
-import {useEnvironmentService} from "./environment-service";
+import {environmentService} from "./environment-service";
+import {ServiceBase} from "./service-base";
 
-const changelogWatcherWorker = new Webworker<FileChangesRequests, FileChangesResponses>({Worker: worker});
+export enum FileChangesTopics {
+    FILES_CHANGED = "FILES_CHANGED",
+    SNAPSHOT_CHANGED = "SNAPSHOT_CHANGED",
+    INITIALIZED = "INITIALIZED",
+}
 
-export type Context = {
-    fileChanges: FileChange[];
-    initialized: boolean;
-    snapshot: Snapshot | null;
+export type FileChangesMessages = {
+    [FileChangesTopics.FILES_CHANGED]: FileChange[];
+    [FileChangesTopics.SNAPSHOT_CHANGED]: undefined;
+    [FileChangesTopics.INITIALIZED]: undefined;
 };
 
-const [useFileChangesWatcherServiceContext, FileChangesWatcherServiceContextProvider] = createGenericContext<Context>();
+class FileChangesWatcherService extends ServiceBase<FileChangesMessages> {
+    private worker: Webworker<FileChangesRequests, FileChangesResponses>;
+    private snapshot: Snapshot | null;
 
-export const FileChangesWatcherService: React.FC = props => {
-    const [fileChanges, setFileChanges] = React.useState<FileChange[]>([]);
-    const [initialized, setInitialized] = React.useState(false);
-    const snapshot = React.useRef<Snapshot>(null);
-    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
-    const dispatch = useAppDispatch();
-    const {username} = useEnvironmentService();
+    constructor() {
+        super();
+        this.worker = new Webworker<FileChangesRequests, FileChangesResponses>({Worker: worker});
 
-    React.useEffect(() => {
-        if (username && workingDirectoryPath) {
-            snapshot.current = new Snapshot(workingDirectoryPath, username);
-        }
-    }, [username, workingDirectoryPath]);
+        this.worker.on(FileChangesWatcherResponseType.FILE_CHANGES, data => {
+            this.messageBus.publish(FileChangesTopics.FILES_CHANGED, data.fileChanges);
+        });
 
-    React.useEffect(() => {
-        if (changelogWatcherWorker) {
-            changelogWatcherWorker.on(FileChangesWatcherResponseType.FILE_CHANGES, data => {
-                setFileChanges(data.fileChanges);
-                setInitialized(true);
-            });
-        }
-    }, [dispatch]);
+        store.subscribe(() => {
+            const state = store.getState();
+            if (state.files.workingDirectoryPath) {
+                this.worker.postMessage(FileChangesWatcherRequestType.SET_WORKING_DIRECTORY_PATH, {
+                    workingDirectoryPath: state.files.workingDirectoryPath,
+                });
+                this.snapshot = new Snapshot(state.files.workingDirectoryPath, environmentService.getUsername());
+                this.messageBus.publish(FileChangesTopics.SNAPSHOT_CHANGED);
+            }
+        });
+    }
 
-    React.useEffect(() => {
-        if (changelogWatcherWorker) {
-            changelogWatcherWorker.postMessage(FileChangesWatcherRequestType.SET_DIRECTORY, {
-                directory: workingDirectoryPath,
-            });
-        }
-    }, [workingDirectoryPath]);
+    public getSnapshot(): Snapshot | null {
+        return this.snapshot;
+    }
+}
 
-    return (
-        <FileChangesWatcherServiceContextProvider value={{fileChanges, snapshot: snapshot.current, initialized}}>
-            {props.children}
-        </FileChangesWatcherServiceContextProvider>
-    );
-};
-
-export const useFileChangesWatcher = (): Context => useFileChangesWatcherServiceContext();
+export const fileChangesWatcherService = new FileChangesWatcherService();

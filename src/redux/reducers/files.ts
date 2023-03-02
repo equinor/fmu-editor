@@ -44,7 +44,7 @@ export const filesSlice = createSlice({
             }>
         ) => {
             state.fmuDirectoryPath = action.payload.path;
-            electronStore.set("files.fmuDirectory", action.payload.path);
+            electronStore.set("files.fmuDirectoryPath", action.payload.path);
         },
         setWorkingDirectoryPath: (
             state: Draft<FilesState>,
@@ -56,10 +56,10 @@ export const filesSlice = createSlice({
             state.files = [];
             state.activeFilePath = "";
             state.fileTreeStates = {...state.fileTreeStates, [action.payload.path]: []};
-            electronStore.set("files.directory", action.payload.path);
+            electronStore.set("files.workingDirectoryPath", action.payload.path);
             electronStore.set(`files.fileTreeStates`, state.fileTreeStates);
             electronStore.set("files.files", state.files);
-            electronStore.set("files.activeFile", state.activeFilePath);
+            electronStore.set("files.activeFilePath", state.activeFilePath);
         },
         setFileTreeStates: (state: Draft<FilesState>, action: PayloadAction<string[]>) => {
             const newState = {...state.fileTreeStates, [state.workingDirectoryPath]: action.payload};
@@ -78,7 +78,7 @@ export const filesSlice = createSlice({
                 currentlyActiveFile.editorViewState = action.payload.viewState;
             }
             state.activeFilePath = action.payload.filePath;
-            electronStore.set("files.activeFile", action.payload.filePath);
+            electronStore.set("files.activeFilePath", action.payload.filePath);
         },
         setValue: (state: Draft<FilesState>, action: PayloadAction<string>) => {
             state.files = state.files.map(el =>
@@ -143,10 +143,14 @@ export const filesSlice = createSlice({
                     path.relative(action.payload.oldFilePath, state.activeFilePath)
                 );
             }
-            state.fileTreeStates[state.workingDirectoryPath] = state.fileTreeStates[state.workingDirectoryPath].map(el =>
-                el.includes(action.payload.oldFilePath)
-                    ? path.join(action.payload.newFilePath, path.relative(action.payload.oldFilePath, state.activeFilePath))
-                    : el
+            state.fileTreeStates[state.workingDirectoryPath] = state.fileTreeStates[state.workingDirectoryPath].map(
+                el =>
+                    el.includes(action.payload.oldFilePath)
+                        ? path.join(
+                              action.payload.newFilePath,
+                              path.relative(action.payload.oldFilePath, state.activeFilePath)
+                          )
+                        : el
             );
             updateFilesInElectronStore(state);
         },
@@ -157,7 +161,7 @@ export const filesSlice = createSlice({
             // Do not open file when already opened, but make it active
             const openedFile = state.files.find(el => el.filePath === action.payload.filePath);
             state.activeFilePath = action.payload.filePath;
-            electronStore.set("files.activeFile", action.payload.filePath);
+            electronStore.set("files.activeFilePath", action.payload.filePath);
 
             if (openedFile) {
                 // Close all files that are not permanently open

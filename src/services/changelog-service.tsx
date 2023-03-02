@@ -15,25 +15,26 @@ import {
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import worker from "worker-loader!@workers/changelog-watcher.worker";
 
-export enum ChangelogWatcherMessageTypes {
+import {ServiceBase} from "./service-base";
+
+export enum ChangelogWatcherTopics {
     MODIFIED = "MODIFIED",
 }
 
-type ChangelogWatcherMessages = {
-    [ChangelogWatcherMessageTypes.MODIFIED]: undefined;
+export type ChangelogWatcherMessages = {
+    [ChangelogWatcherTopics.MODIFIED]: undefined;
 };
 
-class ChangelogWatcherService {
+class ChangelogWatcherService extends ServiceBase<ChangelogWatcherMessages> {
     private changelogWatcherWorker: Webworker<ChangelogWatcherRequests, ChangelogWatcherResponses>;
-    private messageBus: MessageBus<ChangelogWatcherMessages>;
 
     constructor() {
-        this.messageBus = new MessageBus<ChangelogWatcherMessages>();
+        super();
         this.changelogWatcherWorker = new Webworker<ChangelogWatcherRequests, ChangelogWatcherResponses>({
             Worker: worker,
         });
         this.changelogWatcherWorker.on(ChangelogWatcherResponseTypes.MODIFIED, () => {
-            this.messageBus.publish(ChangelogWatcherMessageTypes.MODIFIED);
+            this.messageBus.publish(ChangelogWatcherTopics.MODIFIED);
         });
     }
 

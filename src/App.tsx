@@ -5,9 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 import {ThemeProvider} from "@mui/material";
-import {EnvironmentService} from "@services/environment-service";
-import {FileOperationsService} from "@services/file-operations-service";
-import {FileSystemWatcherService} from "@services/file-system-service";
 import {IpcService} from "@services/ipc-service";
 
 import React from "react";
@@ -26,7 +23,6 @@ import {Themes} from "@shared-types/ui";
 import {SnackbarProvider} from "notistack";
 
 import "./App.css";
-import {FileChangesWatcherService} from "./services/file-changes-service";
 import {Theme} from "./themes/theme";
 import "./themes/theme.scss";
 
@@ -66,18 +62,10 @@ const App = (): JSX.Element => {
                     <ColorModeContext.Provider value={colorMode}>
                         <ThemeProvider theme={Theme(mode)}>
                             <NotificationsProvider>
-                                <EnvironmentService>
-                                    <FileOperationsService>
-                                        <FileChangesWatcherService>
-                                            <FileSystemWatcherService>
-                                                <IpcService>
-                                                    <MainWindow />
-                                                    <LoginDialog />
-                                                </IpcService>
-                                            </FileSystemWatcherService>
-                                        </FileChangesWatcherService>
-                                    </FileOperationsService>
-                                </EnvironmentService>
+                                <IpcService>
+                                    <MainWindow />
+                                    <LoginDialog />
+                                </IpcService>
                             </NotificationsProvider>
                         </ThemeProvider>
                     </ColorModeContext.Provider>

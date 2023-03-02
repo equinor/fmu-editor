@@ -1,4 +1,4 @@
-import {useEnvironment} from "@services/environment-service";
+import {useEnvironmentService} from "@services/environment-service";
 import {notificationsService} from "@services/notifications-service";
 
 import {useEffect} from "react";
@@ -12,7 +12,7 @@ import {SchemasSettings, setDiagnosticsOptions} from "monaco-yaml";
 import path from "path";
 
 export const useYamlSchemas = (yaml: any) => {
-    const environment = useEnvironment();
+    const environment = useEnvironmentService();
 
     useEffect(() => {
         if (environment.environmentPath) {

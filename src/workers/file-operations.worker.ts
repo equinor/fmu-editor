@@ -41,14 +41,23 @@ const copyToUserDirectory = (workingDirectoryPath: string, user: string): void =
         });
     };
 
-    mainDirectory.getContent(true).forEach(fileOrDir => {
-        if (fileOrDir instanceof Directory) {
-            fileOrDir.getUserVersion(user).makeIfNotExists();
-        } else if (fileOrDir instanceof File) {
-            (fileOrDir as unknown as File).copyTo(path.join(userDirectory.absolutePath(), fileOrDir.relativePath()));
-        }
-        callback();
-    });
+    try {
+        mainDirectory.getContent(true).forEach(fileOrDir => {
+            if (fileOrDir instanceof Directory) {
+                fileOrDir.getUserVersion(user).makeIfNotExists();
+            } else if (fileOrDir instanceof File) {
+                (fileOrDir as unknown as File).copyTo(
+                    path.join(userDirectory.absolutePath(), fileOrDir.relativePath())
+                );
+            }
+            callback();
+        });
+    } catch (e) {
+        webworker.postMessage(FileOperationsResponseType.USER_DIRECTORY_INITIALIZED, {
+            success: false,
+            errorMessage: e instanceof Error ? e.message : "Unknown error",
+        });
+    }
 };
 
 const maybeInitUserDirectory = (workingDirectoryPath: string, user: string): void => {
@@ -68,6 +77,10 @@ const maybeInitUserDirectory = (workingDirectoryPath: string, user: string): voi
     if (!snapshot.exists()) {
         snapshot.make();
     }
+
+    webworker.postMessage(FileOperationsResponseType.USER_DIRECTORY_INITIALIZED, {
+        success: true,
+    });
 };
 
 const ensureUserDirectoryExists = (): void => {
@@ -89,7 +102,7 @@ webworker.on(FileOperationsRequestType.SET_USER_DIRECTORY, ({directory, username
 
 webworker.on(FileOperationsRequestType.PUSH_USER_CHANGES, ({fileChanges, commitSummary, commitDescription}) => {
     if (currentUsername && currentWorkingDirectoryPath) {
-        const {pushedFiles, notPushedFiles, commit} = pushFiles(
+        const {pushedFilesPaths, notPushedFilesPaths, commit} = pushFiles(
             fileChanges,
             currentUsername,
             commitSummary,
@@ -98,15 +111,15 @@ webworker.on(FileOperationsRequestType.PUSH_USER_CHANGES, ({fileChanges, commitS
         );
 
         let commitMessageWritten = false;
-        if (fileChanges.length > notPushedFiles.length) {
+        if (fileChanges.length > notPushedFilesPaths.length) {
             const changelog = new Changelog(currentWorkingDirectoryPath);
             commitMessageWritten = changelog.appendCommit(commit);
         }
 
         webworker.postMessage(FileOperationsResponseType.USER_CHANGES_PUSHED, {
-            pushedFiles,
+            pushedFilesPaths,
             commitMessageWritten,
-            notPushedFiles,
+            notPushedFilesPaths,
         });
     }
 });
@@ -117,13 +130,17 @@ webworker.on(FileOperationsRequestType.PULL_MAIN_CHANGES, ({fileChanges}) => {
         if (!workingDirectory.exists()) {
             return;
         }
- 
-        const {pulledFiles, notPulledFiles} = pullFiles(fileChanges, currentUsername, currentWorkingDirectoryPath);
+
+        const {pulledFilesPaths, notPulledFilesPaths} = pullFiles(
+            fileChanges,
+            currentUsername,
+            currentWorkingDirectoryPath
+        );
 
         webworker.postMessage(FileOperationsResponseType.MAIN_CHANGES_PULLED, {
-            pulledFiles,
-            notPulledFiles,
-            success: notPulledFiles.length < fileChanges.length,
+            pulledFilesPaths,
+            notPulledFilesPaths,
+            success: notPulledFilesPaths.length < fileChanges.length,
         });
     }
 });

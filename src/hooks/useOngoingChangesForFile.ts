@@ -1,5 +1,6 @@
-import {useEnvironment} from "@services/environment-service";
-import {useFileChangesWatcher} from "@services/file-changes-service";
+import {AppMessageBus} from "@framework/app-message-bus";
+import {environmentService} from "@services/environment-service";
+import {FileChangesTopics} from "@services/file-changes-service";
 
 import React from "react";
 
@@ -8,19 +9,26 @@ import {FileChange, FileChangeOrigin} from "@shared-types/file-changes";
 export const useOngoingChangesForFile = (relativeFilePath: string): FileChange[] => {
     const [ongoingChanges, setOngoingChanges] = React.useState<FileChange[]>([]);
 
-    const fileChangesWatcher = useFileChangesWatcher();
-    const {username} = useEnvironment();
-
     React.useEffect(() => {
-        setOngoingChanges(
-            fileChangesWatcher.fileChanges.filter(
-                change =>
-                    change.relativePath === relativeFilePath &&
-                    change.user !== username &&
-                    [FileChangeOrigin.USER, FileChangeOrigin.BOTH].includes(change.origin)
-            )
+        const handleFileChangesChange = (fileChanges: FileChange[]) => {
+            const username = environmentService.getUsername();
+            setOngoingChanges(
+                fileChanges.filter(
+                    change =>
+                        change.relativePath === relativeFilePath &&
+                        change.user !== username &&
+                        [FileChangeOrigin.USER, FileChangeOrigin.BOTH].includes(change.origin)
+                )
+            );
+        };
+
+        const unsubscribeFunc = AppMessageBus.fileChanges.subscribe(
+            FileChangesTopics.FILES_CHANGED,
+            handleFileChangesChange
         );
-    }, [fileChangesWatcher.fileChanges, username, relativeFilePath]);
+
+        return unsubscribeFunc;
+    }, [relativeFilePath]);
 
     return ongoingChanges;
 };

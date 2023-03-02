@@ -4,6 +4,8 @@ import {notificationsService} from "@services/notifications-service";
 import React from "react";
 import {VscFolder} from "react-icons/vsc";
 
+import {Directory} from "@utils/file-system/directory";
+
 import {useAppSelector} from "@redux/hooks";
 
 import {NotificationType} from "@shared-types/notifications";
@@ -12,6 +14,7 @@ import path from "path";
 
 export const WorkingDirectory: React.FC = () => {
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
+    const workingDirectory = new Directory("", workingDirectoryPath);
 
     const handleOpenDirectoryClick = () => {
         notificationsService.publishNotification({
@@ -23,7 +26,7 @@ export const WorkingDirectory: React.FC = () => {
         <Button size="small" onClick={handleOpenDirectoryClick} title="Current working directory.">
             <VscFolder />
             <span>
-                {workingDirectoryPath === "" ? (
+                {workingDirectoryPath === "" || !workingDirectory.exists() ? (
                     <i>No working directory selected</i>
                 ) : (
                     path.basename(workingDirectoryPath)

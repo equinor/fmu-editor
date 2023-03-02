@@ -15,7 +15,7 @@ import {
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import worker from "worker-loader!@workers/file-system-watcher.worker";
 
-import {EnvironmentService} from "./environment-service";
+import {environmentService} from "./environment-service";
 
 export enum FileSystemWatcherMessageTypes {
     AVAILABLE_WORKING_DIRECTORIES_CHANGED = "AVAILABLE_WORKING_DIRECTORIES_CHANGED",
@@ -38,7 +38,7 @@ class FileSystemWatcherService {
             Worker: worker,
         });
 
-        this.username = EnvironmentService.getUsername();
+        this.username = environmentService.getUsername();
 
         this.messageBus = new MessageBus<FileSystemWatcherMessages>();
 

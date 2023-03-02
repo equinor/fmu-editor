@@ -39,7 +39,7 @@ export const FileTab: React.FC<FileTabProps> = props => {
     const file = useAppSelector(state => state.files.files.find(el => el.filePath === props.filePath));
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const activeFilePath = useAppSelector(state => state.files.activeFilePath);
-    const fileChanges = useFileChanges(FILE_ORIGINS);
+    const {fileChanges} = useFileChanges(FILE_ORIGINS);
     const {username} = useEnvironmentService();
 
     React.useLayoutEffect(() => {

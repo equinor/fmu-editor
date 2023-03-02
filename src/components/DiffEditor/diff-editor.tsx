@@ -1,8 +1,9 @@
+import {AppMessageBus} from "@framework/app-message-bus";
 import {useYamlSchemas} from "@hooks/useYamlSchema";
 import {Close} from "@mui/icons-material";
 import {Button, IconButton, useTheme} from "@mui/material";
 import useSize from "@react-hook/size";
-import {useFileChangesWatcher} from "@services/file-changes-service";
+import {fileChangesWatcherService} from "@services/file-changes-service";
 import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
@@ -10,6 +11,7 @@ import {VscSave, VscWarning} from "react-icons/vsc";
 import {DiffEditorDidMount, MonacoDiffEditor, monaco} from "react-monaco-editor";
 
 import {File} from "@utils/file-system/file";
+import {Snapshot} from "@utils/file-system/snapshot";
 
 import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
 import {Surface} from "@components/Surface";
@@ -25,6 +27,8 @@ import {languages} from "monaco-editor";
 import path from "path";
 
 import "./diff-editor.css";
+
+import {FileChangesTopics} from "../../services/file-changes-service";
 
 declare global {
     interface Window {
@@ -68,6 +72,7 @@ export const DiffEditor: React.VFC = () => {
     const [originalFileExists, setOriginalFileExists] = React.useState<boolean>(false);
     const [modifiedFileExists, setModifiedFileExists] = React.useState<boolean>(false);
     const [relativeFilePath, setRelativeFilePath] = React.useState<string>("");
+    const [snapshot, setSnapshot] = React.useState<Snapshot | null>();
 
     const monacoDiffEditorRef = React.useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
     const diffEditorRef = React.useRef<HTMLDivElement | null>(null);
@@ -81,10 +86,22 @@ export const DiffEditor: React.VFC = () => {
     const dispatch = useAppDispatch();
     const theme = useTheme();
     const globalSettings = useGlobalSettings();
-    const {snapshot} = useFileChangesWatcher();
     const [diffEditorTotalWidth, diffEditorTotalHeight] = useSize(diffEditorRef);
 
     useYamlSchemas(yaml);
+
+    React.useEffect(() => {
+        const handleSnapshotChange = () => {
+            setSnapshot(fileChangesWatcherService.getSnapshot());
+        };
+
+        const unsubscribeFunc = AppMessageBus.fileChanges.subscribe(
+            FileChangesTopics.SNAPSHOT_CHANGED,
+            handleSnapshotChange
+        );
+
+        return unsubscribeFunc;
+    });
 
     React.useEffect(() => {
         const timeoutRef = timeout.current;
@@ -215,8 +232,8 @@ export const DiffEditor: React.VFC = () => {
         setOriginalEditorWidth(layout.contentWidth);
     };
 
-    const handleSave = () => {
-        if (diff.modifiedRelativeFilePath && diff.originalRelativeFilePath) {
+    const handleSave = React.useCallback(() => {
+        if (diff.modifiedRelativeFilePath && diff.originalRelativeFilePath && snapshot) {
             const mergeUserFile = new File(diff.modifiedRelativeFilePath, workingDirectoryPath);
             const userModel = monaco.editor.getModel(monaco.Uri.file(diff.modifiedRelativeFilePath));
             if (userModel && mergeUserFile.writeString(userModel.getValue())) {
@@ -234,7 +251,7 @@ export const DiffEditor: React.VFC = () => {
                 });
             }
         }
-    };
+    }, [diff.modifiedRelativeFilePath, diff.originalRelativeFilePath, workingDirectoryPath, snapshot, dispatch]);
 
     return (
         <div className="EditorWrapper" style={{display: visible ? "block" : "none"}}>

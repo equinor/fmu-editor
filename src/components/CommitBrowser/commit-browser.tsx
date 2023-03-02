@@ -1,6 +1,6 @@
 import {Typography} from "@mui/material";
 import {Stack} from "@mui/system";
-import {ChangelogWatcherMessageTypes, changelogWatcherService} from "@services/changelog-service";
+import {ChangelogWatcherTopics, changelogWatcherService} from "@services/changelog-service";
 import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
@@ -35,7 +35,7 @@ export const CommitBrowser: React.FC = () => {
 
         const unsubscribeFunc = changelogWatcherService
             .getMessageBus()
-            .subscribe(ChangelogWatcherMessageTypes.MODIFIED, getChangelogChanges);
+            .subscribe(ChangelogWatcherTopics.MODIFIED, getChangelogChanges);
 
         return unsubscribeFunc;
     }, []);

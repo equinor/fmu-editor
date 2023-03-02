@@ -38,6 +38,6 @@ const checkForFileChanges = () => {
 // eslint-disable-next-line no-restricted-globals
 self.setInterval(checkForFileChanges, 3000);
 
-webworker.on(FileChangesWatcherRequestType.SET_DIRECTORY, ({directory}) => {
+webworker.on(FileChangesWatcherRequestType.SET_WORKING_DIRECTORY_PATH, ({directory}) => {
     currentDirectory = directory;
 });

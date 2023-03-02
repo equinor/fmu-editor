@@ -1,34 +1,34 @@
-export interface IMessageBusMessage {
+export type MessageBusMessage = {
     [type: string]: Record<string, any> | null;
-}
+};
 
-type SubscribersMap<T extends IMessageBusMessage, K extends keyof T> = Record<K, Set<(payload?: T[K]) => void>>;
+type SubscribersMap<T extends MessageBusMessage, K extends keyof T> = Record<K, Set<(payload?: T[K]) => void>>;
 
-export class MessageBus<MessageTypes extends IMessageBusMessage> {
-    private _subscribers: SubscribersMap<MessageTypes, keyof MessageTypes>;
+export class MessageBus<
+    MessageTypes extends MessageBusMessage,
+    Topics extends keyof MessageTypes = keyof MessageTypes
+> {
+    private _subscribers: SubscribersMap<MessageTypes, Topics>;
 
     constructor() {
-        this._subscribers = {} as SubscribersMap<MessageTypes, keyof MessageTypes>;
+        this._subscribers = {} as SubscribersMap<MessageTypes, Topics>;
     }
 
-    public subscribe(
-        messageType: keyof MessageTypes,
-        handler: (payload?: MessageTypes[keyof MessageTypes]) => void
-    ): () => void {
-        if (!this._subscribers[messageType]) {
-            this._subscribers[messageType] = new Set();
+    public subscribe<Topic extends Topics>(topic: Topic, handler: (payload?: MessageTypes[Topic]) => void): () => void {
+        if (!this._subscribers[topic]) {
+            this._subscribers[topic] = new Set();
         }
-        this._subscribers[messageType].add(handler);
+        this._subscribers[topic].add(handler as (payload?: MessageTypes[Topics]) => void);
 
-        return () => this.unsubscribe(messageType, handler);
+        return () => this.unsubscribe(topic, handler);
     }
 
-    public unsubscribe(
-        messageType: keyof MessageTypes,
-        handler: (payload?: MessageTypes[keyof MessageTypes]) => void
+    public unsubscribe<Topic extends Topics>(
+        messageType: Topic,
+        handler: (payload?: MessageTypes[Topic]) => void
     ): void {
         if (this._subscribers[messageType]) {
-            this._subscribers[messageType].delete(handler);
+            this._subscribers[messageType].delete(handler as (payload?: MessageTypes[Topics]) => void);
         }
     }
 

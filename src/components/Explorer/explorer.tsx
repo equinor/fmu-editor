@@ -1,5 +1,5 @@
+import {LoadingButton} from "@mui/lab";
 import {
-    Button,
     CircularProgress,
     Drawer,
     IconButton,
@@ -17,6 +17,8 @@ import {FileSystemWatcherMessageTypes, fileSystemWatcherService} from "@services
 
 import React from "react";
 import {VscCheck, VscChevronDown, VscCollapseAll, VscLock, VscNewFile, VscNewFolder, VscRefresh} from "react-icons/vsc";
+
+import {AppMessageBus} from "@src/framework/app-message-bus";
 
 import {Directory} from "@utils/file-system/directory";
 
@@ -37,8 +39,9 @@ export const Explorer: React.FC = () => {
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const {username} = useEnvironmentService();
     const [fmuDirectory, setFmuDirectory] = React.useState<Directory | null>(null);
-    const [directory, setDirectory] = React.useState<Directory | null>(null);
+    const [workingDirectory, setWorkingDirectory] = React.useState<Directory | null>(null);
     const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
+    const [loading, setLoading] = React.useState<boolean>(false);
 
     const explorerRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -69,26 +72,32 @@ export const Explorer: React.FC = () => {
             }
         };
 
-        const unsubscribeFunc = fileSystemWatcherService
-            .getMessageBus()
-            .subscribe(
-                FileSystemWatcherMessageTypes.AVAILABLE_WORKING_DIRECTORIES_CHANGED,
-                handleWorkingDirectoriesChange
-            );
+        setLoading(false);
+        handleWorkingDirectoriesChange();
+
+        const unsubscribeFunc = AppMessageBus.fileSystem.subscribe(
+            FileSystemWatcherMessageTypes.AVAILABLE_WORKING_DIRECTORIES_CHANGED,
+            handleWorkingDirectoriesChange
+        );
 
         return unsubscribeFunc;
     }, [fmuDirectoryPath]);
 
     const refreshExplorer = React.useCallback(() => {
-        if (workingDirectoryPath !== undefined && workingDirectoryPath !== "" && username) {
+        if (workingDirectoryPath !== "" && username) {
             const dir = new Directory("", workingDirectoryPath);
             if (dir.exists()) {
-                setDirectory(dir.getUserVersion(username));
+                setWorkingDirectory(dir.getUserVersion(username));
             } else {
-                setDirectory(null);
+                setWorkingDirectory(null);
             }
         }
     }, [workingDirectoryPath, username]);
+
+    React.useEffect(() => {
+        refreshExplorer();
+        setLoading(false);
+    }, [refreshExplorer, workingDirectoryPath, username]);
 
     React.useEffect(() => {
         const unsubscribeFunc = fileSystemWatcherService
@@ -100,6 +109,7 @@ export const Explorer: React.FC = () => {
 
     const handleWorkingDirectoryChange = (dir: string) => {
         dispatch(setWorkingDirectoryPath({path: dir}));
+        setLoading(true);
         setDrawerOpen(false);
     };
 
@@ -120,28 +130,29 @@ export const Explorer: React.FC = () => {
     const makeContent = React.useCallback(() => {
         const handleOpenDirectoryClick = () => {
             selectFmuDirectory(fmuDirectoryPath, dispatch);
+            setLoading(true);
         };
 
         const handleCollapseAll = () => {
             dispatch(setFileTreeStates([]));
         };
 
-        if (fmuDirectory === null) {
+        if (fmuDirectory === null || fmuDirectoryPath === "" || !fmuDirectory.exists()) {
             return (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
-                    <Button variant="contained" onClick={handleOpenDirectoryClick}>
+                    <LoadingButton variant="contained" onClick={handleOpenDirectoryClick} loading={loading}>
                         Select FMU Directory
-                    </Button>
+                    </LoadingButton>
                     <Typography>In order to start using the editor, please select your FMU directory.</Typography>
                 </Stack>
             );
         }
-        if (username === undefined || directory === null) {
+        if (workingDirectory === null || workingDirectoryPath === "" || !workingDirectory.exists()) {
             return (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
-                    <Button variant="contained" onClick={toggleDrawer(true)}>
+                    <LoadingButton variant="contained" onClick={toggleDrawer(true)} loading={loading}>
                         Select Working Directory
-                    </Button>
+                    </LoadingButton>
                     <Typography>In order to start using the editor, please select your working directory.</Typography>
                 </Stack>
             );
@@ -152,8 +163,8 @@ export const Explorer: React.FC = () => {
                 <Surface elevation="raised">
                     <Stack direction="row" alignItems="center" className="ExplorerTitle">
                         <div>
-                            {directory.getMainVersion().baseName()}
-                            {!directory.getMainVersion().isWritable() && (
+                            {workingDirectory.getMainVersion().baseName()}
+                            {!workingDirectory.getMainVersion().isWritable() && (
                                 <VscLock
                                     color={theme.palette.warning.main}
                                     title="You don't have write access for this folder."
@@ -186,11 +197,11 @@ export const Explorer: React.FC = () => {
                     </Stack>
                 </Surface>
                 <div className="ExplorerContent" ref={explorerRef}>
-                    {directory.exists() ? (
+                    {workingDirectory.exists() ? (
                         <DirectoryComponent
                             level={0}
-                            directory={directory}
-                            key={directory.relativePath()}
+                            directory={workingDirectory}
+                            key={workingDirectory.relativePath()}
                             rootDirectory
                         />
                     ) : (
@@ -202,7 +213,18 @@ export const Explorer: React.FC = () => {
                 </div>
             </>
         );
-    }, [username, directory, fmuDirectoryPath, theme, toggleDrawer, dispatch, explorerRef, refreshExplorer]);
+    }, [
+        theme,
+        toggleDrawer,
+        dispatch,
+        explorerRef,
+        refreshExplorer,
+        fmuDirectoryPath,
+        fmuDirectory,
+        workingDirectoryPath,
+        workingDirectory,
+        loading,
+    ]);
 
     return (
         <Surface elevation="raised" className="Explorer">
@@ -213,8 +235,8 @@ export const Explorer: React.FC = () => {
                             <ListItem key={el.absolutePath()} disablePadding>
                                 <ListItemButton onClick={() => handleWorkingDirectoryChange(el.absolutePath())}>
                                     <ListItemIcon>
-                                        {directory !== null &&
-                                            el.absolutePath() === directory.getMainVersion().absolutePath() && (
+                                        {workingDirectory !== null &&
+                                            el.absolutePath() === workingDirectory.getMainVersion().absolutePath() && (
                                                 <VscCheck fontSize="small" color="var(--text-on-primary)" />
                                             )}
                                     </ListItemIcon>

@@ -1,5 +1,5 @@
 export enum FileChangesWatcherRequestType {
-    SET_DIRECTORY,
+    SET_WORKING_DIRECTORY_PATH,
 }
 
 export enum FileChangesWatcherResponseType {
@@ -28,8 +28,8 @@ export type FileChange = {
 };
 
 export type FileChangesRequests = {
-    [FileChangesWatcherRequestType.SET_DIRECTORY]: {
-        directory: string;
+    [FileChangesWatcherRequestType.SET_WORKING_DIRECTORY_PATH]: {
+        workingDirectoryPath: string;
     };
 };
 

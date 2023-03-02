@@ -25,7 +25,6 @@ const appTitle = "FMU Editor";
 const msalDeactivated = process.argv.includes("--deactivate-msal");
 const msalPersistence = process.argv.includes("--msal-persistence");
 
-
 initIpc();
 
 async function createWindow() {
