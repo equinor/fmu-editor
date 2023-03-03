@@ -13,9 +13,9 @@ export const useFileChanges = (
     const [initialized, setInitialized] = React.useState(false);
     const [fileChanges, setFileChanges] = React.useState<FileChange[]>([]);
 
-    React.useEffect(() => {
+    React.useLayoutEffect(() => {
         const adjustedOrigins = Array.isArray(origins) ? origins : [origins];
-        const handleFileChangesChange = (allFileChanges: FileChange[]) => {
+        const handleFileChangesChange = ({fileChanges: allFileChanges}: {fileChanges: FileChange[]}) => {
             const username = environmentService.getUsername();
             setFileChanges(
                 allFileChanges.filter(
@@ -27,7 +27,8 @@ export const useFileChanges = (
 
         const unsubscribeFunc = AppMessageBus.fileChanges.subscribe(
             FileChangesTopics.FILES_CHANGED,
-            handleFileChangesChange
+            handleFileChangesChange,
+            true
         );
 
         return unsubscribeFunc;

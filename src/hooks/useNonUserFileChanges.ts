@@ -10,7 +10,7 @@ export const useNonUserFileChanges = (): FileChange[] => {
     const [nonUserFileChanges, setNonUserFileChanges] = React.useState<FileChange[]>([]);
 
     React.useEffect(() => {
-        const handleFileChangesChange = (fileChanges: FileChange[]) => {
+        const handleFileChangesChange = ({fileChanges}: {fileChanges: FileChange[]}) => {
             const username = environmentService.getUsername();
             setNonUserFileChanges(fileChanges.filter(change => change.user !== username));
         };

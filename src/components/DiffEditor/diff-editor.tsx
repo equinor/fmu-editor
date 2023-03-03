@@ -17,7 +17,7 @@ import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-setti
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setDiffFiles} from "@redux/reducers/ui";
+import {resetDiffFiles, setDiffFiles} from "@redux/reducers/ui";
 
 import {FileChangeOrigin} from "@shared-types/file-changes";
 import {NotificationType} from "@shared-types/notifications";
@@ -224,7 +224,7 @@ export const DiffEditor: React.VFC = () => {
     ]);
 
     const handleClose = () => {
-        dispatch(setDiffFiles({mainFile: undefined, userFile: undefined, origin: undefined}));
+        dispatch(resetDiffFiles());
         setVisible(false);
     };
 

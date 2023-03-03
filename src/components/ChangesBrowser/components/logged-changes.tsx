@@ -1,7 +1,6 @@
 import {IDynamicPerson} from "@microsoft/mgt-react";
 import {Add, Edit, Remove} from "@mui/icons-material";
 import {Stack, Typography} from "@mui/material";
-import {useEnvironmentService} from "@services/environment-service";
 
 import React from "react";
 import {VscGitCommit} from "react-icons/vsc";
@@ -27,7 +26,6 @@ export const LoggedChanges: React.VFC = () => {
 
     const currentCommit = useAppSelector(state => state.ui.currentCommit);
     const dispatch = useAppDispatch();
-    const environment = useEnvironmentService();
     const originalRelativeFilePath = useAppSelector(state => state.ui.diff.originalRelativeFilePath);
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
 
@@ -43,7 +41,7 @@ export const LoggedChanges: React.VFC = () => {
             });
         }
         setSummarizedActions(counts);
-    }, [currentCommit, environment]);
+    }, [currentCommit]);
 
     const handleFileSelected = React.useCallback(
         (file: string) => {

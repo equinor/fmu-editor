@@ -74,11 +74,9 @@ export const UserDirectory: React.FC = () => {
                 </>
             );
         }
-        /*
         if (!initialized) {
             return <CircularProgress size={20} color="inherit" />;
         }
-        */
         if (progress < 100) {
             return (
                 <>

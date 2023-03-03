@@ -11,7 +11,7 @@ export const useUserFileChanges = (): FileChange[] => {
     const [userFileChanges, setUserFileChanges] = React.useState<FileChange[]>([]);
 
     React.useEffect(() => {
-        const handleUserFileChangesChange = (fileChanges: FileChange[]) => {
+        const handleUserFileChangesChange = ({fileChanges}: {fileChanges: FileChange[]}) => {
             const username = environmentService.getUsername();
             setUserFileChanges(
                 fileChanges.filter(change => change.user === username && change.origin !== FileChangeOrigin.MAIN)

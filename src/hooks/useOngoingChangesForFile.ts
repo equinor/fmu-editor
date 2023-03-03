@@ -10,7 +10,7 @@ export const useOngoingChangesForFile = (relativeFilePath: string): FileChange[]
     const [ongoingChanges, setOngoingChanges] = React.useState<FileChange[]>([]);
 
     React.useEffect(() => {
-        const handleFileChangesChange = (fileChanges: FileChange[]) => {
+        const handleFileChangesChange = ({fileChanges}: {fileChanges: FileChange[]}) => {
             const username = environmentService.getUsername();
             setOngoingChanges(
                 fileChanges.filter(

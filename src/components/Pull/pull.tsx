@@ -87,7 +87,7 @@ export const Pull: React.VFC = () => {
                                 result.pulledFilesPaths?.length || 0
                             )}.`,
                         });
-                        dispatch(setView(View.Main));
+                        dispatch(setView(View.SourceControl));
                         dispatch(resetDiffFiles());
                     } else {
                         notificationsService.publishNotification({
@@ -139,7 +139,7 @@ export const Pull: React.VFC = () => {
     );
 
     const handleClose = React.useCallback(() => {
-        dispatch(setView(View.Main));
+        dispatch(setView(View.SourceControl));
         dispatch(resetDiffFiles());
     }, [dispatch]);
 

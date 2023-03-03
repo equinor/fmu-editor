@@ -1,7 +1,7 @@
 import {useFileChanges} from "@hooks/useFileChanges";
 import {useTimedState} from "@hooks/useTimedState";
 import {LoadingButton} from "@mui/lab";
-import {Button, IconButton, Stack} from "@mui/material";
+import {Button, CircularProgress, IconButton, Stack} from "@mui/material";
 import {useEnvironmentService} from "@services/environment-service";
 import {PushState, fileOperationsService} from "@services/file-operations-service";
 import {notificationsService} from "@services/notifications-service";
@@ -30,7 +30,7 @@ export const CurrentChanges: React.VFC = () => {
     const [commitDescription, setCommitDescription] = React.useState<string>("");
     const [pushState, setPushState] = useTimedState<PushState>(PushState.IDLE, 3000);
 
-    const {fileChanges: userFileChanges} = useFileChanges(FILE_ORIGINS);
+    const {fileChanges: userFileChanges, initialized} = useFileChanges(FILE_ORIGINS);
 
     const dispatch = useAppDispatch();
     const {username} = useEnvironmentService();
@@ -120,7 +120,7 @@ export const CurrentChanges: React.VFC = () => {
     );
 
     const handleStageAll = React.useCallback(() => {
-        setStagedFiles(userFileChanges.map(el => el.relativePath));
+        setStagedFiles(userFileChanges.filter(el => el.origin !== FileChangeOrigin.BOTH).map(el => el.relativePath));
     }, [userFileChanges]);
 
     const handleUnstageAll = React.useCallback(() => {
@@ -145,6 +145,25 @@ export const CurrentChanges: React.VFC = () => {
         },
         [dispatch, workingDirectoryPath, username]
     );
+
+    if (!initialized) {
+        return (
+            <Stack
+                direction="column"
+                className="ChangesBrowserContent"
+                style={{
+                    display: "flex",
+                    height: "100%",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
+                spacing={2}
+            >
+                <CircularProgress />
+            </Stack>
+        );
+    }
 
     return (
         <>

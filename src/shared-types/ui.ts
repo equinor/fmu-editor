@@ -11,16 +11,12 @@ export type PaneConfiguration = {
     sizes: number[];
 };
 
-export enum Page {
-    Editor = "editor",
-    SourceControl = "source-control",
-}
-
 export enum View {
-    Main = "main",
     OngoingChanges = "ongoing-changes",
     SingleFileChanges = "single-file-changes",
     Merge = "merge",
+    Editor = "editor",
+    SourceControl = "source-control",
 }
 
 export enum ChangesBrowserView {
@@ -29,9 +25,6 @@ export enum ChangesBrowserView {
 }
 
 export type UiState = {
-    // Page is the main page of the app, e.g. editor, source control
-    page: Page;
-    // View is the view of the current page, e.g. main, ongoing changes, single file changes, merge
     view: View;
     settings: {
         theme: Themes;

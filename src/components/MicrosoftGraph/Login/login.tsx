@@ -7,8 +7,6 @@ import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 
-import {useAppDispatch} from "@redux/hooks";
-
 import {NotificationType} from "@shared-types/notifications";
 
 import uniqolor from "uniqolor";
@@ -18,7 +16,6 @@ export const Login: React.VFC = () => {
     const open = Boolean(anchorEl);
 
     const [userDetails, setUserDetails] = React.useState<IDynamicPerson | null>(null);
-    const dispatch = useAppDispatch();
     const signedIn = useIsSignedIn();
 
     const handleSigninClick = async () => {

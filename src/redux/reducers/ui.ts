@@ -6,7 +6,7 @@ import initialState from "@redux/initial-state";
 
 import {ICommitExtended} from "@shared-types/changelog";
 import {FileChangeOrigin} from "@shared-types/file-changes";
-import {ChangesBrowserView, Page, PaneConfiguration, Themes, UiState, View} from "@shared-types/ui";
+import {ChangesBrowserView, PaneConfiguration, Themes, UiState, View} from "@shared-types/ui";
 
 export const uiSlice = createSlice({
     name: "ui",
@@ -14,9 +14,6 @@ export const uiSlice = createSlice({
     reducers: {
         setView: (state: Draft<UiState>, action: PayloadAction<View>) => {
             state.view = action.payload;
-        },
-        setPage: (state: Draft<UiState>, action: PayloadAction<Page>) => {
-            state.page = action.payload;
         },
         setTheme: (state: Draft<UiState>, action: PayloadAction<Themes>) => {
             electronStore.set("ui.settings.theme", action.payload);
@@ -92,7 +89,6 @@ export const uiSlice = createSlice({
 
 export const {
     setView,
-    setPage,
     setTheme,
     setPaneConfiguration,
     setEditorFontSize,

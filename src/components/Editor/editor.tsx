@@ -24,7 +24,7 @@ import {openFile} from "@redux/thunks";
 
 import {CodeEditorViewState} from "@shared-types/files";
 import {IpcMessages} from "@shared-types/ipc";
-import {Page, View} from "@shared-types/ui";
+import {View} from "@shared-types/ui";
 
 import FmuLogo from "@assets/fmu-logo.svg";
 
@@ -109,7 +109,7 @@ export const Editor: React.FC<EditorProps> = () => {
     const activeFile = useAppSelector(state => state.files.activeFilePath);
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
-    const editorMode = useAppSelector(state => state.ui.page);
+    const view = useAppSelector(state => state.ui.view);
     const previewVisible = useAppSelector(state => state.ui.previewOpen);
     const globalSettings = useGlobalSettings();
 
@@ -131,15 +131,13 @@ export const Editor: React.FC<EditorProps> = () => {
                     setActiveFile({
                         filePath,
                         viewState:
-                            editorMode === Page.Editor
-                                ? convertFromViewState(monacoEditorRef.current.saveViewState())
-                                : null,
+                            view === View.Editor ? convertFromViewState(monacoEditorRef.current.saveViewState()) : null,
                     })
                 );
                 dispatch(setActiveItemPath(filePath));
             }
         },
-        [editorMode, dispatch]
+        [view, dispatch]
     );
 
     const handleEditorValueChange = (e: monaco.editor.IModelContentChangedEvent) => {
@@ -219,7 +217,7 @@ export const Editor: React.FC<EditorProps> = () => {
                 );
             }
             if (userModel) {
-                if (monacoEditorRef.current && monacoRef.current && editorMode === Page.Editor) {
+                if (monacoEditorRef.current && monacoRef.current && view === View.Editor) {
                     monacoEditorRef.current.setModel(userModel);
                     monacoEditorRef.current.focus();
                 }
@@ -229,7 +227,7 @@ export const Editor: React.FC<EditorProps> = () => {
         }
 
         setNoModels(false);
-    }, [activeFile, files, editorMode, globalSettings, lastActiveFile, workingDirectoryPath]);
+    }, [activeFile, files, view, globalSettings, lastActiveFile, workingDirectoryPath]);
 
     React.useEffect(() => {
         if (noModels) {
