@@ -116,7 +116,7 @@ export const pushFiles = (
     commitSummary: string,
     commitDescription: string,
     workingDirectory: string
-): {pushedFiles: string[]; notPushedFiles: string[]; commit: ICommit} => {
+): {pushedFilesPaths: string[]; notPushedFilesPaths: string[]; commit: ICommit} => {
     const committedFileChanges: FileChange[] = [];
     const snapshot = new Snapshot(workingDirectory, username);
 
@@ -155,8 +155,8 @@ export const pushFiles = (
     };
 
     return {
-        pushedFiles: committedFileChanges.map(el => el.relativePath),
-        notPushedFiles: fileChanges.filter(el => !committedFileChanges.includes(el)).map(el => el.relativePath),
+        pushedFilesPaths: committedFileChanges.map(el => el.relativePath),
+        notPushedFilesPaths: fileChanges.filter(el => !committedFileChanges.includes(el)).map(el => el.relativePath),
         commit,
     };
 };
@@ -166,8 +166,8 @@ export const pullFiles = (
     username: string,
     workingDirectory: string
 ): {
-    pulledFiles: string[];
-    notPulledFiles: string[];
+    pulledFilesPaths: string[];
+    notPulledFilesPaths: string[];
 } => {
     const snapshot = new Snapshot(workingDirectory, username);
     const pulledFileChanges: FileChange[] = [];
@@ -193,7 +193,7 @@ export const pullFiles = (
     });
 
     return {
-        pulledFiles: pulledFileChanges.map(el => el.relativePath),
-        notPulledFiles: fileChanges.filter(el => !pulledFileChanges.includes(el)).map(el => el.relativePath),
+        pulledFilesPaths: pulledFileChanges.map(el => el.relativePath),
+        notPulledFilesPaths: fileChanges.filter(el => !pulledFileChanges.includes(el)).map(el => el.relativePath),
     };
 };

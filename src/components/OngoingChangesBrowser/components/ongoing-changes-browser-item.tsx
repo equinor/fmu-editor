@@ -17,14 +17,14 @@ export type UserChangesBrowserItemProps = {
 
 export const OngoingChangesBrowserItem: React.FC<UserChangesBrowserItemProps> = props => {
     const [userDetails, setUserDetails] = React.useState<IDynamicPerson | null>(null);
-    const directory = useAppSelector(state => state.files.directory);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const modifiedRelativeFilePath = useAppSelector(state => state.ui.diff.modifiedRelativeFilePath);
     const [userFile, setUserFile] = React.useState<File | null>(null);
 
     const dispatch = useAppDispatch();
 
     const handleClick = (filePath: string, user: string) => {
-        const file = new File(filePath, directory);
+        const file = new File(filePath, workingDirectoryPath);
         dispatch(
             setDiffUserFile({
                 userFile: file.getUserVersion(user).relativePath(),
@@ -34,8 +34,8 @@ export const OngoingChangesBrowserItem: React.FC<UserChangesBrowserItemProps> = 
     };
 
     React.useEffect(() => {
-        setUserFile(new File(props.change.relativePath, directory).getUserVersion(props.change.user));
-    }, [props.change.relativePath, props.change.user, directory]);
+        setUserFile(new File(props.change.relativePath, workingDirectoryPath).getUserVersion(props.change.user));
+    }, [props.change.relativePath, props.change.user, workingDirectoryPath]);
 
     return (
         <a

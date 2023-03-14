@@ -9,11 +9,11 @@ export enum FileOperationsRequestType {
 }
 
 export enum FileOperationsResponseType {
-    COPY_USER_DIRECTORY_PROGRESS,
-    CHANGED_FILES,
-    USER_DIRECTORY_INITIALIZED,
-    USER_CHANGES_PUSHED,
-    MAIN_CHANGES_PULLED,
+    COPY_USER_DIRECTORY_PROGRESS = "COPY_USER_DIRECTORY_PROGRESS",
+    CHANGED_FILES = "CHANGED_FILES",
+    USER_DIRECTORY_INITIALIZED = "USER_DIRECTORY_INITIALIZED",
+    USER_CHANGES_PUSHED = "USER_CHANGES_PUSHED",
+    MAIN_CHANGES_PULLED = "MAIN_CHANGES_PULLED",
 }
 
 export enum FileOperationsStatus {
@@ -60,15 +60,15 @@ export type FileOperationsResponses = {
     [FileOperationsResponseType.CHANGED_FILES]: {
         changedFiles: ChangedFile[];
     };
-    [FileOperationsResponseType.USER_DIRECTORY_INITIALIZED]: {};
+    [FileOperationsResponseType.USER_DIRECTORY_INITIALIZED]: {success: boolean; errorMessage?: string};
     [FileOperationsResponseType.USER_CHANGES_PUSHED]: {
-        pushedFiles: string[];
-        notPushedFiles: string[];
+        pushedFilesPaths: string[];
+        notPushedFilesPaths: string[];
         commitMessageWritten: boolean;
     };
     [FileOperationsResponseType.MAIN_CHANGES_PULLED]: {
-        pulledFiles: string[];
-        notPulledFiles: string[];
+        pulledFilesPaths: string[];
+        notPulledFilesPaths: string[];
         success: boolean;
     };
 };

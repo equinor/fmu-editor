@@ -5,8 +5,7 @@ import {File as FileInterface} from "@utils/file-system/file";
 import {generateHashCode} from "@utils/hash";
 
 import {EventSource, File, FilesState} from "@shared-types/files";
-import {NotificationsState} from "@shared-types/notifications";
-import {ChangesBrowserView, Page, Themes, UiState, View} from "@shared-types/ui";
+import {ChangesBrowserView, Themes, UiState, View} from "@shared-types/ui";
 import {UiCoachState} from "@shared-types/ui-coach";
 
 import {SelectionDirection} from "monaco-editor";
@@ -15,8 +14,7 @@ import path from "path";
 const paneConfiguration = electronStore.get("ui.paneConfiguration");
 
 const initialUiState: UiState = {
-    view: View.Main,
-    page: Page.Editor,
+    view: View.Editor,
     settings: {
         theme: electronStore.get("ui.settings.theme") || Themes.Light,
         editorFontSize: electronStore.get("ui.settings.editorFontSize") || 1.0,
@@ -48,23 +46,26 @@ const initialUiCoachState: UiCoachState = {
 
 const prepareInitialFileTreeStates = () => {
     const fileTreeStates = electronStore.get("files.fileTreeStates") || {};
-    const directory = electronStore.get("files.directory") || "";
-    if (directory && !fileTreeStates[directory]) {
-        fileTreeStates[directory] = [];
+    const workingDirectoryPath = electronStore.get("files.workingDirectoryPath") || "";
+    if (workingDirectoryPath && !fileTreeStates[workingDirectoryPath]) {
+        fileTreeStates[workingDirectoryPath] = [];
     }
     return fileTreeStates;
 };
 
 const initialFilesState: FilesState = {
-    fmuDirectory: electronStore.get("files.fmuDirectory") || "",
-    directory: electronStore.get("files.directory") || "",
+    fmuDirectoryPath: electronStore.get("files.fmuDirectoryPath") || "",
+    workingDirectoryPath: electronStore.get("files.workingDirectoryPath") || "",
     fileTreeStates: prepareInitialFileTreeStates(),
-    activeFile: electronStore.get("files.activeFile"),
+    activeFilePath: electronStore.get("files.activeFile"),
     eventSource: EventSource.Editor,
     files:
         electronStore.get("files.files")?.map((file: any): File => {
-            const directory = electronStore.get("files.directory") || "";
-            const userFile = new FileInterface(path.relative(directory, file.filePath), directory);
+            const workingDirectoryPath = electronStore.get("files.workingDirectoryPath") || "";
+            const userFile = new FileInterface(
+                path.relative(workingDirectoryPath, file.filePath),
+                workingDirectoryPath
+            );
             const fileContent = userFile.readString();
             return {
                 filePath: file.filePath,
@@ -88,16 +89,11 @@ const initialFilesState: FilesState = {
 ipcRenderer.send("set-recent-files", electronStore.get("files.recentFiles") || []);
 
 if (initialFilesState.files.length === 0) {
-    initialFilesState.activeFile = "";
+    initialFilesState.activeFilePath = "";
 }
-
-const notificationsState: NotificationsState = {
-    notifications: [],
-};
 
 export default {
     ui: initialUiState,
     uiCoach: initialUiCoachState,
     files: initialFilesState,
-    notifications: notificationsState,
 };

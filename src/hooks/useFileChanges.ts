@@ -1,24 +1,38 @@
-import {useEnvironment} from "@services/environment-service";
-import {useFileChangesWatcher} from "@services/file-changes-service";
+import {AppMessageBus} from "@framework/app-message-bus";
+import {environmentService} from "@services/environment-service";
+import {FileChangesTopics} from "@services/file-changes-service";
 
 import React from "react";
 
 import {FileChange, FileChangeOrigin} from "@shared-types/file-changes";
 
-export const useFileChanges = (origins: FileChangeOrigin[] | FileChangeOrigin, user?: string): FileChange[] => {
+export const useFileChanges = (
+    origins: FileChangeOrigin[] | FileChangeOrigin,
+    user?: string
+): {fileChanges: FileChange[]; initialized: boolean} => {
+    const [initialized, setInitialized] = React.useState(false);
     const [fileChanges, setFileChanges] = React.useState<FileChange[]>([]);
 
-    const fileChangesWatcher = useFileChangesWatcher();
-    const {username} = useEnvironment();
-
-    React.useEffect(() => {
+    React.useLayoutEffect(() => {
         const adjustedOrigins = Array.isArray(origins) ? origins : [origins];
-        setFileChanges(
-            fileChangesWatcher.fileChanges.filter(
-                change => change.user === (user || username) && adjustedOrigins.includes(change.origin)
-            )
-        );
-    }, [fileChangesWatcher.fileChanges, username, user, origins]);
+        const handleFileChangesChange = ({fileChanges: allFileChanges}: {fileChanges: FileChange[]}) => {
+            const username = environmentService.getUsername();
+            setFileChanges(
+                allFileChanges.filter(
+                    change => change.user === (user || username) && adjustedOrigins.includes(change.origin)
+                )
+            );
+            setInitialized(true);
+        };
 
-    return fileChanges;
+        const unsubscribeFunc = AppMessageBus.fileChanges.subscribe(
+            FileChangesTopics.FILES_CHANGED,
+            handleFileChangesChange,
+            true
+        );
+
+        return unsubscribeFunc;
+    }, [origins, user]);
+
+    return {fileChanges, initialized};
 };

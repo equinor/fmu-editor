@@ -25,7 +25,9 @@
             "@root/*": ["./*"],
             "@root": ["./"],
             "@preview": ["src/preview"],
-            "@preview/*": ["src/preview/*"]
+            "@preview/*": ["src/preview/*"],
+            "@framework": ["src/framework"],
+            "@framework/*": ["src/framework/*"]
         }
     }
 }

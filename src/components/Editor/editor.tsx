@@ -24,7 +24,7 @@ import {openFile} from "@redux/thunks";
 
 import {CodeEditorViewState} from "@shared-types/files";
 import {IpcMessages} from "@shared-types/ipc";
-import {Page, View} from "@shared-types/ui";
+import {View} from "@shared-types/ui";
 
 import FmuLogo from "@assets/fmu-logo.svg";
 
@@ -106,10 +106,10 @@ export const Editor: React.FC<EditorProps> = () => {
     const dispatch = useAppDispatch();
 
     const files = useAppSelector(state => state.files.files);
-    const activeFile = useAppSelector(state => state.files.activeFile);
-    const workingDirectory = useAppSelector(state => state.files.directory);
+    const activeFile = useAppSelector(state => state.files.activeFilePath);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
-    const editorMode = useAppSelector(state => state.ui.page);
+    const view = useAppSelector(state => state.ui.view);
     const previewVisible = useAppSelector(state => state.ui.previewOpen);
     const globalSettings = useGlobalSettings();
 
@@ -131,15 +131,13 @@ export const Editor: React.FC<EditorProps> = () => {
                     setActiveFile({
                         filePath,
                         viewState:
-                            editorMode === Page.Editor
-                                ? convertFromViewState(monacoEditorRef.current.saveViewState())
-                                : null,
+                            view === View.Editor ? convertFromViewState(monacoEditorRef.current.saveViewState()) : null,
                     })
                 );
                 dispatch(setActiveItemPath(filePath));
             }
         },
-        [editorMode, dispatch]
+        [view, dispatch]
     );
 
     const handleEditorValueChange = (e: monaco.editor.IModelContentChangedEvent) => {
@@ -203,7 +201,7 @@ export const Editor: React.FC<EditorProps> = () => {
         setLastActiveFile(activeFile);
 
         if (file) {
-            const currentFile = new File(path.relative(workingDirectory, file.filePath), workingDirectory);
+            const currentFile = new File(path.relative(workingDirectoryPath, file.filePath), workingDirectoryPath);
             if (!currentFile.exists()) {
                 setFileExists(false);
                 return;
@@ -219,7 +217,7 @@ export const Editor: React.FC<EditorProps> = () => {
                 );
             }
             if (userModel) {
-                if (monacoEditorRef.current && monacoRef.current && editorMode === Page.Editor) {
+                if (monacoEditorRef.current && monacoRef.current && view === View.Editor) {
                     monacoEditorRef.current.setModel(userModel);
                     monacoEditorRef.current.focus();
                 }
@@ -229,7 +227,7 @@ export const Editor: React.FC<EditorProps> = () => {
         }
 
         setNoModels(false);
-    }, [activeFile, files, editorMode, globalSettings, lastActiveFile, workingDirectory]);
+    }, [activeFile, files, view, globalSettings, lastActiveFile, workingDirectoryPath]);
 
     React.useEffect(() => {
         if (noModels) {
@@ -253,11 +251,11 @@ export const Editor: React.FC<EditorProps> = () => {
     }, [dispatch]);
 
     const createFile = React.useCallback(() => {
-        const currentFile = new File(path.relative(workingDirectory, activeFile), workingDirectory);
+        const currentFile = new File(path.relative(workingDirectoryPath, activeFile), workingDirectoryPath);
         if (currentFile.writeString("")) {
             setFileExists(currentFile.exists());
         }
-    }, [activeFile, workingDirectory]);
+    }, [activeFile, workingDirectoryPath]);
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
@@ -274,12 +272,12 @@ export const Editor: React.FC<EditorProps> = () => {
             e.preventDefault();
             e.stopPropagation();
             setDragOver(false);
-            const droppedAsset = new FileBasic(e.dataTransfer.getData("text/plain"), workingDirectory);
+            const droppedAsset = new FileBasic(e.dataTransfer.getData("text/plain"), workingDirectoryPath);
             if (droppedAsset.exists() && !droppedAsset.isDirectory()) {
-                openFile(droppedAsset.absolutePath(), workingDirectory, dispatch, globalSettings);
+                openFile(droppedAsset.absolutePath(), workingDirectoryPath, dispatch, globalSettings);
             }
         },
-        [dispatch, globalSettings, workingDirectory]
+        [dispatch, globalSettings, workingDirectoryPath]
     );
 
     return (

@@ -1,5 +1,6 @@
 import {useOngoingChangesForFile} from "@hooks/useOngoingChangesForFile";
 import {AvatarGroup} from "@mui/material";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 
@@ -13,7 +14,6 @@ import {Avatar} from "@components/MicrosoftGraph/Avatar";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {renameFile, setPermanentOpen} from "@redux/reducers/files";
-import {addNotification} from "@redux/reducers/notifications";
 import {resetDragParentFolder, setActiveItemPath, setDiffFiles, setDragParentFolder, setView} from "@redux/reducers/ui";
 import {openFile} from "@redux/thunks";
 
@@ -36,13 +36,13 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
     const userChanges = useOngoingChangesForFile(props.file.getMainVersion().relativePath());
     const dispatch = useAppDispatch();
     const globalSettings = useGlobalSettings();
-    const workingDirectory = useAppSelector(state => state.files.directory);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const activeItemPath = useAppSelector(state => state.ui.explorer.activeItemPath);
 
     const handleFileClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         if (editMode) return;
         dispatch(setActiveItemPath(props.file.absolutePath()));
-        openFile(props.file.absolutePath(), workingDirectory, dispatch, globalSettings);
+        openFile(props.file.absolutePath(), workingDirectoryPath, dispatch, globalSettings);
         e.preventDefault();
         e.stopPropagation();
     };
@@ -73,22 +73,18 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
 
     const handleDelete = React.useCallback(() => {
         if (props.file.remove()) {
-            dispatch(
-                addNotification({
-                    type: NotificationType.SUCCESS,
-                    message: `File '${props.file.baseName()}' successfully deleted.`,
-                })
-            );
+            notificationsService.publishNotification({
+                type: NotificationType.SUCCESS,
+                message: `File '${props.file.baseName()}' successfully deleted.`,
+            });
             setDeleted(true);
         } else {
-            dispatch(
-                addNotification({
-                    type: NotificationType.ERROR,
-                    message: `File '${props.file.baseName()}' could not be deleted.`,
-                })
-            );
+            notificationsService.publishNotification({
+                type: NotificationType.ERROR,
+                message: `File '${props.file.baseName()}' could not be deleted.`,
+            });
         }
-    }, [props.file, dispatch]);
+    }, [props.file]);
 
     const contextMenuTemplate = React.useMemo(() => {
         return [
@@ -113,20 +109,16 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
             const oldPath = props.file.absolutePath();
             if (props.file.rename(name)) {
                 dispatch(renameFile({oldFilePath: oldPath, newFilePath: props.file.absolutePath()}));
-                dispatch(
-                    addNotification({
-                        type: NotificationType.SUCCESS,
-                        message: `File successfully renamed from '${oldName}' to '${name}'.`,
-                    })
-                );
+                notificationsService.publishNotification({
+                    type: NotificationType.SUCCESS,
+                    message: `File successfully renamed from '${oldName}' to '${name}'.`,
+                });
                 setFileName(name);
             } else {
-                dispatch(
-                    addNotification({
-                        type: NotificationType.ERROR,
-                        message: `File '${oldName}' could not be renamed to '${name}'.`,
-                    })
-                );
+                notificationsService.publishNotification({
+                    type: NotificationType.ERROR,
+                    message: `File '${oldName}' could not be renamed to '${name}'.`,
+                });
             }
             setEditMode(false);
         },

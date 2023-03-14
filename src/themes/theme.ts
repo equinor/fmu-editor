@@ -12,7 +12,7 @@ const parseValue = (valueWithUnit: string) => {
 export const Theme = (mode: "light" | "dark") => {
     const themePalette = Object.fromEntries(
         Object.entries(palette)
-            .filter(([key, _]) => key.includes(mode))
+            .filter(([key]) => key.includes(mode))
             .map(([key, value]) => [uncapitalize(key.replace(mode, "")), value])
     );
 

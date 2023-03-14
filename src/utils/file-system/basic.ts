@@ -3,7 +3,7 @@ import path from "path";
 
 export interface IFileBasic {
     exists(): boolean;
-    workingDirectory(): string;
+    workingDirectoryPath(): string;
     relativePath(): string;
     absolutePath(): string;
     userPath(user: string): string;
@@ -26,14 +26,14 @@ export interface IFileBasic {
 
 export class FileBasic implements IFileBasic {
     protected _path: string;
-    protected _workingDirectory: string;
+    protected _workingDirectoryPath: string;
     protected _modified: number;
     protected _created: number;
     protected _error: unknown | null;
 
-    constructor(relativeFilePath: string, workingDirectory: string) {
+    constructor(relativeFilePath: string, workingDirectoryPath: string) {
         this._path = relativeFilePath;
-        this._workingDirectory = workingDirectory;
+        this._workingDirectoryPath = workingDirectoryPath;
         this._modified = 0;
         this._created = 0;
         this._error = null;
@@ -54,7 +54,7 @@ export class FileBasic implements IFileBasic {
         }
         try {
             fs.renameSync(this.absolutePath(), newPath);
-            this._path = path.relative(this._workingDirectory, newPath);
+            this._path = path.relative(this._workingDirectoryPath, newPath);
             return true;
         } catch (e) {
             this._error = e;
@@ -62,8 +62,8 @@ export class FileBasic implements IFileBasic {
         }
     }
 
-    public workingDirectory(): string {
-        return this._workingDirectory;
+    public workingDirectoryPath(): string {
+        return this._workingDirectoryPath;
     }
 
     public baseName(): string {
@@ -71,11 +71,11 @@ export class FileBasic implements IFileBasic {
     }
 
     public absolutePath(): string {
-        return path.join(this.workingDirectory(), this.relativePath());
+        return path.join(this.workingDirectoryPath(), this.relativePath());
     }
 
     public userPath(user: string): string {
-        return path.join(this.workingDirectory(), ".users", user, this.relativePath());
+        return path.join(this.workingDirectoryPath(), ".users", user, this.relativePath());
     }
 
     public getUserVersion(user: string): this {
@@ -83,38 +83,38 @@ export class FileBasic implements IFileBasic {
             return this;
         }
         if (this.isSnapshotFile()) {
-            return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => typeof this)(
+            return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
                 path.join(".users", user, this.getMainVersion().relativePath()),
-                this.workingDirectory()
+                this.workingDirectoryPath()
             );
         }
-        return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => typeof this)(
+        return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
             path.join(".users", user, this.relativePath()),
-            this.workingDirectory()
+            this.workingDirectoryPath()
         );
     }
 
     public getSnapshotVersion(snapshot: string): this {
         if (this.isUserFile()) {
-            return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => typeof this)(
+            return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
                 path.join(".snapshots", snapshot, this.getMainVersion().relativePath()),
-                this.workingDirectory()
+                this.workingDirectoryPath()
             );
         }
         if (this.isSnapshotFile()) {
             return this;
         }
-        return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => typeof this)(
+        return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
             path.join(".snapshots", snapshot, this.relativePath()),
-            this.workingDirectory()
+            this.workingDirectoryPath()
         );
     }
 
     public getMainVersion(): this {
         if (this.isUserFile() || this.isSnapshotFile()) {
-            return new (this.constructor as new (relativeFilePath: string, workingDirectory: string) => typeof this)(
+            return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
                 this.relativePath().split(path.sep).slice(2).join(path.sep),
-                this.workingDirectory()
+                this.workingDirectoryPath()
             );
         }
         return this;
@@ -138,15 +138,15 @@ export class FileBasic implements IFileBasic {
     }
 
     protected usersDir(): string {
-        return path.join(this.workingDirectory(), ".users");
+        return path.join(this.workingDirectoryPath(), ".users");
     }
 
     protected snapshotsDir(): string {
-        return path.join(this.workingDirectory(), ".snapshots");
+        return path.join(this.workingDirectoryPath(), ".snapshots");
     }
 
     protected extractUserFromPath(userPath: string): string {
-        const parts = path.relative(this.workingDirectory(), userPath).split(path.sep);
+        const parts = path.relative(this.workingDirectoryPath(), userPath).split(path.sep);
         if (parts.at(0) === ".users" && parts.length > 2) {
             return parts.at(1);
         }
@@ -171,7 +171,7 @@ export class FileBasic implements IFileBasic {
         try {
             const newPath = path.join(dirPath, this.baseName());
             fs.moveSync(this.absolutePath(), newPath);
-            this._path = path.relative(this._workingDirectory, newPath);
+            this._path = path.relative(this._workingDirectoryPath, newPath);
             return true;
         } catch (e) {
             this._error = e;
@@ -198,13 +198,13 @@ export class FileBasic implements IFileBasic {
     }
 
     public clone(): FileBasic {
-        return new FileBasic(this.relativePath(), this.workingDirectory());
+        return new FileBasic(this.relativePath(), this.workingDirectoryPath());
     }
 
     public toObject(): {[key: string]: string} {
         return {
             path: this.relativePath(),
-            workingDirectory: this.workingDirectory(),
+            workingDirectory: this.workingDirectoryPath(),
         };
     }
 
@@ -219,10 +219,10 @@ export class FileBasic implements IFileBasic {
         if (ignoreUserPath) {
             return (
                 this.getMainVersion().relativePath() === other.getMainVersion().relativePath() &&
-                this.workingDirectory() === other.workingDirectory()
+                this.workingDirectoryPath() === other.workingDirectoryPath()
             );
         }
-        return this.relativePath() === other.relativePath() && this.workingDirectory() === other.workingDirectory();
+        return this.relativePath() === other.relativePath() && this.workingDirectoryPath() === other.workingDirectoryPath();
     }
 
     public isWritable(): boolean {

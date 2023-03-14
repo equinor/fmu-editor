@@ -16,7 +16,7 @@ export const Preview: React.VFC<PreviewProps> = props => {
     const [previewAvailable, setPreviewAvailable] = React.useState<boolean>(false);
     const broadcastChannel = React.useRef<BroadcastChannel | null>(null);
 
-    const directory = useAppSelector(state => state.files.directory);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const theme = useAppSelector(state => state.ui.settings.theme);
 
     React.useEffect(() => {
@@ -36,15 +36,15 @@ export const Preview: React.VFC<PreviewProps> = props => {
     }, []);
 
     React.useEffect(() => {
-        if (broadcastChannel.current && directory && props.filePath) {
-            const currentFile = new File(props.filePath, directory);
+        if (broadcastChannel.current && workingDirectoryPath && props.filePath) {
+            const currentFile = new File(props.filePath, workingDirectoryPath);
             broadcastChannel.current.postMessage({
                 relativeFilePath: currentFile.getMainVersion().relativePath(),
                 fileContent: currentFile.readString(),
                 theme,
             });
         }
-    }, [props.filePath, directory, theme]);
+    }, [props.filePath, workingDirectoryPath, theme]);
 
     /* eslint-disable react/no-unknown-property */
     return (

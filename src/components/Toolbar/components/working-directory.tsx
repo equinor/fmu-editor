@@ -1,33 +1,36 @@
 import {Button} from "@mui/material";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 import {VscFolder} from "react-icons/vsc";
 
-import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
+import {Directory} from "@utils/file-system/directory";
+
+import {useAppSelector} from "@redux/hooks";
 
 import {NotificationType} from "@shared-types/notifications";
 
 import path from "path";
 
 export const WorkingDirectory: React.FC = () => {
-    const workingDirectory = useAppSelector(state => state.files.directory);
-
-    const dispatch = useAppDispatch();
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
+    const workingDirectory = new Directory("", workingDirectoryPath);
 
     const handleOpenDirectoryClick = () => {
-        dispatch(
-            addNotification({
-                type: NotificationType.INFORMATION,
-                message: `'${workingDirectory}' is your current working directory. It can be changed in the file explorer.`,
-            })
-        );
+        notificationsService.publishNotification({
+            type: NotificationType.INFORMATION,
+            message: `'${workingDirectoryPath}' is your current working directory. It can be changed in the file explorer.`,
+        });
     };
     return (
         <Button size="small" onClick={handleOpenDirectoryClick} title="Current working directory.">
             <VscFolder />
             <span>
-                {workingDirectory === "" ? <i>No working directory selected</i> : path.basename(workingDirectory)}
+                {workingDirectoryPath === "" || !workingDirectory.exists() ? (
+                    <i>No working directory selected</i>
+                ) : (
+                    path.basename(workingDirectoryPath)
+                )}
             </span>
         </Button>
     );

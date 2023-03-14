@@ -1,13 +1,10 @@
 import {useFileChanges} from "@hooks/useFileChanges";
+import {useTimedState} from "@hooks/useTimedState";
 import {LoadingButton} from "@mui/lab";
-import {Button, IconButton, Stack} from "@mui/material";
-import {useEnvironment} from "@services/environment-service";
-import {
-    FileOperationsServiceEventTypes,
-    FileOperationsServiceEvents,
-    PushState,
-    useFileOperationsService,
-} from "@services/file-operations-service";
+import {Button, CircularProgress, IconButton, Stack} from "@mui/material";
+import {useEnvironmentService} from "@services/environment-service";
+import {PushState, fileOperationsService} from "@services/file-operations-service";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 import {VscClose} from "react-icons/vsc";
@@ -19,7 +16,6 @@ import {Input} from "@components/Input";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
 import {resetDiffFiles, setChangesBrowserView, setDiffFiles} from "@redux/reducers/ui";
 
 import {FileChangeOrigin} from "@shared-types/file-changes";
@@ -32,61 +28,17 @@ export const CurrentChanges: React.VFC = () => {
     const [stagedFiles, setStagedFiles] = React.useState<string[]>([]);
     const [commitSummary, setCommitSummary] = React.useState<string>("");
     const [commitDescription, setCommitDescription] = React.useState<string>("");
-    const [pushState, setPushState] = React.useState<PushState>(PushState.IDLE);
+    const [pushState, setPushState] = useTimedState<PushState>(PushState.IDLE, 3000);
 
-    const userFileChanges = useFileChanges(FILE_ORIGINS);
+    const {fileChanges: userFileChanges, initialized} = useFileChanges(FILE_ORIGINS);
 
     const dispatch = useAppDispatch();
-    const {username} = useEnvironment();
-    const directory = useAppSelector(state => state.files.directory);
-    const {pushUserChanges} = useFileOperationsService();
+    const {username} = useEnvironmentService();
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
 
     React.useEffect(() => {
         setStagedFiles(prev => prev.filter(el => userFileChanges.some(change => change.relativePath === el)));
     }, [userFileChanges]);
-
-    React.useEffect(() => {
-        const handlePushStateChanged = (
-            e: FileOperationsServiceEvents[FileOperationsServiceEventTypes.PUSH_STATE_CHANGED]
-        ) => {
-            setPushState(e.detail.state);
-            if (e.detail.state === PushState.PUSHED) {
-                if (stagedFiles.length === userFileChanges.length) {
-                    dispatch(setChangesBrowserView(ChangesBrowserView.LoggedChanges));
-                }
-                if (e.detail.notPushedFiles.length === 0) {
-                    dispatch(
-                        addNotification({
-                            type: NotificationType.SUCCESS,
-                            message: "All changes successfully committed",
-                        })
-                    );
-                    setCommitDescription("");
-                    setCommitSummary("");
-                    return;
-                }
-                dispatch(
-                    addNotification({
-                        type: NotificationType.ERROR,
-                        message: "Some changes could not be committed",
-                    })
-                );
-            } else if (e.detail.state === PushState.FAILED) {
-                dispatch(
-                    addNotification({
-                        type: NotificationType.ERROR,
-                        message: "An error occurred while committing changes",
-                    })
-                );
-            }
-        };
-
-        document.addEventListener(FileOperationsServiceEventTypes.PUSH_STATE_CHANGED, handlePushStateChanged);
-
-        return () => {
-            document.removeEventListener(FileOperationsServiceEventTypes.PUSH_STATE_CHANGED, handlePushStateChanged);
-        };
-    }, [dispatch, stagedFiles, userFileChanges]);
 
     const handleStageOrUnstageFile = React.useCallback(
         (filePath: string) => {
@@ -102,11 +54,47 @@ export const CurrentChanges: React.VFC = () => {
     const handlePush = React.useCallback(() => {
         if (stagedFiles.length === 0) return;
 
-        pushUserChanges(
-            userFileChanges.filter(el => stagedFiles.includes(el.relativePath)),
-            commitSummary,
-            commitDescription
-        );
+        fileOperationsService
+            .pushUserChanges(
+                userFileChanges.filter(el => stagedFiles.includes(el.relativePath)),
+                commitSummary,
+                commitDescription
+            )
+            .then(result => {
+                setPushState(result.commitMessageWritten ? PushState.PUSHED : PushState.FAILED);
+                if (result.commitMessageWritten) {
+                    if (stagedFiles.length === userFileChanges.length) {
+                        dispatch(setChangesBrowserView(ChangesBrowserView.LoggedChanges));
+                    }
+                    if (result.notPushedFilesPaths.length === 0) {
+                        notificationsService.publishNotification({
+                            type: NotificationType.SUCCESS,
+                            message: "All changes successfully committed",
+                        });
+                        setCommitDescription("");
+                        setCommitSummary("");
+                        return;
+                    }
+                    notificationsService.publishNotification({
+                        type: NotificationType.ERROR,
+                        message: "Some changes could not be committed",
+                    });
+                } else {
+                    notificationsService.publishNotification({
+                        type: NotificationType.ERROR,
+                        message: "An error occurred while committing changes",
+                    });
+                }
+            })
+            .catch(() => {
+                setPushState(PushState.FAILED);
+                notificationsService.publishNotification({
+                    type: NotificationType.ERROR,
+                    message: "An error occurred while committing changes",
+                });
+            });
+
+        setPushState(PushState.PUSHING, false);
 
         dispatch(
             setDiffFiles({
@@ -115,11 +103,11 @@ export const CurrentChanges: React.VFC = () => {
                 origin: undefined,
             })
         );
-    }, [dispatch, pushUserChanges, userFileChanges, stagedFiles, commitSummary, commitDescription]);
+    }, [commitDescription, commitSummary, dispatch, stagedFiles, userFileChanges, setPushState]);
 
     const handleFileSelected = React.useCallback(
         (filePath: string, origin: FileChangeOrigin) => {
-            const file = new File(filePath, directory);
+            const file = new File(filePath, workingDirectoryPath);
             dispatch(
                 setDiffFiles({
                     mainFile: file.getMainVersion().relativePath(),
@@ -128,11 +116,11 @@ export const CurrentChanges: React.VFC = () => {
                 })
             );
         },
-        [dispatch, username, directory]
+        [dispatch, username, workingDirectoryPath]
     );
 
     const handleStageAll = React.useCallback(() => {
-        setStagedFiles(userFileChanges.map(el => el.relativePath));
+        setStagedFiles(userFileChanges.filter(el => el.origin !== FileChangeOrigin.BOTH).map(el => el.relativePath));
     }, [userFileChanges]);
 
     const handleUnstageAll = React.useCallback(() => {
@@ -146,7 +134,7 @@ export const CurrentChanges: React.VFC = () => {
 
     const handleResolveConflicts = React.useCallback(
         (relativeFilePath: string) => {
-            const file = new File(relativeFilePath, directory);
+            const file = new File(relativeFilePath, workingDirectoryPath);
             dispatch(
                 setDiffFiles({
                     mainFile: file.getMainVersion().relativePath(),
@@ -155,8 +143,27 @@ export const CurrentChanges: React.VFC = () => {
                 })
             );
         },
-        [dispatch, directory, username]
+        [dispatch, workingDirectoryPath, username]
     );
+
+    if (!initialized) {
+        return (
+            <Stack
+                direction="column"
+                className="ChangesBrowserContent"
+                style={{
+                    display: "flex",
+                    height: "100%",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
+                spacing={2}
+            >
+                <CircularProgress />
+            </Stack>
+        );
+    }
 
     return (
         <>

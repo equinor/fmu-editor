@@ -1,11 +1,8 @@
-import React from "react";
-
 import {Snapshot} from "@utils/file-system/snapshot";
-import {createGenericContext} from "@utils/generic-context";
 
 import {Webworker} from "@workers/worker-utils";
 
-import {useAppDispatch, useAppSelector} from "@redux/hooks";
+import store from "@redux/store";
 
 import {
     FileChange,
@@ -19,52 +16,73 @@ import {
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import worker from "worker-loader!@workers/file-changes-watcher.worker";
 
-import {useEnvironment} from "./environment-service";
+import {environmentService} from "./environment-service";
+import {ServiceBase} from "./service-base";
 
-const changelogWatcherWorker = new Webworker<FileChangesRequests, FileChangesResponses>({Worker: worker});
+export enum FileChangesTopics {
+    FILES_CHANGED = "FILES_CHANGED",
+    SNAPSHOT_CHANGED = "SNAPSHOT_CHANGED",
+    INITIALIZATION_STATE_CHANGED = "INITIALIZATION_STATE_CHANGED",
+}
 
-export type Context = {
-    fileChanges: FileChange[];
-    initialized: boolean;
-    snapshot: Snapshot | null;
+export type FileChangesMessages = {
+    [FileChangesTopics.FILES_CHANGED]: {
+        fileChanges: FileChange[];
+    };
+    [FileChangesTopics.SNAPSHOT_CHANGED]: undefined;
+    [FileChangesTopics.INITIALIZATION_STATE_CHANGED]: {
+        initialized: boolean;
+    };
 };
 
-const [useFileChangesWatcherServiceContext, FileChangesWatcherServiceContextProvider] = createGenericContext<Context>();
+class FileChangesWatcherService extends ServiceBase<FileChangesMessages> {
+    private worker: Webworker<FileChangesRequests, FileChangesResponses>;
+    private snapshot: Snapshot | null;
+    private initialized: boolean;
+    private workingDirectoryPath: string;
 
-export const FileChangesWatcherService: React.FC = props => {
-    const [fileChanges, setFileChanges] = React.useState<FileChange[]>([]);
-    const [initialized, setInitialized] = React.useState(false);
-    const snapshot = React.useRef<Snapshot>(null);
-    const directory = useAppSelector(state => state.files.directory);
-    const dispatch = useAppDispatch();
-    const {username} = useEnvironment();
+    constructor() {
+        super();
+        this.worker = new Webworker<FileChangesRequests, FileChangesResponses>({Worker: worker});
+        this.initialized = false;
 
-    React.useEffect(() => {
-        if (username && directory) {
-            snapshot.current = new Snapshot(directory, username);
-        }
-    }, [username, directory]);
-
-    React.useEffect(() => {
-        if (changelogWatcherWorker) {
-            changelogWatcherWorker.on(FileChangesWatcherResponseType.FILE_CHANGES, data => {
-                setFileChanges(data.fileChanges);
-                setInitialized(true);
+        this.worker.on(FileChangesWatcherResponseType.FILE_CHANGES, data => {
+            this.messageBus.publish(FileChangesTopics.FILES_CHANGED, {
+                fileChanges: data.fileChanges,
             });
-        }
-    }, [dispatch]);
+            this.messageBus.publish(FileChangesTopics.INITIALIZATION_STATE_CHANGED, {
+                initialized: true,
+            });
+            this.initialized = true;
+        });
 
-    React.useEffect(() => {
-        if (changelogWatcherWorker) {
-            changelogWatcherWorker.postMessage(FileChangesWatcherRequestType.SET_DIRECTORY, {directory});
-        }
-    }, [directory]);
+        store.subscribe(() => {
+            const state = store.getState();
+            if (this.workingDirectoryPath !== state.files.workingDirectoryPath) {
+                this.initialized = false;
+                this.messageBus.publish(FileChangesTopics.INITIALIZATION_STATE_CHANGED, {
+                    initialized: false,
+                });
 
-    return (
-        <FileChangesWatcherServiceContextProvider value={{fileChanges, snapshot: snapshot.current, initialized}}>
-            {props.children}
-        </FileChangesWatcherServiceContextProvider>
-    );
-};
+                this.worker.postMessage(FileChangesWatcherRequestType.SET_WORKING_DIRECTORY_PATH, {
+                    workingDirectoryPath: state.files.workingDirectoryPath,
+                });
 
-export const useFileChangesWatcher = (): Context => useFileChangesWatcherServiceContext();
+                this.snapshot = new Snapshot(state.files.workingDirectoryPath, environmentService.getUsername());
+                this.messageBus.publish(FileChangesTopics.SNAPSHOT_CHANGED);
+
+                this.workingDirectoryPath = state.files.workingDirectoryPath;
+            }
+        });
+    }
+
+    public getSnapshot(): Snapshot | null {
+        return this.snapshot;
+    }
+
+    public isInitialized(): boolean {
+        return this.initialized;
+    }
+}
+
+export const fileChangesWatcherService = new FileChangesWatcherService();

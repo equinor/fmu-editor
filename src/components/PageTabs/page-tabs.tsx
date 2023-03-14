@@ -1,69 +1,100 @@
 import {useUserFileChanges} from "@hooks/useUserFileChanges";
 import {Badge, CircularProgress, Tab, Tabs} from "@mui/material";
-import {useFileChangesWatcher} from "@services/file-changes-service";
+import {FileChangesTopics, fileChangesWatcherService} from "@services/file-changes-service";
 
 import React from "react";
 import {VscEdit, VscSourceControl} from "react-icons/vsc";
+
+import {AppMessageBus} from "@src/framework/app-message-bus";
+
+import {Directory} from "@utils/file-system/directory";
 
 import {Login} from "@components/MicrosoftGraph/Login/login";
 import {Surface} from "@components/Surface";
 import {ThemeSwitch} from "@components/ThemeSwitch";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {resetDiffFiles, setPage, setView} from "@redux/reducers/ui";
+import {resetDiffFiles, setView} from "@redux/reducers/ui";
 
-import {Page, View} from "@shared-types/ui";
+import {View} from "@shared-types/ui";
 
 import "./page-tabs.css";
 
 export const PageTabs: React.VFC = () => {
-    const page = useAppSelector(state => state.ui.page);
+    const [initialized, setInitialized] = React.useState(fileChangesWatcherService.isInitialized());
     const view = useAppSelector(state => state.ui.view);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
+    const workingDirectory = React.useRef<Directory>(new Directory("", workingDirectoryPath));
+
+    const userFileChanges = useUserFileChanges();
 
     const dispatch = useAppDispatch();
-    const userFileChanges = useUserFileChanges();
-    const {initialized} = useFileChangesWatcher();
+
+    React.useEffect(() => {
+        const handleInitializedChange = (payload: {initialized: boolean}) => {
+            setInitialized(payload.initialized);
+        };
+
+        const unsubscribeFunc = AppMessageBus.fileChanges.subscribe(
+            FileChangesTopics.INITIALIZATION_STATE_CHANGED,
+            handleInitializedChange
+        );
+
+        return unsubscribeFunc;
+    }, []);
 
     const handlePageChange = (_, newValue: string) => {
-        dispatch(setPage(newValue as Page));
-        dispatch(setView(View.Main));
+        dispatch(setView(newValue as View));
     };
 
-    const handlePageClick = () => {
-        if (view !== View.Main) {
+    const handlePageClick = (newView: View) => {
+        if (view !== newView) {
             dispatch(resetDiffFiles());
+            dispatch(setView(newView));
         }
-        dispatch(setView(View.Main));
     };
+
+    const makeBadgeIcon = React.useCallback(() => {
+        if (!workingDirectory.current.exists() || workingDirectoryPath === "") {
+            return null;
+        }
+        if (!initialized) {
+            return <CircularProgress color="inherit" size={12} />;
+        }
+        if (userFileChanges.length === 0) {
+            return null;
+        }
+        return userFileChanges.length;
+    }, [initialized, userFileChanges.length, workingDirectory, workingDirectoryPath]);
 
     return (
         <Surface className="TabMenu" elevation="raised">
-            <Tabs orientation="vertical" value={page} color="inherit" onChange={handlePageChange}>
+            <Tabs orientation="vertical" value={view} color="inherit" onChange={handlePageChange}>
                 <Tab
                     icon={<VscEdit color="inherit" size={24} title="Editor" />}
-                    value={Page.Editor}
+                    value={View.Editor}
                     className="MenuTab"
-                    onClick={() => handlePageClick()}
+                    onClick={() => handlePageClick(View.Editor)}
                 />
                 <Tab
                     icon={
                         <Badge
-                            badgeContent={
-                                initialized ? userFileChanges.length : <CircularProgress color="inherit" size={12} />
-                            }
+                            badgeContent={makeBadgeIcon()}
                             color="primary"
                             anchorOrigin={{
                                 vertical: "bottom",
                                 horizontal: "right",
                             }}
-                            sx={{backgroundColor: initialized ? undefined : "transparent"}}
+                            sx={{
+                                backgroundColor: initialized ? undefined : "transparent",
+                            }}
                         >
                             <VscSourceControl color="inherit" size={24} title="Source control" />
                         </Badge>
                     }
-                    value={Page.SourceControl}
+                    value={View.SourceControl}
                     className="MenuTab"
-                    onClick={() => handlePageClick()}
+                    onClick={() => handlePageClick(View.SourceControl)}
                 />
             </Tabs>
             <div className="GlobalSettings">

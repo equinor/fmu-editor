@@ -1,22 +1,18 @@
-import {useEnvironment} from "@services/environment-service";
+import {useEnvironmentService} from "@services/environment-service";
+import {notificationsService} from "@services/notifications-service";
 
 import {useEffect} from "react";
 
 import {preprocessJsonSchema} from "@utils/json-schema-preprocessor";
 
-import {NotificationType} from "@components/Notifications";
-
-import {useAppDispatch} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
+import {NotificationType} from "@shared-types/notifications";
 
 import fs from "fs";
 import {SchemasSettings, setDiagnosticsOptions} from "monaco-yaml";
 import path from "path";
 
 export const useYamlSchemas = (yaml: any) => {
-    const environment = useEnvironment();
-
-    const dispatch = useAppDispatch();
+    const environment = useEnvironmentService();
 
     useEffect(() => {
         if (environment.environmentPath) {
@@ -28,7 +24,6 @@ export const useYamlSchemas = (yaml: any) => {
                         const schema = file.includes("webviz")
                             ? preprocessJsonSchema(path.join(pathToSchemas, file))
                             : JSON.parse(fs.readFileSync(path.join(pathToSchemas, file), "utf-8").toString());
-                        const schemaName = file.split("_")[0];
                         schemas.push({
                             fileMatch: ["*"],
                             uri: `file://${path.join(pathToSchemas, file)}`,
@@ -44,21 +39,17 @@ export const useYamlSchemas = (yaml: any) => {
                         schemas,
                     });
                 } else {
-                    dispatch(
-                        addNotification({
-                            type: NotificationType.ERROR,
-                            message: `Could not find schema directory: '${pathToSchemas}'. Are you sure you are in the correct environment?`,
-                        })
-                    );
+                    notificationsService.publishNotification({
+                        type: NotificationType.ERROR,
+                        message: `Could not find schema directory: '${pathToSchemas}'. Are you sure you are in the correct environment?`,
+                    });
                 }
             } catch (e) {
-                dispatch(
-                    addNotification({
-                        type: NotificationType.ERROR,
-                        message: `Could not read schemas: ${e}`,
-                    })
-                );
+                notificationsService.publishNotification({
+                    type: NotificationType.ERROR,
+                    message: `Could not read schemas: ${e}`,
+                });
             }
         }
-    }, [environment, yaml, dispatch]);
+    }, [environment, yaml]);
 };

@@ -1,21 +1,23 @@
+import {AppMessageBus} from "@framework/app-message-bus";
 import {useYamlSchemas} from "@hooks/useYamlSchema";
 import {Close} from "@mui/icons-material";
 import {Button, IconButton, useTheme} from "@mui/material";
 import useSize from "@react-hook/size";
-import {useFileChangesWatcher} from "@services/file-changes-service";
+import {fileChangesWatcherService} from "@services/file-changes-service";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 import {VscSave, VscWarning} from "react-icons/vsc";
 import {DiffEditorDidMount, MonacoDiffEditor, monaco} from "react-monaco-editor";
 
 import {File} from "@utils/file-system/file";
+import {Snapshot} from "@utils/file-system/snapshot";
 
 import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
-import {setDiffFiles} from "@redux/reducers/ui";
+import {resetDiffFiles, setDiffFiles} from "@redux/reducers/ui";
 
 import {FileChangeOrigin} from "@shared-types/file-changes";
 import {NotificationType} from "@shared-types/notifications";
@@ -25,6 +27,8 @@ import {languages} from "monaco-editor";
 import path from "path";
 
 import "./diff-editor.css";
+
+import {FileChangesTopics} from "../../services/file-changes-service";
 
 declare global {
     interface Window {
@@ -68,6 +72,7 @@ export const DiffEditor: React.VFC = () => {
     const [originalFileExists, setOriginalFileExists] = React.useState<boolean>(false);
     const [modifiedFileExists, setModifiedFileExists] = React.useState<boolean>(false);
     const [relativeFilePath, setRelativeFilePath] = React.useState<string>("");
+    const [snapshot, setSnapshot] = React.useState<Snapshot | null>();
 
     const monacoDiffEditorRef = React.useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
     const diffEditorRef = React.useRef<HTMLDivElement | null>(null);
@@ -76,15 +81,27 @@ export const DiffEditor: React.VFC = () => {
 
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
     const diff = useAppSelector(state => state.ui.diff);
-    const currentDirectory = useAppSelector(state => state.files.directory);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
 
     const dispatch = useAppDispatch();
     const theme = useTheme();
     const globalSettings = useGlobalSettings();
-    const {snapshot} = useFileChangesWatcher();
     const [diffEditorTotalWidth, diffEditorTotalHeight] = useSize(diffEditorRef);
 
     useYamlSchemas(yaml);
+
+    React.useEffect(() => {
+        const handleSnapshotChange = () => {
+            setSnapshot(fileChangesWatcherService.getSnapshot());
+        };
+
+        const unsubscribeFunc = AppMessageBus.fileChanges.subscribe(
+            FileChangesTopics.SNAPSHOT_CHANGED,
+            handleSnapshotChange
+        );
+
+        return unsubscribeFunc;
+    });
 
     React.useEffect(() => {
         const timeoutRef = timeout.current;
@@ -117,22 +134,22 @@ export const DiffEditor: React.VFC = () => {
 
     React.useLayoutEffect(() => {
         if (diff.originalRelativeFilePath) {
-            const originalFile = new File(diff.originalRelativeFilePath, currentDirectory);
+            const originalFile = new File(diff.originalRelativeFilePath, workingDirectoryPath);
             setOriginalFileExists(originalFile.exists());
             setRelativeFilePath(originalFile.getMainVersion().relativePath());
             return;
         }
         setOriginalFileExists(false);
-    }, [diff.originalRelativeFilePath, currentDirectory]);
+    }, [diff.originalRelativeFilePath, workingDirectoryPath]);
 
     React.useLayoutEffect(() => {
         if (diff.modifiedRelativeFilePath) {
-            const originalFile = new File(diff.modifiedRelativeFilePath, currentDirectory);
+            const originalFile = new File(diff.modifiedRelativeFilePath, workingDirectoryPath);
             setModifiedFileExists(originalFile.exists());
             return;
         }
         setModifiedFileExists(false);
-    }, [diff.modifiedRelativeFilePath, currentDirectory]);
+    }, [diff.modifiedRelativeFilePath, workingDirectoryPath]);
 
     React.useEffect(() => {
         if (
@@ -150,14 +167,12 @@ export const DiffEditor: React.VFC = () => {
                 diff.modifiedRelativeFilePath &&
                 !globalSettings.supportedFileExtensions.includes(path.extname(diff.originalRelativeFilePath))
             ) {
-                dispatch(
-                    addNotification({
-                        type: NotificationType.INFORMATION,
-                        message: `You can only use the diff editor for files with the following extensions: ${globalSettings.supportedFileExtensions.join(
-                            ", "
-                        )}`,
-                    })
-                );
+                notificationsService.publishNotification({
+                    type: NotificationType.INFORMATION,
+                    message: `You can only use the diff editor for files with the following extensions: ${globalSettings.supportedFileExtensions.join(
+                        ", "
+                    )}`,
+                });
             }
             return;
         }
@@ -166,7 +181,7 @@ export const DiffEditor: React.VFC = () => {
 
         if (diff.modifiedRelativeFilePath && diff.originalRelativeFilePath) {
             let userModel = monaco.editor.getModel(monaco.Uri.file(diff.modifiedRelativeFilePath));
-            const mergeUserFile = new File(diff.modifiedRelativeFilePath, currentDirectory);
+            const mergeUserFile = new File(diff.modifiedRelativeFilePath, workingDirectoryPath);
             if (!userModel) {
                 userModel = monaco.editor.createModel(
                     mergeUserFile.readString(),
@@ -178,7 +193,7 @@ export const DiffEditor: React.VFC = () => {
             }
 
             let mainModel = monaco.editor.getModel(monaco.Uri.file(diff.originalRelativeFilePath));
-            const mergeMainFile = new File(diff.originalRelativeFilePath, currentDirectory);
+            const mergeMainFile = new File(diff.originalRelativeFilePath, workingDirectoryPath);
             if (!mainModel) {
                 mainModel = monaco.editor.createModel(
                     mergeMainFile.readString(),
@@ -200,7 +215,7 @@ export const DiffEditor: React.VFC = () => {
             }
         }
     }, [
-        currentDirectory,
+        workingDirectoryPath,
         dispatch,
         globalSettings.supportedFileExtensions,
         diff.originalRelativeFilePath,
@@ -209,7 +224,7 @@ export const DiffEditor: React.VFC = () => {
     ]);
 
     const handleClose = () => {
-        dispatch(setDiffFiles({mainFile: undefined, userFile: undefined, origin: undefined}));
+        dispatch(resetDiffFiles());
         setVisible(false);
     };
 
@@ -217,30 +232,26 @@ export const DiffEditor: React.VFC = () => {
         setOriginalEditorWidth(layout.contentWidth);
     };
 
-    const handleSave = () => {
-        if (diff.modifiedRelativeFilePath && diff.originalRelativeFilePath) {
-            const mergeUserFile = new File(diff.modifiedRelativeFilePath, currentDirectory);
+    const handleSave = React.useCallback(() => {
+        if (diff.modifiedRelativeFilePath && diff.originalRelativeFilePath && snapshot) {
+            const mergeUserFile = new File(diff.modifiedRelativeFilePath, workingDirectoryPath);
             const userModel = monaco.editor.getModel(monaco.Uri.file(diff.modifiedRelativeFilePath));
             if (userModel && mergeUserFile.writeString(userModel.getValue())) {
                 snapshot.updateModified(diff.originalRelativeFilePath);
-                dispatch(
-                    addNotification({
-                        type: NotificationType.INFORMATION,
-                        message: "Saved merged file",
-                    })
-                );
+                notificationsService.publishNotification({
+                    type: NotificationType.INFORMATION,
+                    message: "Saved merged file",
+                });
                 dispatch(setDiffFiles({mainFile: undefined, userFile: undefined, origin: undefined}));
                 setVisible(false);
             } else {
-                dispatch(
-                    addNotification({
-                        type: NotificationType.ERROR,
-                        message: "Failed to save merged file",
-                    })
-                );
+                notificationsService.publishNotification({
+                    type: NotificationType.ERROR,
+                    message: "Failed to save merged file",
+                });
             }
         }
-    };
+    }, [diff.modifiedRelativeFilePath, diff.originalRelativeFilePath, workingDirectoryPath, snapshot, dispatch]);
 
     return (
         <div className="EditorWrapper" style={{display: visible ? "block" : "none"}}>

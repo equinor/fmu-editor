@@ -1,7 +1,6 @@
 import {IDynamicPerson} from "@microsoft/mgt-react";
 import {Add, Edit, Remove} from "@mui/icons-material";
 import {Stack, Typography} from "@mui/material";
-import {useEnvironment} from "@services/environment-service";
 
 import React from "react";
 import {VscGitCommit} from "react-icons/vsc";
@@ -27,9 +26,8 @@ export const LoggedChanges: React.VFC = () => {
 
     const currentCommit = useAppSelector(state => state.ui.currentCommit);
     const dispatch = useAppDispatch();
-    const environment = useEnvironment();
     const originalRelativeFilePath = useAppSelector(state => state.ui.diff.originalRelativeFilePath);
-    const directory = useAppSelector(state => state.files.directory);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
 
     React.useEffect(() => {
         const counts = {
@@ -43,24 +41,24 @@ export const LoggedChanges: React.VFC = () => {
             });
         }
         setSummarizedActions(counts);
-    }, [currentCommit, environment]);
+    }, [currentCommit]);
 
     const handleFileSelected = React.useCallback(
         (file: string) => {
             const mainFile = currentCommit.compareSnapshotPath
-                ? path.relative(directory, path.join(currentCommit.compareSnapshotPath, file))
-                : path.relative(directory, path.join(directory, file));
+                ? path.relative(workingDirectoryPath, path.join(currentCommit.compareSnapshotPath, file))
+                : path.relative(workingDirectoryPath, path.join(workingDirectoryPath, file));
             dispatch(
                 setDiffFiles({
                     mainFile,
                     userFile: currentCommit.snapshotPath
-                        ? path.relative(directory, path.join(currentCommit.snapshotPath, file))
+                        ? path.relative(workingDirectoryPath, path.join(currentCommit.snapshotPath, file))
                         : file,
                     origin: FileChangeOrigin.USER,
                 })
             );
         },
-        [dispatch, directory, currentCommit]
+        [dispatch, workingDirectoryPath, currentCommit]
     );
 
     if (!currentCommit) {

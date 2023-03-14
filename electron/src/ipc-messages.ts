@@ -1,12 +1,12 @@
-import {app, ipcMain} from "electron";
-
-import {FileExplorerOptions, FileOptions} from "@shared-types/file-explorer-options";
+import {BrowserWindow, app, ipcMain} from "electron";
 
 import {saveFileDialog, selectFileDialog} from "./commands";
 import {PROCESS_ENV} from "./env";
 import {createMenu} from "./menu";
 
-import {IpcMessages} from "../src/shared-types/ipc";
+import {FileExplorerOptions, FileOptions} from "../../src/shared-types/file-explorer-options";
+import {IpcMessages} from "../../src/shared-types/ipc";
+import {Notification} from "../../src/shared-types/notifications";
 
 let signedIn = false;
 
@@ -54,4 +54,25 @@ export const initIpc = () => {
         createMenu({allActionsDisabled: true});
         signedIn = false;
     });
+};
+
+let notificationStack: Notification[] = [];
+
+export const pushNotification = (notification: Notification) => {
+    const window = BrowserWindow.getFocusedWindow();
+    if (window) {
+        window.webContents.send(IpcMessages.PUSH_NOTIFICATION, notification);
+    } else {
+        notificationStack.push(notification);
+    }
+};
+
+export const pushStackedNotifications = () => {
+    const window = BrowserWindow.getFocusedWindow();
+    if (window) {
+        notificationStack.forEach(notification => {
+            pushNotification(notification);
+        });
+        notificationStack = [];
+    }
 };

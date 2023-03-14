@@ -14,20 +14,21 @@ import {Webworker} from "./worker-utils";
 // eslint-disable-next-line no-restricted-globals
 const webworker = new Webworker<FileChangesResponses, FileChangesRequests>({self});
 
-let currentDirectory: string | null = null;
+let currentWorkingDirectoryPath: string | null = null;
+let interval: ReturnType<typeof setInterval> | null = null;
 
 const checkForFileChanges = () => {
-    if (!currentDirectory) {
+    if (!currentWorkingDirectoryPath) {
         return;
     }
 
     let fileChanges: FileChange[] = [];
 
-    const workingDirectory = new WorkingDirectory("./", currentDirectory);
+    const workingDirectory = new WorkingDirectory("./", currentWorkingDirectoryPath);
 
     if (workingDirectory.exists()) {
         workingDirectory.getUsers().forEach(user => {
-            fileChanges = [...fileChanges, ...compareDirectories(currentDirectory, user)];
+            fileChanges = [...fileChanges, ...compareDirectories(currentWorkingDirectoryPath, user)];
         });
     }
 
@@ -35,9 +36,13 @@ const checkForFileChanges = () => {
     webworker.postMessage(FileChangesWatcherResponseType.FILE_CHANGES, {fileChanges});
 };
 
-// eslint-disable-next-line no-restricted-globals
-self.setInterval(checkForFileChanges, 3000);
+webworker.on(FileChangesWatcherRequestType.SET_WORKING_DIRECTORY_PATH, ({workingDirectoryPath}) => {
+    currentWorkingDirectoryPath = workingDirectoryPath;
 
-webworker.on(FileChangesWatcherRequestType.SET_DIRECTORY, ({directory}) => {
-    currentDirectory = directory;
+    if (interval) {
+        clearInterval(interval);
+    }
+    checkForFileChanges();
+
+    interval = setInterval(checkForFileChanges, 3000);
 });

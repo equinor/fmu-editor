@@ -20,12 +20,12 @@ import {Webworker} from "./worker-utils";
 const webworker = new Webworker<FileOperationsResponses, FileOperationsRequests>({self});
 
 let currentUsername: string = "";
-let currentWorkingDirectory: string = "";
+let currentWorkingDirectoryPath: string = "";
 
-const copyToUserDirectory = (directory: string, user: string): void => {
+const copyToUserDirectory = (workingDirectoryPath: string, user: string): void => {
     const userDirectoryPath = path.join(".users", user);
-    const mainDirectory = new Directory("", directory);
-    const userDirectory = new Directory(userDirectoryPath, directory);
+    const mainDirectory = new Directory("", workingDirectoryPath);
+    const userDirectory = new Directory(userDirectoryPath, workingDirectoryPath);
 
     userDirectory.makeIfNotExists();
 
@@ -41,36 +41,54 @@ const copyToUserDirectory = (directory: string, user: string): void => {
         });
     };
 
-    mainDirectory.getContent(true).forEach(fileOrDir => {
-        if (fileOrDir instanceof Directory) {
-            fileOrDir.getUserVersion(user).makeIfNotExists();
-        } else if (fileOrDir instanceof File) {
-            (fileOrDir as unknown as File).copyTo(path.join(userDirectory.absolutePath(), fileOrDir.relativePath()));
-        }
-        callback();
-    });
-};
-
-const maybeInitUserDirectory = (directory: string, user: string): void => {
-    const userDirectoryPath = path.join(".users", user);
-    const userDirectory = new Directory(userDirectoryPath, directory);
-
-    if (!userDirectory.exists()) {
-        copyToUserDirectory(directory, user);
-    }
-
-    const snapshot = new Snapshot(directory, user);
-    if (!snapshot.exists()) {
-        snapshot.make();
+    try {
+        mainDirectory.getContent(true).forEach(fileOrDir => {
+            if (fileOrDir instanceof Directory) {
+                fileOrDir.getUserVersion(user).makeIfNotExists();
+            } else if (fileOrDir instanceof File) {
+                (fileOrDir as unknown as File).copyTo(
+                    path.join(userDirectory.absolutePath(), fileOrDir.relativePath())
+                );
+            }
+            callback();
+        });
+    } catch (e) {
+        webworker.postMessage(FileOperationsResponseType.USER_DIRECTORY_INITIALIZED, {
+            success: false,
+            errorMessage: e instanceof Error ? e.message : "Unknown error",
+        });
     }
 };
 
-const ensureUserDirectoryExists = (): void => {
-    if (!currentUsername || !currentWorkingDirectory) {
+const maybeInitUserDirectory = (workingDirectoryPath: string, user: string): void => {
+    const workingDirectory = new Directory("", currentWorkingDirectoryPath);
+    if (!workingDirectory.exists()) {
         return;
     }
 
-    maybeInitUserDirectory(currentWorkingDirectory, currentUsername);
+    const userDirectoryPath = path.join(".users", user);
+    const userDirectory = new Directory(userDirectoryPath, workingDirectoryPath);
+
+    if (!userDirectory.exists()) {
+        copyToUserDirectory(workingDirectoryPath, user);
+    }
+
+    const snapshot = new Snapshot(workingDirectoryPath, user);
+    if (!snapshot.exists()) {
+        snapshot.make();
+    }
+
+    webworker.postMessage(FileOperationsResponseType.USER_DIRECTORY_INITIALIZED, {
+        success: true,
+    });
+};
+
+const ensureUserDirectoryExists = (): void => {
+    if (!currentUsername || !currentWorkingDirectoryPath) {
+        return;
+    }
+
+    maybeInitUserDirectory(currentWorkingDirectoryPath, currentUsername);
 };
 
 // eslint-disable-next-line no-restricted-globals
@@ -78,42 +96,51 @@ self.setInterval(ensureUserDirectoryExists, 3000);
 
 webworker.on(FileOperationsRequestType.SET_USER_DIRECTORY, ({directory, username}) => {
     currentUsername = username;
-    currentWorkingDirectory = directory;
+    currentWorkingDirectoryPath = directory;
     maybeInitUserDirectory(directory, username);
 });
 
 webworker.on(FileOperationsRequestType.PUSH_USER_CHANGES, ({fileChanges, commitSummary, commitDescription}) => {
-    if (currentUsername && currentWorkingDirectory) {
-        const {pushedFiles, notPushedFiles, commit} = pushFiles(
+    if (currentUsername && currentWorkingDirectoryPath) {
+        const {pushedFilesPaths, notPushedFilesPaths, commit} = pushFiles(
             fileChanges,
             currentUsername,
             commitSummary,
             commitDescription,
-            currentWorkingDirectory
+            currentWorkingDirectoryPath
         );
 
         let commitMessageWritten = false;
-        if (fileChanges.length > notPushedFiles.length) {
-            const changelog = new Changelog(currentWorkingDirectory);
+        if (fileChanges.length > notPushedFilesPaths.length) {
+            const changelog = new Changelog(currentWorkingDirectoryPath);
             commitMessageWritten = changelog.appendCommit(commit);
         }
 
         webworker.postMessage(FileOperationsResponseType.USER_CHANGES_PUSHED, {
-            pushedFiles,
+            pushedFilesPaths,
             commitMessageWritten,
-            notPushedFiles,
+            notPushedFilesPaths,
         });
     }
 });
 
 webworker.on(FileOperationsRequestType.PULL_MAIN_CHANGES, ({fileChanges}) => {
-    if (currentUsername && currentWorkingDirectory) {
-        const {pulledFiles, notPulledFiles} = pullFiles(fileChanges, currentUsername, currentWorkingDirectory);
+    if (currentUsername && currentWorkingDirectoryPath) {
+        const workingDirectory = new Directory("", currentWorkingDirectoryPath);
+        if (!workingDirectory.exists()) {
+            return;
+        }
+
+        const {pulledFilesPaths, notPulledFilesPaths} = pullFiles(
+            fileChanges,
+            currentUsername,
+            currentWorkingDirectoryPath
+        );
 
         webworker.postMessage(FileOperationsResponseType.MAIN_CHANGES_PULLED, {
-            pulledFiles,
-            notPulledFiles,
-            success: notPulledFiles.length < fileChanges.length,
+            pulledFilesPaths,
+            notPulledFilesPaths,
+            success: notPulledFilesPaths.length < fileChanges.length,
         });
     }
 });

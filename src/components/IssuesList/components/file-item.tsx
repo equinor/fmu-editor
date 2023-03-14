@@ -22,9 +22,9 @@ export const FileItem: React.VFC<FileComponentProps> = props => {
     const [expanded, setExpanded] = React.useState(true);
 
     const theme = useTheme();
-    const workingDirectory = useAppSelector(state => state.files.directory);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
 
-    const relativeDirName = path.dirname(path.relative(workingDirectory, props.issues.fileUri));
+    const relativeDirName = path.dirname(path.relative(workingDirectoryPath, props.issues.fileUri));
     const baseName = path.basename(props.issues.fileUri);
 
     return (

@@ -1,13 +1,10 @@
 import {useFileChanges} from "@hooks/useFileChanges";
+import {useTimedState} from "@hooks/useTimedState";
 import {LoadingButton} from "@mui/lab";
 import {Button, IconButton, Stack} from "@mui/material";
-import {useEnvironment} from "@services/environment-service";
-import {
-    FileOperationsServiceEventTypes,
-    FileOperationsServiceEvents,
-    PullState,
-    useFileOperationsService,
-} from "@services/file-operations-service";
+import {useEnvironmentService} from "@services/environment-service";
+import {PullState} from "@services/file-operations-service";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 import {VscClose} from "react-icons/vsc";
@@ -22,80 +19,28 @@ import {ResizablePanels} from "@components/ResizablePanels";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
 import {resetDiffFiles, setDiffFiles, setView} from "@redux/reducers/ui";
 
 import {FileChangeOrigin} from "@shared-types/file-changes";
 import {NotificationType} from "@shared-types/notifications";
 import {View} from "@shared-types/ui";
 
+import {fileOperationsService} from "../../services/file-operations-service";
+
 const FILE_ORIGINS = [FileChangeOrigin.MAIN, FileChangeOrigin.BOTH];
 
 export const Pull: React.VFC = () => {
     const [stagedFiles, setStagedFiles] = React.useState<string[]>([]);
+    const [pullState, setPullState] = useTimedState<PullState>(PullState.IDLE, 3000);
 
-    const fileChanges = useFileChanges(FILE_ORIGINS);
-    const directory = useAppSelector(state => state.files.directory);
+    const {fileChanges} = useFileChanges(FILE_ORIGINS);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const dispatch = useAppDispatch();
-    const {username} = useEnvironment();
-    const {pullMainChanges, pullState} = useFileOperationsService();
-
-    React.useEffect(() => {
-        const handlePullStateChanged = (
-            event: FileOperationsServiceEvents[FileOperationsServiceEventTypes.PULL_STATE_CHANGED]
-        ) => {
-            if (event.detail.state === PullState.PULLED) {
-                setStagedFiles(event.detail.notPulledFiles || []);
-                if (event.detail.notPulledFiles?.length === 0) {
-                    dispatch(
-                        addNotification({
-                            type: NotificationType.SUCCESS,
-                            message: `Successfully pulled ${event.detail.pulledFiles?.length} ${adjustToPlural(
-                                "file",
-                                event.detail.pulledFiles?.length || 0
-                            )}.`,
-                        })
-                    );
-                    dispatch(setView(View.Main));
-                    dispatch(resetDiffFiles());
-                } else {
-                    dispatch(
-                        addNotification({
-                            type: NotificationType.WARNING,
-                            message: `Successfully pulled ${event.detail.pulledFiles.length} ${adjustToPlural(
-                                "file",
-                                event.detail.pulledFiles?.length || 0
-                            )}, failed to pull ${event.detail.notPulledFiles.length} ${adjustToPlural(
-                                "file",
-                                event.detail.notPulledFiles?.length || 0
-                            )}.`,
-                        })
-                    );
-                }
-            }
-            if (event.detail.state === PullState.FAILED) {
-                dispatch(
-                    addNotification({
-                        type: NotificationType.ERROR,
-                        message: `Failed to pull ${event.detail.notPulledFiles} ${adjustToPlural(
-                            "file",
-                            event.detail.notPulledFiles?.length || 0
-                        )}.`,
-                    })
-                );
-            }
-        };
-
-        document.addEventListener(FileOperationsServiceEventTypes.PULL_STATE_CHANGED, handlePullStateChanged);
-
-        return () => {
-            document.removeEventListener(FileOperationsServiceEventTypes.PULL_STATE_CHANGED, handlePullStateChanged);
-        };
-    }, []);
+    const {username} = useEnvironmentService();
 
     const handleFileSelected = React.useCallback(
         (filePath: string, origin: FileChangeOrigin) => {
-            const file = new File(filePath, directory);
+            const file = new File(filePath, workingDirectoryPath);
             dispatch(
                 setDiffFiles({
                     mainFile: file.getMainVersion().relativePath(),
@@ -104,7 +49,7 @@ export const Pull: React.VFC = () => {
                 })
             );
         },
-        [dispatch, directory, username]
+        [dispatch, workingDirectoryPath, username]
     );
 
     const handleStageOrUnstageFile = React.useCallback(
@@ -127,12 +72,61 @@ export const Pull: React.VFC = () => {
     }, []);
 
     const handlePull = React.useCallback(() => {
-        pullMainChanges(fileChanges.filter(el => stagedFiles.includes(el.relativePath)));
-    }, [fileChanges, stagedFiles, pullMainChanges]);
+        setPullState(PullState.PULLING);
+        fileOperationsService
+            .pullMainChanges(fileChanges.filter(el => stagedFiles.includes(el.relativePath)))
+            .then(result => {
+                if (result.success) {
+                    setPullState(PullState.PULLED);
+                    setStagedFiles(result.notPulledFilesPaths || []);
+                    if (result.notPulledFilesPaths?.length === 0) {
+                        notificationsService.publishNotification({
+                            type: NotificationType.SUCCESS,
+                            message: `Successfully pulled ${result.pulledFilesPaths?.length} ${adjustToPlural(
+                                "file",
+                                result.pulledFilesPaths?.length || 0
+                            )}.`,
+                        });
+                        dispatch(setView(View.SourceControl));
+                        dispatch(resetDiffFiles());
+                    } else {
+                        notificationsService.publishNotification({
+                            type: NotificationType.WARNING,
+                            message: `Successfully pulled ${result.pulledFilesPaths.length} ${adjustToPlural(
+                                "file",
+                                result.pulledFilesPaths?.length || 0
+                            )}, failed to pull ${result.notPulledFilesPaths.length} ${adjustToPlural(
+                                "file",
+                                result.notPulledFilesPaths?.length || 0
+                            )}.`,
+                        });
+                    }
+                } else {
+                    setPullState(PullState.FAILED);
+                    notificationsService.publishNotification({
+                        type: NotificationType.ERROR,
+                        message: `Failed to pull ${result.notPulledFilesPaths} ${adjustToPlural(
+                            "file",
+                            result.notPulledFilesPaths?.length || 0
+                        )}.`,
+                    });
+                }
+            })
+            .catch(() => {
+                setPullState(PullState.FAILED);
+                notificationsService.publishNotification({
+                    type: NotificationType.ERROR,
+                    message: `Failed to pull ${stagedFiles.length} ${adjustToPlural(
+                        "file",
+                        stagedFiles?.length || 0
+                    )}.`,
+                });
+            });
+    }, [dispatch, fileChanges, stagedFiles, setPullState]);
 
     const handleResolveConflicts = React.useCallback(
         (relativeFilePath: string) => {
-            const file = new File(relativeFilePath, directory);
+            const file = new File(relativeFilePath, workingDirectoryPath);
             dispatch(
                 setDiffFiles({
                     mainFile: file.getMainVersion().relativePath(),
@@ -141,11 +135,11 @@ export const Pull: React.VFC = () => {
                 })
             );
         },
-        [dispatch, directory, username]
+        [dispatch, workingDirectoryPath, username]
     );
 
     const handleClose = React.useCallback(() => {
-        dispatch(setView(View.Main));
+        dispatch(setView(View.SourceControl));
         dispatch(resetDiffFiles());
     }, [dispatch]);
 

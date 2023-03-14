@@ -1,66 +1,128 @@
 import React from "react";
 
-import {createGenericContext} from "@utils/generic-context";
-
-import {useAppDispatch} from "@redux/hooks";
-import {addNotification} from "@redux/reducers/notifications";
-
-import {NotificationType} from "@shared-types/notifications";
+import {MessageBus} from "@src/framework/message-bus";
 
 import {execSync} from "child_process";
 import os from "os";
 
-type Context = {
-    username: string | null;
-    usernameError?: string;
-    environmentPath: string | null;
-    environmentPathError?: string;
+import {ServiceBase} from "./service-base";
+
+export enum EnvironmentServiceTopics {
+    USERNAME_CHANGED = "USERNAME_CHANGED",
+    USERNAME_COULD_NOT_BE_FETCHED = "USERNAME_COULD_NOT_BE_FETCHED",
+    ENVIRONMENT_PATH_CHANGED = "ENVIRONMENT_PATH_CHANGED",
+    ENVIRONMENT_PATH_COULD_NOT_BE_FETCHED = "ENVIRONMENT_PATH_COULD_NOT_BE_FETCHED",
+}
+
+export type EnvironmentServiceMessages = {
+    [EnvironmentServiceTopics.USERNAME_CHANGED]: {
+        username: string | null;
+    };
+
+    [EnvironmentServiceTopics.ENVIRONMENT_PATH_CHANGED]: {
+        environmentPath: string | null;
+    };
+    [EnvironmentServiceTopics.ENVIRONMENT_PATH_COULD_NOT_BE_FETCHED]: undefined;
+    [EnvironmentServiceTopics.USERNAME_COULD_NOT_BE_FETCHED]: undefined;
 };
 
-const [useEnvironmentContext, EnvironmentContextProvider] = createGenericContext<Context>();
+export class EnvironmentService extends ServiceBase<EnvironmentServiceMessages> {
+    private username: string | null;
+    private environmentPath: string | null;
+    private interval: ReturnType<typeof setInterval>;
 
-export const EnvironmentService: React.FC = props => {
-    const [username, setUsername] = React.useState<string | null>(null);
-    const [usernameError, setUsernameError] = React.useState<string | undefined>(undefined);
-    const [environmentPath, setEnvironmentPath] = React.useState<string | null>(null);
-    const [environmentPathError, setEnvironmentPathError] = React.useState<string | undefined>(undefined);
+    constructor() {
+        super();
+        this.fetchUsername();
+        this.fetchEnvironmentPath();
 
-    const dispatch = useAppDispatch();
+        this.interval = setInterval(() => {
+            this.fetchUsername();
+            this.fetchEnvironmentPath();
+        }, 10000);
+    }
 
-    React.useEffect(() => {
+    destructor() {
+        clearInterval(this.interval);
+    }
+
+    private fetchUsername(): void {
         try {
-            setUsername(os.userInfo().username);
+            const newUsername = os.userInfo().username;
+            if (this.username !== newUsername) {
+                this.username = newUsername;
+                this.messageBus.publish(EnvironmentServiceTopics.USERNAME_CHANGED, {username: newUsername});
+            }
         } catch (e) {
-            setUsernameError(`${e}`);
-            dispatch(
-                addNotification({
-                    type: NotificationType.ERROR,
-                    message: `Could not read username from OS. ${e}`,
-                })
-            );
+            this.username = null;
+            this.messageBus.publish(EnvironmentServiceTopics.USERNAME_COULD_NOT_BE_FETCHED);
         }
-    }, [setUsernameError, dispatch]);
+    }
 
-    React.useEffect(() => {
+    private fetchEnvironmentPath(): void {
         try {
             const path = execSync("echo $VIRTUAL_ENV").toString().trim();
-            setEnvironmentPath(path === "" ? null : path);
+            const newPath = path === "" ? null : path;
+            if (this.environmentPath !== newPath) {
+                this.environmentPath = newPath;
+                this.messageBus.publish(EnvironmentServiceTopics.ENVIRONMENT_PATH_CHANGED, {
+                    environmentPath: newPath,
+                });
+            }
         } catch (e) {
-            setEnvironmentPathError(`${e}`);
-            dispatch(
-                addNotification({
-                    type: NotificationType.ERROR,
-                    message: `Could not detect Komodo environment. JSON schema files cannot be loaded. ${e}`,
-                })
-            );
+            this.environmentPath = null;
+            this.messageBus.publish(EnvironmentServiceTopics.ENVIRONMENT_PATH_COULD_NOT_BE_FETCHED);
         }
-    }, [setEnvironmentPathError, dispatch]);
+    }
 
-    return (
-        <EnvironmentContextProvider value={{username, usernameError, environmentPath, environmentPathError}}>
-            {props.children}
-        </EnvironmentContextProvider>
+    public getUsername(): string | null {
+        return this.username;
+    }
+
+    public getEnvironmentPath(): string | null {
+        return this.environmentPath;
+    }
+
+    public getMessageBus(): MessageBus<EnvironmentServiceMessages> {
+        return this.messageBus;
+    }
+}
+
+export const environmentService = new EnvironmentService();
+
+export const useEnvironmentService = (): {username: string | null; environmentPath: string | null} => {
+    const [username, setUsername] = React.useState<string | null>(environmentService.getUsername());
+    const [environmentPath, setEnvironmentPath] = React.useState<string | null>(
+        environmentService.getEnvironmentPath()
     );
-};
 
-export const useEnvironment = (): Context => useEnvironmentContext();
+    React.useEffect(() => {
+        const handleUsernameChange = (
+            payload: EnvironmentServiceMessages[EnvironmentServiceTopics.USERNAME_CHANGED]
+        ) => {
+            setUsername(payload.username);
+        };
+
+        const unsubscribeFunc = environmentService
+            .getMessageBus()
+            .subscribe(EnvironmentServiceTopics.USERNAME_CHANGED, handleUsernameChange);
+
+        return unsubscribeFunc;
+    }, []);
+
+    React.useEffect(() => {
+        const handleEnvironmentPathChange = (
+            payload: EnvironmentServiceMessages[EnvironmentServiceTopics.ENVIRONMENT_PATH_CHANGED]
+        ) => {
+            setEnvironmentPath(payload.environmentPath);
+        };
+
+        const unsubscribeFunc = environmentService
+            .getMessageBus()
+            .subscribe(EnvironmentServiceTopics.ENVIRONMENT_PATH_CHANGED, handleEnvironmentPathChange);
+
+        return unsubscribeFunc;
+    }, []);
+
+    return {username, environmentPath};
+};

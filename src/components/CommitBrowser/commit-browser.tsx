@@ -1,6 +1,7 @@
 import {Typography} from "@mui/material";
 import {Stack} from "@mui/system";
-import {useChangelogWatcher} from "@services/changelog-service";
+import {ChangelogWatcherTopics, changelogWatcherService} from "@services/changelog-service";
+import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
 import {VscSourceControl} from "react-icons/vsc";
@@ -9,29 +10,35 @@ import {CommitList} from "@components/CommitList";
 import {Surface} from "@components/Surface";
 
 import {ISnapshotCommitBundle} from "@shared-types/changelog";
+import {NotificationType} from "@shared-types/notifications";
 
 import "./commit-browser.css";
 
 export const CommitBrowser: React.FC = () => {
     const [commitBundles, setCommitBundles] = React.useState<ISnapshotCommitBundle[]>([]);
 
-    const changelogWatcher = useChangelogWatcher();
-
     React.useEffect(() => {
-        changelogWatcher.getAllChanges();
-        const handleChangelogModified = () => {
-            changelogWatcher.getAllChanges();
+        const getChangelogChanges = () => {
+            changelogWatcherService
+                .getAllChanges()
+                .then(result => {
+                    setCommitBundles(result);
+                })
+                .catch(error => {
+                    notificationsService.publishNotification({
+                        type: NotificationType.ERROR,
+                        message: error,
+                    });
+                });
         };
-        document.addEventListener("changelog-modified", handleChangelogModified);
+        getChangelogChanges();
 
-        return () => {
-            document.removeEventListener("changelog-modified", handleChangelogModified);
-        };
-    }, [changelogWatcher]);
+        const unsubscribeFunc = changelogWatcherService
+            .getMessageBus()
+            .subscribe(ChangelogWatcherTopics.MODIFIED, getChangelogChanges);
 
-    React.useEffect(() => {
-        setCommitBundles(changelogWatcher.allChanges);
-    }, [changelogWatcher.allChanges]);
+        return unsubscribeFunc;
+    }, []);
 
     return (
         <Surface elevation="none" className="CommitBrowser">

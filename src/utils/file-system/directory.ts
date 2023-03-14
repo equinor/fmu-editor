@@ -23,13 +23,13 @@ export class Directory extends FileBasic implements IDirectory {
             const fullPath = path.join(this.absolutePath(), el);
             const stats = fs.statSync(fullPath);
             if (stats.isDirectory()) {
-                const dir = new Directory(path.join(this.relativePath(), el), this.workingDirectory());
+                const dir = new Directory(path.join(this.relativePath(), el), this.workingDirectoryPath());
                 filesAndDirs.push(dir);
                 if (recursive) {
                     filesAndDirs.push(...dir.getContent(true));
                 }
             } else {
-                filesAndDirs.push(new File(path.join(this.relativePath(), el), this.workingDirectory()));
+                filesAndDirs.push(new File(path.join(this.relativePath(), el), this.workingDirectoryPath()));
             }
         });
 

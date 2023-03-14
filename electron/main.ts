@@ -1,7 +1,6 @@
 /* eslint-disable import/order */
 
 /* eslint-disable import/first */
-// import {DataProtectionScope, PersistenceCachePlugin, PersistenceCreator} from "@azure/msal-node-extensions";
 import {ElectronAuthenticator, MsalElectronConfig} from "@microsoft/mgt-electron-provider/dist/Authenticator";
 
 import {BrowserWindow, app} from "electron";
@@ -9,29 +8,22 @@ import installExtension, {REACT_DEVELOPER_TOOLS} from "electron-devtools-install
 import * as ElectronLog from "electron-log";
 import ElectronStore from "electron-store";
 
-import moduleAlias from "module-alias";
 import path from "path";
 
-import {PROCESS_ENV} from "./env";
-import {initIpc} from "./ipc-messages";
-import {createMenu} from "./menu";
-import {getAppIcon} from "./utils";
+import {PROCESS_ENV} from "./src/env";
+import {initIpc, pushNotification, pushStackedNotifications} from "./src/ipc-messages";
+import {createMenu} from "./src/menu";
+import {getAppIcon} from "./src/utils";
 
-import terminal from "../cli/terminal";
+import {NotificationType} from "../src/shared-types/notifications";
 
 Object.assign(console, ElectronLog.functions);
-moduleAlias.addAliases({
-    "@constants": `${__dirname}/../src/constants`,
-    "@models": `${__dirname}/../src/models`,
-    "@redux": `${__dirname}/../src/redux`,
-    "@utils": `${__dirname}/../src/utils`,
-    "@src": `${__dirname}/../src/`,
-    "@root": `${__dirname}/../`,
-    "@shared-types": `${__dirname}/../src/shared-types`,
-});
 
 const isDev = PROCESS_ENV.NODE_ENV === "development";
 const appTitle = "FMU Editor";
+
+const msalDeactivated = process.argv.includes("--deactivate-msal");
+const msalPersistence = process.argv.includes("--msal-persistence");
 
 initIpc();
 
@@ -51,27 +43,44 @@ async function createWindow() {
         },
     });
 
-    /* NOT AVAILABLE AS LONG AS WE ARE RUNNING ON RHEL 7 (due to glibc version)
+    if (!msalDeactivated) {
+        const config: MsalElectronConfig = {
+            clientId: "6f2755e8-06e5-4f2e-8129-029c1c71d347",
+            authority: "https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0",
+            mainWindow: win,
+            scopes: ["user.readbasic.all"],
+            cachePlugin: undefined,
+        };
 
-    const persistenceConfiguration = {
-        cachePath: path.join(app.getPath("userData"), "./msal.cache.json"),
-        dataProtectionScope: DataProtectionScope.CurrentUser,
-        serviceName: "fmu-editor-service",
-        accountName: "fmu-editor-account",
-        usePlaintextFileOnLinux: false,
-    };
+        if (msalPersistence) {
+            pushNotification({
+                type: NotificationType.INFORMATION,
+                message: "Using MSAL persistence",
+            });
+            await import("@azure/msal-node-extensions").then(
+                async ({DataProtectionScope, PersistenceCachePlugin, PersistenceCreator}) => {
+                    const persistenceConfiguration = {
+                        cachePath: path.join(app.getPath("userData"), "./msal.cache.json"),
+                        dataProtectionScope: DataProtectionScope.CurrentUser,
+                        serviceName: "fmu-editor-service",
+                        accountName: "fmu-editor-account",
+                        usePlaintextFileOnLinux: false,
+                    };
 
-    const filePersistence = await PersistenceCreator.createPersistence(persistenceConfiguration);
-    */
+                    const filePersistence = await PersistenceCreator.createPersistence(persistenceConfiguration);
 
-    const config: MsalElectronConfig = {
-        clientId: "6f2755e8-06e5-4f2e-8129-029c1c71d347",
-        authority: "https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0",
-        mainWindow: win,
-        scopes: ["user.readbasic.all"],
-        // cachePlugin: new PersistenceCachePlugin(filePersistence),
-    };
-    ElectronAuthenticator.initialize(config);
+                    config.cachePlugin = new PersistenceCachePlugin(filePersistence);
+                }
+            );
+        }
+
+        ElectronAuthenticator.initialize(config);
+    } else {
+        pushNotification({
+            type: NotificationType.INFORMATION,
+            message: "MSAL deactivated",
+        });
+    }
 
     createMenu({allActionsDisabled: true});
 
@@ -105,7 +114,8 @@ const openApplication = async () => {
     }
 
     ElectronStore.initRenderer();
-    createWindow();
+    const mainWindow = createWindow();
+    (await mainWindow).on("show", () => pushStackedNotifications());
 
     app.on("window-all-closed", () => {
         if (process.platform !== "darwin") {
@@ -121,9 +131,3 @@ const openApplication = async () => {
 };
 
 openApplication();
-
-if (process.platform === "darwin") {
-    terminal()
-        // eslint-disable-next-line no-console
-        .catch(e => console.log(e));
-}

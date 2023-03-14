@@ -43,8 +43,8 @@ export const filesSlice = createSlice({
                 path: string;
             }>
         ) => {
-            state.fmuDirectory = action.payload.path;
-            electronStore.set("files.fmuDirectory", action.payload.path);
+            state.fmuDirectoryPath = action.payload.path;
+            electronStore.set("files.fmuDirectoryPath", action.payload.path);
         },
         setWorkingDirectoryPath: (
             state: Draft<FilesState>,
@@ -52,17 +52,17 @@ export const filesSlice = createSlice({
                 path: string;
             }>
         ) => {
-            state.directory = action.payload.path;
+            state.workingDirectoryPath = action.payload.path;
             state.files = [];
-            state.activeFile = "";
+            state.activeFilePath = "";
             state.fileTreeStates = {...state.fileTreeStates, [action.payload.path]: []};
-            electronStore.set("files.directory", action.payload.path);
+            electronStore.set("files.workingDirectoryPath", action.payload.path);
             electronStore.set(`files.fileTreeStates`, state.fileTreeStates);
             electronStore.set("files.files", state.files);
-            electronStore.set("files.activeFile", state.activeFile);
+            electronStore.set("files.activeFilePath", state.activeFilePath);
         },
         setFileTreeStates: (state: Draft<FilesState>, action: PayloadAction<string[]>) => {
-            const newState = {...state.fileTreeStates, [state.directory]: action.payload};
+            const newState = {...state.fileTreeStates, [state.workingDirectoryPath]: action.payload};
             state.fileTreeStates = newState;
             electronStore.set(`files.fileTreeStates`, newState);
         },
@@ -73,21 +73,21 @@ export const filesSlice = createSlice({
                 viewState: CodeEditorViewState | null;
             }>
         ) => {
-            const currentlyActiveFile = state.files.find(file => file.filePath === state.activeFile);
+            const currentlyActiveFile = state.files.find(file => file.filePath === state.activeFilePath);
             if (currentlyActiveFile) {
                 currentlyActiveFile.editorViewState = action.payload.viewState;
             }
-            state.activeFile = action.payload.filePath;
-            electronStore.set("files.activeFile", action.payload.filePath);
+            state.activeFilePath = action.payload.filePath;
+            electronStore.set("files.activeFilePath", action.payload.filePath);
         },
         setValue: (state: Draft<FilesState>, action: PayloadAction<string>) => {
             state.files = state.files.map(el =>
-                el.filePath === state.activeFile ? {...el, editorValue: action.payload, unsavedChanges: true} : el
+                el.filePath === state.activeFilePath ? {...el, editorValue: action.payload, unsavedChanges: true} : el
             );
         },
         setEditorViewState: (state: Draft<FilesState>, action: PayloadAction<CodeEditorViewState | null>) => {
             state.files = state.files.map(el =>
-                el.filePath === state.activeFile
+                el.filePath === state.activeFilePath
                     ? {
                           ...el,
                           editorViewState: action.payload,
@@ -98,7 +98,7 @@ export const filesSlice = createSlice({
         },
         setDiffEditorViewState: (state: Draft<FilesState>, action: PayloadAction<DiffEditorViewState | null>) => {
             state.files = state.files.map(el =>
-                el.filePath === state.activeFile
+                el.filePath === state.activeFilePath
                     ? {
                           ...el,
                           diffEditorViewState: action.payload,
@@ -117,8 +117,8 @@ export const filesSlice = createSlice({
                       }
                     : el
             );
-            if (state.activeFile === action.payload.oldFilePath) {
-                state.activeFile = action.payload.newFilePath;
+            if (state.activeFilePath === action.payload.oldFilePath) {
+                state.activeFilePath = action.payload.newFilePath;
             }
             updateFilesInElectronStore(state);
         },
@@ -137,16 +137,20 @@ export const filesSlice = createSlice({
                       }
                     : el
             );
-            if (state.activeFile.includes(action.payload.oldFilePath)) {
-                state.activeFile = path.join(
+            if (state.activeFilePath.includes(action.payload.oldFilePath)) {
+                state.activeFilePath = path.join(
                     action.payload.newFilePath,
-                    path.relative(action.payload.oldFilePath, state.activeFile)
+                    path.relative(action.payload.oldFilePath, state.activeFilePath)
                 );
             }
-            state.fileTreeStates[state.directory] = state.fileTreeStates[state.directory].map(el =>
-                el.includes(action.payload.oldFilePath)
-                    ? path.join(action.payload.newFilePath, path.relative(action.payload.oldFilePath, state.activeFile))
-                    : el
+            state.fileTreeStates[state.workingDirectoryPath] = state.fileTreeStates[state.workingDirectoryPath].map(
+                el =>
+                    el.includes(action.payload.oldFilePath)
+                        ? path.join(
+                              action.payload.newFilePath,
+                              path.relative(action.payload.oldFilePath, state.activeFilePath)
+                          )
+                        : el
             );
             updateFilesInElectronStore(state);
         },
@@ -156,8 +160,8 @@ export const filesSlice = createSlice({
         ) => {
             // Do not open file when already opened, but make it active
             const openedFile = state.files.find(el => el.filePath === action.payload.filePath);
-            state.activeFile = action.payload.filePath;
-            electronStore.set("files.activeFile", action.payload.filePath);
+            state.activeFilePath = action.payload.filePath;
+            electronStore.set("files.activeFilePath", action.payload.filePath);
 
             if (openedFile) {
                 // Close all files that are not permanently open
@@ -205,8 +209,8 @@ export const filesSlice = createSlice({
         closeFile: (state: Draft<FilesState>, action: PayloadAction<string>) => {
             const fileToClose = state.files.find(file => file.filePath === action.payload);
             if (fileToClose) {
-                let newActiveFile = state.activeFile;
-                if (action.payload === state.activeFile) {
+                let newActiveFile = state.activeFilePath;
+                if (action.payload === state.activeFilePath) {
                     if (state.files.length >= 2) {
                         newActiveFile = state.files.filter(el => el.filePath !== action.payload)[
                             Math.max(
@@ -219,7 +223,7 @@ export const filesSlice = createSlice({
                     } else {
                         newActiveFile = "";
                     }
-                    state.activeFile = newActiveFile;
+                    state.activeFilePath = newActiveFile;
                 }
                 state.files = state.files.filter(file => file.filePath !== action.payload);
                 const model = monaco.editor.getModel(monaco.Uri.file(fileToClose.filePath));
@@ -237,7 +241,7 @@ export const filesSlice = createSlice({
                 }
             });
             state.files = [];
-            state.activeFile = "";
+            state.activeFilePath = "";
 
             updateFilesInElectronStore(state);
         },
@@ -269,8 +273,8 @@ export const filesSlice = createSlice({
                           }
                         : f
                 );
-                if (action.payload.oldFilePath === state.activeFile) {
-                    state.activeFile = action.payload.newFilePath;
+                if (action.payload.oldFilePath === state.activeFilePath) {
+                    state.activeFilePath = action.payload.newFilePath;
                 }
             }
         },

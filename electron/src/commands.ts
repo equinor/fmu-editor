@@ -1,9 +1,10 @@
-import {BrowserWindow, app, dialog} from "electron";
+import {BrowserWindow, dialog} from "electron";
 
 import {
     FileExplorerOptions,
     FileOptions,
-} from "@shared-types/file-explorer-options";
+} from "../../src/shared-types/file-explorer-options";
+import { IpcMessages } from "../../src/shared-types/ipc";
 
 export const openFile = () => {
     dialog
@@ -19,11 +20,14 @@ export const openFile = () => {
         .then((fileObj: Electron.OpenDialogReturnValue) => {
             const window = BrowserWindow.getFocusedWindow();
             if (!fileObj.canceled && window) {
-                window.webContents.send("file-opened", fileObj.filePaths);
+                window.webContents.send(IpcMessages.FILE_OPENED, fileObj.filePaths);
             }
         })
         .catch(err => {
-            console.error(err);
+            const window = BrowserWindow.getFocusedWindow();
+            if (window) {
+                window.webContents.send(IpcMessages.ERROR, err);
+            }
         });
 };
 
@@ -55,10 +59,6 @@ export const selectFileDialog = (
     }
     return dialog.showOpenDialogSync(dialogOptions);
 };
-
-/**
- * prompts to select a file using the native dialogs
- */
 
 export const saveFileDialog = (
     event: Electron.IpcMainInvokeEvent,
