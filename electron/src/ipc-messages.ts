@@ -12,6 +12,7 @@ let signedIn = false;
 
 export const initIpc = () => {
     const isDev = PROCESS_ENV.NODE_ENV === "development";
+    const clearElectronStore = process.argv.includes("--clear-config");
 
     const userDataDir = app.getPath("userData");
     const userHomeDir = app.getPath("home");
@@ -24,6 +25,7 @@ export const initIpc = () => {
             userHomeDir,
             appDir,
             isDev,
+            clearElectronStore,
         };
     });
 

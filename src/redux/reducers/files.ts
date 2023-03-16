@@ -57,14 +57,14 @@ export const filesSlice = createSlice({
             state.activeFilePath = "";
             state.fileTreeStates = {...state.fileTreeStates, [action.payload.path]: []};
             electronStore.set("files.workingDirectoryPath", action.payload.path);
-            electronStore.set(`files.fileTreeStates`, state.fileTreeStates);
+            electronStore.set("files.fileTreeStates", state.fileTreeStates);
             electronStore.set("files.files", state.files);
             electronStore.set("files.activeFilePath", state.activeFilePath);
         },
         setFileTreeStates: (state: Draft<FilesState>, action: PayloadAction<string[]>) => {
             const newState = {...state.fileTreeStates, [state.workingDirectoryPath]: action.payload};
             state.fileTreeStates = newState;
-            electronStore.set(`files.fileTreeStates`, newState);
+            electronStore.set("files.fileTreeStates", newState);
         },
         setActiveFile: (
             state: Draft<FilesState>,

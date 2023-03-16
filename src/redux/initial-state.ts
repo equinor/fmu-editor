@@ -6,10 +6,16 @@ import {generateHashCode} from "@utils/hash";
 
 import {EventSource, File, FilesState} from "@shared-types/files";
 import {ChangesBrowserView, Themes, UiState, View} from "@shared-types/ui";
+import {IpcMessages} from "@shared-types/ipc";
 import {UiCoachState} from "@shared-types/ui-coach";
 
 import {SelectionDirection} from "monaco-editor";
 import path from "path";
+
+const appData = ipcRenderer.sendSync(IpcMessages.GET_APP_DATA);
+if (appData.clearElectronStore) {
+    electronStore.clear();
+}
 
 const paneConfiguration = electronStore.get("ui.paneConfiguration");
 
