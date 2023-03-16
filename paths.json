@@ -27,7 +27,9 @@
             "@preview": ["src/preview"],
             "@preview/*": ["src/preview/*"],
             "@framework": ["src/framework"],
-            "@framework/*": ["src/framework/*"]
+            "@framework/*": ["src/framework/*"],
+            "@languages": ["src/languages"],
+            "@languages/*": ["src/languages/*"]
         }
     }
 }

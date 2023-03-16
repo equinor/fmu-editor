@@ -1,0 +1,3 @@
+[submodule "src/languages/monaco-ert"]
+	path = src/languages/monaco-ert
+	url = git@github.com:equinor/monaco-ert.git
