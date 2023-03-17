@@ -29,8 +29,8 @@ const refreshChangelog = () => {
 // eslint-disable-next-line no-restricted-globals
 self.setInterval(refreshChangelog, 3000);
 
-webworker.on(ChangelogWatcherRequestTypes.SET_DIRECTORY, ({directory}) => {
-    changelog.setDirectory(directory);
+webworker.on(ChangelogWatcherRequestTypes.SET_WORKING_DIRECTORY, ({workingDirectory}) => {
+    changelog.setWorkingDirectory(workingDirectory);
 });
 
 webworker.on(ChangelogWatcherRequestTypes.APPEND_COMMIT, ({commit}) => {

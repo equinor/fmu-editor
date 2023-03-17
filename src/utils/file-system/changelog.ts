@@ -12,21 +12,21 @@ class DirectoryNotSetError extends Error {
 }
 
 export class Changelog {
-    private directory: string | null;
+    private workingDirectory: string | null;
     private changelog: IGlobalChangelog | null;
 
     constructor(directory: string | null = null) {
-        this.directory = directory;
+        this.workingDirectory = directory;
         this.changelog = null;
         this.maybeRefresh();
     }
 
     public isInitialized(): boolean {
-        return this.directory !== null;
+        return this.workingDirectory !== null;
     }
 
     public modifiedTimestamp(): number {
-        if (!this.directory) {
+        if (!this.workingDirectory) {
             return 0;
         }
 
@@ -38,32 +38,32 @@ export class Changelog {
         return this.changelog.modified;
     }
 
-    public setDirectory(directory: string) {
-        this.directory = directory;
+    public setWorkingDirectory(directory: string) {
+        this.workingDirectory = directory;
         this.changelog = null;
         this.maybeRefresh();
     }
 
     private localChangelogPath(): string {
-        if (!this.directory) {
+        if (!this.workingDirectory) {
             throw new DirectoryNotSetError();
         }
-        return path.join(this.directory, ".changelog.json");
+        return path.join(this.workingDirectory, ".changelog.json");
     }
 
     private getRelativeFilePath(filePath: string): string {
-        if (!this.directory) {
+        if (!this.workingDirectory) {
             return filePath;
         }
 
-        return path.relative(this.directory, filePath);
+        return path.relative(this.workingDirectory, filePath);
     }
 
     private snapshotsPath(): string {
-        if (!this.directory) {
+        if (!this.workingDirectory) {
             throw new DirectoryNotSetError();
         }
-        return path.join(this.directory, ".snapshots");
+        return path.join(this.workingDirectory, ".snapshots");
     }
 
     private static changelogIsCorrectlyFormatted(content: any): boolean {
@@ -78,7 +78,7 @@ export class Changelog {
     }
 
     private createLocalChangelogFileIfNotExists(): boolean {
-        if (!this.directory) {
+        if (!this.workingDirectory) {
             return false;
         }
 
@@ -93,7 +93,7 @@ export class Changelog {
 
         const currentChangelog: ILocalChangelog = {
             created: currentTimestamp,
-            directory: this.directory,
+            directory: this.workingDirectory,
             modified: currentTimestamp,
             log: [],
         };
@@ -102,7 +102,7 @@ export class Changelog {
     }
 
     public maybeRefresh() {
-        if (!this.directory) {
+        if (!this.workingDirectory) {
             return;
         }
 
@@ -134,7 +134,7 @@ export class Changelog {
     }
 
     private getSnapshotCommits: () => ISnapshotCommitBundle[] = () => {
-        if (!this.directory) {
+        if (!this.workingDirectory) {
             return [];
         }
 
@@ -161,7 +161,7 @@ export class Changelog {
     };
 
     public saveLocalChangelog(): boolean {
-        if (!this.directory) {
+        if (!this.workingDirectory) {
             return false;
         }
 
@@ -188,7 +188,7 @@ export class Changelog {
     }
 
     public appendCommit(commit: ICommit): boolean {
-        if (!this.directory) {
+        if (!this.workingDirectory) {
             return false;
         }
 
@@ -211,7 +211,7 @@ export class Changelog {
         if (!filePath || filePath === "") {
             return [];
         }
-        if (!this.directory) {
+        if (!this.workingDirectory) {
             return [];
         }
 
@@ -239,7 +239,7 @@ export class Changelog {
     }
 
     public getAllChanges(): ISnapshotCommitBundle[] {
-        if (!this.directory) {
+        if (!this.workingDirectory) {
             return [];
         }
 

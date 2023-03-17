@@ -1,3 +1,4 @@
+/*
 import {IpcDebugMessages, IpcMessages} from "@shared-types/ipc";
 
 const {contextBridge, ipcRenderer} = require("electron");
@@ -31,3 +32,4 @@ contextBridge.exposeInMainWorld("electron", {
         ipcRenderer.on(IpcDebugMessages.RESET, () => func());
     },
 });
+*/

@@ -44,7 +44,7 @@ export interface ILocalChangelog {
 }
 
 export enum ChangelogWatcherRequestTypes {
-    SET_DIRECTORY = "set-directory",
+    SET_WORKING_DIRECTORY = "set-working-directory",
     APPEND_COMMIT = "append-commit",
     GET_CHANGES_FOR_FILE = "get-changes-for-file",
     GET_ALL_CHANGES = "get-all-changes",
@@ -60,8 +60,8 @@ export enum ChangelogWatcherResponseTypes {
 }
 
 export type ChangelogWatcherRequests = {
-    [ChangelogWatcherRequestTypes.SET_DIRECTORY]: {
-        directory: string;
+    [ChangelogWatcherRequestTypes.SET_WORKING_DIRECTORY]: {
+        workingDirectory: string;
     };
     [ChangelogWatcherRequestTypes.APPEND_COMMIT]: {
         commit: ICommit;

@@ -16,7 +16,7 @@ import {
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import worker from "worker-loader!@workers/file-changes-watcher.worker";
 
-import {environmentService} from "./environment-service";
+import {EnvironmentServiceTopics, environmentService} from "./environment-service";
 import {ServiceBase} from "./service-base";
 
 export enum FileChangesTopics {
@@ -39,12 +39,13 @@ class FileChangesWatcherService extends ServiceBase<FileChangesMessages> {
     private worker: Webworker<FileChangesRequests, FileChangesResponses>;
     private snapshot: Snapshot | null;
     private initialized: boolean;
-    private workingDirectoryPath: string;
+    private workingDirectoryPath: string | null;
 
     constructor() {
         super();
         this.worker = new Webworker<FileChangesRequests, FileChangesResponses>({Worker: worker});
         this.initialized = false;
+        this.workingDirectoryPath = null;
 
         this.worker.on(FileChangesWatcherResponseType.FILE_CHANGES, data => {
             this.messageBus.publish(FileChangesTopics.FILES_CHANGED, {
@@ -72,6 +73,13 @@ class FileChangesWatcherService extends ServiceBase<FileChangesMessages> {
                 this.messageBus.publish(FileChangesTopics.SNAPSHOT_CHANGED);
 
                 this.workingDirectoryPath = state.files.workingDirectoryPath;
+            }
+        });
+
+        environmentService.getMessageBus().subscribe(EnvironmentServiceTopics.USERNAME_CHANGED, () => {
+            if (this.workingDirectoryPath !== null) {
+                this.snapshot = new Snapshot(this.workingDirectoryPath, environmentService.getUsername());
+                this.messageBus.publish(FileChangesTopics.SNAPSHOT_CHANGED);
             }
         });
     }

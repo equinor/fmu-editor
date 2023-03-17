@@ -49,8 +49,8 @@ const copyToUserDirectory = (workingDirectoryPath: string, user: string): void =
                 (fileOrDir as unknown as File).copyTo(
                     path.join(userDirectory.absolutePath(), fileOrDir.relativePath())
                 );
+                callback();
             }
-            callback();
         });
     } catch (e) {
         webworker.postMessage(FileOperationsResponseType.USER_DIRECTORY_INITIALIZED, {
@@ -69,7 +69,7 @@ const maybeInitUserDirectory = (workingDirectoryPath: string, user: string): voi
     const userDirectoryPath = path.join(".users", user);
     const userDirectory = new Directory(userDirectoryPath, workingDirectoryPath);
 
-    if (!userDirectory.exists()) {
+    if (!userDirectory.exists() || userDirectory.isEmpty()) {
         copyToUserDirectory(workingDirectoryPath, user);
     }
 

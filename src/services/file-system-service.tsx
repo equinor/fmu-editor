@@ -17,14 +17,14 @@ import worker from "worker-loader!@workers/file-system-watcher.worker";
 
 import {environmentService} from "./environment-service";
 
-export enum FileSystemWatcherMessageTypes {
+export enum FileSystemWatcherTopics {
     AVAILABLE_WORKING_DIRECTORIES_CHANGED = "AVAILABLE_WORKING_DIRECTORIES_CHANGED",
     WORKING_DIRECTORY_CONTENT_CHANGED = "WORKING_DIRECTORY_CONTENT_CHANGED",
 }
 
 type FileSystemWatcherMessages = {
-    [FileSystemWatcherMessageTypes.AVAILABLE_WORKING_DIRECTORIES_CHANGED]: undefined;
-    [FileSystemWatcherMessageTypes.WORKING_DIRECTORY_CONTENT_CHANGED]: undefined;
+    [FileSystemWatcherTopics.AVAILABLE_WORKING_DIRECTORIES_CHANGED]: undefined;
+    [FileSystemWatcherTopics.WORKING_DIRECTORY_CONTENT_CHANGED]: undefined;
 };
 
 class FileSystemWatcherService {
@@ -48,11 +48,11 @@ class FileSystemWatcherService {
         });
 
         this.fileSystemWatcherWorker.on(FileSystemWatcherResponseType.AVAILABLE_WORKING_DIRECTORIES_CHANGED, () => {
-            this.messageBus.publish(FileSystemWatcherMessageTypes.AVAILABLE_WORKING_DIRECTORIES_CHANGED);
+            this.messageBus.publish(FileSystemWatcherTopics.AVAILABLE_WORKING_DIRECTORIES_CHANGED);
         });
 
         this.fileSystemWatcherWorker.on(FileSystemWatcherResponseType.WORKING_DIRECTORY_CONTENT_CHANGED, () => {
-            this.messageBus.publish(FileSystemWatcherMessageTypes.WORKING_DIRECTORY_CONTENT_CHANGED);
+            this.messageBus.publish(FileSystemWatcherTopics.WORKING_DIRECTORY_CONTENT_CHANGED);
         });
     }
 

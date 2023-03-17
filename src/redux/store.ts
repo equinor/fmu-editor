@@ -1,12 +1,11 @@
-import {Middleware, configureStore} from "@reduxjs/toolkit";
+import {configureStore} from "@reduxjs/toolkit";
 
-import {createLogger} from "redux-logger";
-
+// import {createLogger} from "redux-logger";
 import {filesSlice} from "./reducers/files";
 import {uiSlice} from "./reducers/ui";
 import {uiCoachSlice} from "./reducers/uiCoach";
 
-const middlewares: Middleware[] = [];
+/* const middlewares: Middleware[] = [];
 
 if (process.env.NODE_ENV === `development`) {
     const reduxLoggerMiddleware = createLogger({
@@ -16,6 +15,7 @@ if (process.env.NODE_ENV === `development`) {
 
     middlewares.push(reduxLoggerMiddleware);
 }
+*/
 
 const store = configureStore({
     reducer: {
@@ -23,7 +23,7 @@ const store = configureStore({
         uiCoach: uiCoachSlice.reducer,
         files: filesSlice.reducer,
     },
-    middleware: getDefaultMiddleware => [...getDefaultMiddleware().concat(middlewares)],
+    // middleware: getDefaultMiddleware => [...getDefaultMiddleware().concat(middlewares)],
 });
 
 // eslint-disable-next-line no-undef
