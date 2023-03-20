@@ -90,9 +90,6 @@ export const Explorer: React.FC = () => {
                 setWorkingDirectory(null);
                 return;
             }
-            if (!dir.userDirectoryExists(username)) {
-                // Get confirmation to create user directory
-            }
             setWorkingDirectory(dir.getUserVersion(username));
         }
     }, [workingDirectoryPath, username]);
@@ -156,7 +153,7 @@ export const Explorer: React.FC = () => {
                 </Stack>
             );
         }
-        if (workingDirectory === null || workingDirectoryPath === "" || !workingDirectory.isDirectory()) {
+        if (workingDirectory === null || workingDirectoryPath === "" || !workingDirectory.exists()) {
             return (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
                     <LoadingButton variant="contained" onClick={toggleDrawer(true)} loading={loading}>
@@ -241,7 +238,7 @@ export const Explorer: React.FC = () => {
                 <List className="DirectoryDrawer">
                     {fmuDirectory !== null && fmuDirectory
                         .getContent()
-                        .filter(el => el.baseName() !== el.usersDirName())
+                        .filter(el => el.isDirectory())
                         .map(el => (
                             <ListItem key={el.absolutePath()} disablePadding>
                                 <ListItemButton onClick={() => handleWorkingDirectoryChange(el.absolutePath())}>
