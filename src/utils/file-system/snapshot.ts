@@ -2,6 +2,7 @@ import path from "path";
 
 import {Directory} from "./directory";
 import {File} from "./file";
+import { DIRECTORY_PATHS } from "@global/directory-paths";
 
 export interface ISnapshot {}
 
@@ -20,7 +21,7 @@ export class Snapshot implements ISnapshot {
     private snapshot: ISnapshotTree;
 
     constructor(workingDirectory: string, user: string) {
-        this.snapshotFile = new File(path.join(".users", user, ".snapshot"), workingDirectory);
+        this.snapshotFile = new File(path.join(DIRECTORY_PATHS.USERS, user, ".snapshot"), workingDirectory);
         this.modified = 0;
         this.snapshot = {};
         this.read();

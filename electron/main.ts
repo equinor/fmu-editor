@@ -10,16 +10,15 @@ import ElectronStore from "electron-store";
 
 import path from "path";
 
-import {PROCESS_ENV} from "./src/env";
 import {initIpc, pushNotification, pushStackedNotifications} from "./src/ipc-messages";
 import {createMenu} from "./src/menu";
 import {getAppIcon} from "./src/utils";
+import {isDev} from "./src/env";
 
 import {NotificationType} from "../src/shared-types/notifications";
 
 Object.assign(console, ElectronLog.functions);
 
-const isDev = PROCESS_ENV.NODE_ENV === "development";
 const appTitle = "FMU Editor";
 
 const msalDeactivated = process.argv.includes("--deactivate-msal");
@@ -84,14 +83,14 @@ async function createWindow() {
 
     createMenu({allActionsDisabled: true});
 
-    if (isDev) {
+    if (isDev()) {
         win.loadURL("http://localhost:3000");
     } else {
         win.loadURL(`file://${__dirname}/../index.html`);
     }
 
     // Hot Reloading
-    if (isDev) {
+    if (isDev()) {
         // 'node_modules/.bin/electronPath'
         /* eslint-disable global-require */
         require("electron-reload")(__dirname, {
@@ -106,7 +105,7 @@ async function createWindow() {
 
 const openApplication = async () => {
     await app.whenReady();
-    if (isDev) {
+    if (!isDev()) {
         // DevTools
         installExtension(REACT_DEVELOPER_TOOLS)
             .then(name => console.log(`Added Extension:  ${name}`))

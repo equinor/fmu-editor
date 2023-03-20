@@ -12,6 +12,8 @@ import {
     FileOperationsStatus,
 } from "@shared-types/file-operations";
 
+import { DIRECTORY_PATHS } from "@global/directory-paths";
+
 import path from "path";
 
 import {Webworker} from "./worker-utils";
@@ -23,7 +25,7 @@ let currentUsername: string = "";
 let currentWorkingDirectoryPath: string = "";
 
 const copyToUserDirectory = (workingDirectoryPath: string, user: string): void => {
-    const userDirectoryPath = path.join(".users", user);
+    const userDirectoryPath = path.join(DIRECTORY_PATHS.USERS, user);
     const mainDirectory = new Directory("", workingDirectoryPath);
     const userDirectory = new Directory(userDirectoryPath, workingDirectoryPath);
 
@@ -66,7 +68,7 @@ const maybeInitUserDirectory = (workingDirectoryPath: string, user: string): voi
         return;
     }
 
-    const userDirectoryPath = path.join(".users", user);
+    const userDirectoryPath = path.join(DIRECTORY_PATHS.USERS, user);
     const userDirectory = new Directory(userDirectoryPath, workingDirectoryPath);
 
     if (!userDirectory.exists() || userDirectory.isEmpty()) {

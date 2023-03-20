@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import {ICommit, IGlobalChangelog, ILocalChangelog, ISnapshotCommitBundle} from "@shared-types/changelog";
+import { DIRECTORY_PATHS } from "@global/directory-paths";
 
 import fs from "fs";
 import path from "path";
@@ -63,7 +64,7 @@ export class Changelog {
         if (!this.workingDirectory) {
             throw new DirectoryNotSetError();
         }
-        return path.join(this.workingDirectory, ".snapshots");
+        return path.join(this.workingDirectory, DIRECTORY_PATHS.SNAPSHOTS);
     }
 
     private static changelogIsCorrectlyFormatted(content: any): boolean {

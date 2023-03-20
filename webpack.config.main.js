@@ -33,13 +33,15 @@ module.exports = () => {
         },
         output: {
             path: paths.build,
-            filename: "main.js",
+            filename: "main/js/[name].bundle.js",
         },
         resolve: {
-            plugins: [new TsconfigPathsPlugin()],
             extensions: [".ts", ".js"],
         },
         // https://stackoverflow.com/questions/52125641/electronwebpack-module-not-found-error-cant-resolve-fsevents-fs-etc-in-cho
         plugins: [new webpack.IgnorePlugin({resourceRegExp: /^fsevents$/})],
+        optimization: {
+            minimize: false,
+        }
     };
 };

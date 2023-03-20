@@ -1,7 +1,7 @@
 import {BrowserWindow, app, ipcMain} from "electron";
 
 import {saveFileDialog, selectFileDialog} from "./commands";
-import {PROCESS_ENV} from "./env";
+import {isDev} from "./env";
 import {createMenu} from "./menu";
 
 import {FileExplorerOptions, FileOptions} from "../../src/shared-types/file-explorer-options";
@@ -11,8 +11,6 @@ import {Notification} from "../../src/shared-types/notifications";
 let signedIn = false;
 
 export const initIpc = () => {
-    const isDev = PROCESS_ENV.NODE_ENV === "development";
-
     const userDataDir = app.getPath("userData");
     const userHomeDir = app.getPath("home");
     const appDir = app.getAppPath();
@@ -23,7 +21,7 @@ export const initIpc = () => {
             userDataDir,
             userHomeDir,
             appDir,
-            isDev,
+            isDev: isDev(),
         };
     });
 
