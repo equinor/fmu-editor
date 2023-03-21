@@ -65,10 +65,9 @@ class FileChangesWatcherService extends ServiceBase<FileChangesMessages> {
             if (this.workingDirectoryPath === state.files.workingDirectoryPath) {
                 return;
             }
+            this.workingDirectoryPath = state.files.workingDirectoryPath;
             this.notifyWorkerAboutChanges();
             this.makeSnapshot();
-
-            this.workingDirectoryPath = state.files.workingDirectoryPath;
         });
 
         environmentService.getMessageBus().subscribe(EnvironmentServiceTopics.USERNAME_CHANGED, this.makeSnapshot);
