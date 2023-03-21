@@ -45,7 +45,6 @@ class FileChangesWatcherService extends ServiceBase<FileChangesMessages> {
         super();
         this.worker = new Webworker<FileChangesRequests, FileChangesResponses>({Worker: worker});
         this.initialized = false;
-        this.workingDirectoryPath = null;
 
         this.worker.on(FileChangesWatcherResponseType.FILE_CHANGES, data => {
             this.messageBus.publish(FileChangesTopics.FILES_CHANGED, {
@@ -57,31 +56,44 @@ class FileChangesWatcherService extends ServiceBase<FileChangesMessages> {
             this.initialized = true;
         });
 
+        this.workingDirectoryPath = store.getState().files.workingDirectoryPath;
+        this.notifyWorkerAboutChanges();
+        this.makeSnapshot();
+
         store.subscribe(() => {
             const state = store.getState();
-            if (this.workingDirectoryPath !== state.files.workingDirectoryPath) {
-                this.initialized = false;
-                this.messageBus.publish(FileChangesTopics.INITIALIZATION_STATE_CHANGED, {
-                    initialized: false,
-                });
-
-                this.worker.postMessage(FileChangesWatcherRequestType.SET_WORKING_DIRECTORY_PATH, {
-                    workingDirectoryPath: state.files.workingDirectoryPath,
-                });
-
-                this.snapshot = new Snapshot(state.files.workingDirectoryPath, environmentService.getUsername());
-                this.messageBus.publish(FileChangesTopics.SNAPSHOT_CHANGED);
-
-                this.workingDirectoryPath = state.files.workingDirectoryPath;
+            if (this.workingDirectoryPath === state.files.workingDirectoryPath) {
+                return;
             }
+            this.notifyWorkerAboutChanges();
+            this.makeSnapshot();
+
+            this.workingDirectoryPath = state.files.workingDirectoryPath;
         });
 
-        environmentService.getMessageBus().subscribe(EnvironmentServiceTopics.USERNAME_CHANGED, () => {
-            if (this.workingDirectoryPath !== null) {
-                this.snapshot = new Snapshot(this.workingDirectoryPath, environmentService.getUsername());
-                this.messageBus.publish(FileChangesTopics.SNAPSHOT_CHANGED);
-            }
+        environmentService.getMessageBus().subscribe(EnvironmentServiceTopics.USERNAME_CHANGED, this.makeSnapshot);
+    }
+
+    private notifyWorkerAboutChanges() {
+        if (this.workingDirectoryPath === null) {
+            return;
+        }
+        this.initialized = false;
+        this.messageBus.publish(FileChangesTopics.INITIALIZATION_STATE_CHANGED, {
+            initialized: false,
         });
+
+        this.worker.postMessage(FileChangesWatcherRequestType.SET_WORKING_DIRECTORY_PATH, {
+            workingDirectoryPath: this.workingDirectoryPath,
+        });
+    }
+
+    public makeSnapshot() {
+        if (this.workingDirectoryPath === null) {
+            return;
+        }
+        this.snapshot = new Snapshot(this.workingDirectoryPath, environmentService.getUsername());
+        this.messageBus.publish(FileChangesTopics.SNAPSHOT_CHANGED);
     }
 
     public getSnapshot(): Snapshot | null {

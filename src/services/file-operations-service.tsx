@@ -86,10 +86,11 @@ class FileOperationsService extends ServiceBase<FileOperationsMessages> {
 
         store.subscribe(() => {
             const state = store.getState();
-            if (state.files.workingDirectoryPath !== this.workingDirectoryPath) {
-                this.workingDirectoryPath = state.files.workingDirectoryPath;
-                this.notifyWorkerAboutChanges();
+            if (state.files.workingDirectoryPath === this.workingDirectoryPath) {
+                return;
             }
+            this.workingDirectoryPath = state.files.workingDirectoryPath;
+            this.notifyWorkerAboutChanges();
         });
 
         environmentService.getMessageBus().subscribe(
