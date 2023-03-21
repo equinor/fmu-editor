@@ -26,6 +26,8 @@ import {CodeEditorViewState} from "@shared-types/files";
 import {IpcMessages} from "@shared-types/ipc";
 import {View} from "@shared-types/ui";
 
+import {setDiagnosticsOptions as setErtOptions} from "@languages/monaco-ert/src";
+
 import FmuLogo from "@assets/fmu-logo.svg";
 
 // @ts-ignore
@@ -114,6 +116,7 @@ export const Editor: React.FC<EditorProps> = () => {
     const globalSettings = useGlobalSettings();
 
     useYamlSchemas(yaml);
+    setErtOptions();
 
     React.useEffect(() => {
         const timeoutRef = timeout.current;

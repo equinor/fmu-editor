@@ -34,7 +34,7 @@ export const openFile = () => {
 export const selectFileDialog = (
     event: Electron.IpcMainInvokeEvent,
     options: FileExplorerOptions
-) => {
+): string[] | undefined => {
     const browserWindow = BrowserWindow.fromId(event.sender.id);
     let dialogOptions: Electron.OpenDialogSyncOptions = {};
     if (options.isDirectoryExplorer) {
