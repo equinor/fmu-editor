@@ -1,28 +1,28 @@
 import path from "path";
 
-import { DIRECTORY_PATHS } from "@global/directory-paths";
+import { DIRECTORY_PATHS, SYSTEM_FILES } from "@global/constants";
 
 import {Directory} from "./directory";
 import {File} from "./file";
 
-export interface ISnapshot {}
+export interface ISyncSnapshot {}
 
-interface ISnapshotFile {
+interface ISyncSnapshotFile {
     modified: number;
-    snapshot: ISnapshotTree;
+    snapshot: ISyncSnapshotTree;
 }
 
-interface ISnapshotTree {
+interface ISyncSnapshotTree {
     [key: string]: number;
 }
 
-export class Snapshot implements ISnapshot {
+export class SyncSnapshot implements ISyncSnapshot {
     private snapshotFile: File;
     private modified: number;
-    private snapshot: ISnapshotTree;
+    private snapshot: ISyncSnapshotTree;
 
     constructor(workingDirectory: string, user: string) {
-        this.snapshotFile = new File(path.join(DIRECTORY_PATHS.USERS, user, ".snapshot"), workingDirectory);
+        this.snapshotFile = new File(path.join(DIRECTORY_PATHS.USERS, user, SYSTEM_FILES.SYNC_SNAPSHOT), workingDirectory);
         this.modified = 0;
         this.snapshot = {};
         this.read();
@@ -42,7 +42,7 @@ export class Snapshot implements ISnapshot {
     }
 
     private write(): void {
-        const snapshot: ISnapshotFile = {
+        const snapshot: ISyncSnapshotFile = {
             modified: new Date().getTime(),
             snapshot: this.snapshot,
         };

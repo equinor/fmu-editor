@@ -2,7 +2,7 @@ import {Changelog} from "@utils/file-system/changelog";
 import {Directory} from "@utils/file-system/directory";
 import {File} from "@utils/file-system/file";
 import {pullFiles, pushFiles} from "@utils/file-system/operations";
-import {Snapshot} from "@utils/file-system/snapshot";
+import {SyncSnapshot} from "@utils/file-system/snapshot";
 
 import {
     FileOperationsRequestType,
@@ -12,7 +12,7 @@ import {
     FileOperationsStatus,
 } from "@shared-types/file-operations";
 
-import { DIRECTORY_PATHS } from "@global/directory-paths";
+import { DIRECTORY_PATHS } from "@global/constants";
 
 import path from "path";
 
@@ -75,7 +75,7 @@ const maybeInitUserDirectory = (workingDirectoryPath: string, user: string): voi
         copyToUserDirectory(workingDirectoryPath, user);
     }
 
-    const snapshot = new Snapshot(workingDirectoryPath, user);
+    const snapshot = new SyncSnapshot(workingDirectoryPath, user);
     if (!snapshot.exists()) {
         snapshot.make();
     }

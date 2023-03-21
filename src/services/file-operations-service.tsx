@@ -56,8 +56,8 @@ export type FileOperationsMessages = {
 
 class FileOperationsService extends ServiceBase<FileOperationsMessages> {
     private worker: Webworker<FileOperationsRequests, FileOperationsResponses>;
-    private workingDirectoryPath: string | null;
-    private username: string | null;
+    private workingDirectoryPath: string;
+    private username: string;
 
     constructor() {
         super();
@@ -96,6 +96,9 @@ class FileOperationsService extends ServiceBase<FileOperationsMessages> {
         environmentService.getMessageBus().subscribe(
             EnvironmentServiceTopics.USERNAME_CHANGED,
             ({username}) => {
+                if (username === this.username) {
+                    return;
+                }
                 this.username = username;
                 this.notifyWorkerAboutChanges();
             },
@@ -104,9 +107,6 @@ class FileOperationsService extends ServiceBase<FileOperationsMessages> {
     }
 
     public notifyWorkerAboutChanges() {
-        if (!this.username || !this.workingDirectoryPath) {
-            return;
-        }
         this.worker.postMessage(FileOperationsRequestType.SET_USER_DIRECTORY, {
             username: this.username,
             directory: this.workingDirectoryPath,

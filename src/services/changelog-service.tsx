@@ -47,7 +47,10 @@ class ChangelogWatcherService extends ServiceBase<ChangelogWatcherMessages> {
 
         store.subscribe(() => {
             const {workingDirectoryPath} = store.getState().files;
-            if (workingDirectoryPath === this.workingDirectoryPath) return;
+            if (workingDirectoryPath === this.workingDirectoryPath) {
+                return;
+            }
+
             this.workingDirectoryPath = workingDirectoryPath;
             this.notifyWorkerAboutWorkingDirectoryChange();
         });

@@ -11,7 +11,7 @@ import {VscSave, VscWarning} from "react-icons/vsc";
 import {DiffEditorDidMount, MonacoDiffEditor, monaco} from "react-monaco-editor";
 
 import {File} from "@utils/file-system/file";
-import {Snapshot} from "@utils/file-system/snapshot";
+import {SyncSnapshot} from "@utils/file-system/snapshot";
 
 import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
 import {Surface} from "@components/Surface";
@@ -72,7 +72,7 @@ export const DiffEditor: React.VFC = () => {
     const [originalFileExists, setOriginalFileExists] = React.useState<boolean>(false);
     const [modifiedFileExists, setModifiedFileExists] = React.useState<boolean>(false);
     const [relativeFilePath, setRelativeFilePath] = React.useState<string>("");
-    const [snapshot, setSnapshot] = React.useState<Snapshot | null>();
+    const [snapshot, setSnapshot] = React.useState<SyncSnapshot | null>();
 
     const monacoDiffEditorRef = React.useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
     const diffEditorRef = React.useRef<HTMLDivElement | null>(null);

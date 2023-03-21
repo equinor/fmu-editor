@@ -1,6 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import {ICommit, IGlobalChangelog, ILocalChangelog, ISnapshotCommitBundle} from "@shared-types/changelog";
-import { DIRECTORY_PATHS } from "@global/directory-paths";
+import { DIRECTORY_PATHS, SYSTEM_FILES } from "@global/constants";
 
 import fs from "fs";
 import path from "path";
@@ -49,7 +49,7 @@ export class Changelog {
         if (!this.workingDirectory) {
             throw new DirectoryNotSetError();
         }
-        return path.join(this.workingDirectory, ".changelog.json");
+        return path.join(this.workingDirectory, SYSTEM_FILES.CHANGELOG);
     }
 
     private getRelativeFilePath(filePath: string): string {
@@ -146,7 +146,7 @@ export class Changelog {
         const snapshotFolders = fs.readdirSync(this.snapshotsPath()).filter(item => !/(^|\/)\.[^\/\.]/g.test(item));
         const snapshots: ISnapshotCommitBundle[] = [];
         snapshotFolders.forEach(folder => {
-            const snapshotPath = path.join(this.snapshotsPath(), folder, ".changelog.json");
+            const snapshotPath = path.join(this.snapshotsPath(), folder, SYSTEM_FILES.CHANGELOG);
             if (!fs.existsSync(snapshotPath)) {
                 return;
             }

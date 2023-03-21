@@ -10,7 +10,7 @@ export enum FileSystemWatcherResponseType {
 export type FileSystemWatcherRequests = {
     [FileSystemWatcherRequestType.UPDATE_VALUES]: {
         username: string;
-        directory: string;
+        workingDirectory: string;
         fmuDirectory: string;
     };
 };

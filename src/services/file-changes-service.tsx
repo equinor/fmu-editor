@@ -1,4 +1,4 @@
-import {Snapshot} from "@utils/file-system/snapshot";
+import {SyncSnapshot} from "@utils/file-system/snapshot";
 
 import {Webworker} from "@workers/worker-utils";
 
@@ -37,9 +37,9 @@ export type FileChangesMessages = {
 
 class FileChangesWatcherService extends ServiceBase<FileChangesMessages> {
     private worker: Webworker<FileChangesRequests, FileChangesResponses>;
-    private snapshot: Snapshot | null;
+    private snapshot: SyncSnapshot;
     private initialized: boolean;
-    private workingDirectoryPath: string | null;
+    private workingDirectoryPath: string;
 
     constructor() {
         super();
@@ -74,9 +74,6 @@ class FileChangesWatcherService extends ServiceBase<FileChangesMessages> {
     }
 
     private notifyWorkerAboutChanges() {
-        if (this.workingDirectoryPath === null) {
-            return;
-        }
         this.initialized = false;
         this.messageBus.publish(FileChangesTopics.INITIALIZATION_STATE_CHANGED, {
             initialized: false,
@@ -88,14 +85,11 @@ class FileChangesWatcherService extends ServiceBase<FileChangesMessages> {
     }
 
     public makeSnapshot() {
-        if (this.workingDirectoryPath === null) {
-            return;
-        }
-        this.snapshot = new Snapshot(this.workingDirectoryPath, environmentService.getUsername());
+        this.snapshot = new SyncSnapshot(this.workingDirectoryPath, environmentService.getUsername());
         this.messageBus.publish(FileChangesTopics.SNAPSHOT_CHANGED);
     }
 
-    public getSnapshot(): Snapshot | null {
+    public getSnapshot(): SyncSnapshot | null {
         return this.snapshot;
     }
 

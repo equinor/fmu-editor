@@ -1,7 +1,7 @@
 import fs from "fs-extra";
 import path from "path";
 
-import { DIRECTORY_PATHS } from "@global/directory-paths";
+import { DIRECTORY_PATHS } from "@global/constants";
 
 export interface IFileBasic {
     exists(): boolean;

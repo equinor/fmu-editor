@@ -1,4 +1,4 @@
-import { DIRECTORY_PATHS } from "@global/directory-paths";
+import { DIRECTORY_PATHS } from "@global/constants";
 import {generateHashCode} from "@utils/hash";
 
 import fs from "fs";
