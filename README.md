@@ -55,7 +55,7 @@ Feature requests are always welcome 😊👍. If you'd like to contribute, pleas
 
 1. Install Node.js >= 18.13.0 (https://nodejs.org/en/ or for Node Version Manager https://github.com/nvm-sh/nvm).
 
-2. Clone the dependency. Since we are working with Git submodules, please call the clone command with the `--recurse-submodules` flag.
+2. Clone the repository. Since we are working with Git submodules, please call the clone command with the `--recurse-submodules` flag.
     ```bash
     git clone --recurse-submodules [-j8] https://github.com/equinor/fmu-editor.git
     ```
