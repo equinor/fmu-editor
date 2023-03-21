@@ -140,6 +140,7 @@
         "electron:dev:no-msal": "concurrently \"cross-env BROWSER=none npm run start\" \"wait-on http://localhost:3000 && npm run build:main && cross-env NODE_ENV=development electron --deactivate-msal .\"",
         "electron:debug": "concurrently \"cross-env BROWSER=none npm run start\" \"wait-on http://localhost:3000 && npm run build:main && cross-env NODE_ENV=development electron --remote-debugging-port=9223 .\"",
         "electron:build": "npm run build:renderer && electron-builder --publish \"never\"",
+        "electron:dev:clear": "concurrently \"cross-env BROWSER=none npm run start\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=development electron --deactivate-msal --clear-config .\"",
         "lint": "npm run lint:config && npm run lint:src ",
         "stylelint": "stylelint  \"./src/**/*.tsx\"",
         "lint:config": "eslint .",

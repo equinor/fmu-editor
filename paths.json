@@ -30,6 +30,8 @@
             "@utils": ["src/utils/"],
             "@workers/*": ["src/workers/*"],
             "@workers": ["src/workers"]
+            "@languages": ["src/languages"],
+            "@languages/*": ["src/languages/*"]
         }
     }
 }

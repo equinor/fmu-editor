@@ -11,6 +11,8 @@ import {Notification} from "../../src/shared-types/notifications";
 let signedIn = false;
 
 export const initIpc = () => {
+    const clearElectronStore = process.argv.includes("--clear-config");
+
     const userDataDir = app.getPath("userData");
     const userHomeDir = app.getPath("home");
     const appDir = app.getAppPath();
@@ -22,6 +24,7 @@ export const initIpc = () => {
             userHomeDir,
             appDir,
             isDev: isDev(),
+            clearElectronStore,
         };
     });
 

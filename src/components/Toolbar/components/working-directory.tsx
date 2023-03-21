@@ -17,10 +17,17 @@ export const WorkingDirectory: React.FC = () => {
     const workingDirectory = new Directory("", workingDirectoryPath);
 
     const handleOpenDirectoryClick = () => {
-        notificationsService.publishNotification({
-            type: NotificationType.INFORMATION,
-            message: `'${workingDirectoryPath}' is your current working directory. It can be changed in the file explorer.`,
-        });
+        if (workingDirectoryPath === "") {
+            notificationsService.publishNotification({
+                type: NotificationType.WARNING,
+                message: "No working directory selected",
+            });
+        } else {
+            notificationsService.publishNotification({
+                type: NotificationType.INFORMATION,
+                message: `'${workingDirectoryPath}' is your current working directory. It can be changed in the file explorer.`,
+            });
+        }
     };
     return (
         <Button size="small" onClick={handleOpenDirectoryClick} title="Current working directory.">

@@ -111,11 +111,11 @@ export const Explorer: React.FC = () => {
     const refreshExplorer = React.useCallback(() => {
         if (workingDirectoryPath !== "" && username) {
             const dir = new Directory("", workingDirectoryPath);
-            if (dir.exists()) {
-                setWorkingDirectory(dir.getUserVersion(username));
-            } else {
+            if (!dir.exists()) {
                 setWorkingDirectory(null);
+                return;
             }
+            setWorkingDirectory(dir.getUserVersion(username));
         }
     }, [workingDirectoryPath, username]);
 
@@ -154,9 +154,12 @@ export const Explorer: React.FC = () => {
     );
 
     const makeContent = React.useCallback(() => {
-        const handleOpenDirectoryClick = () => {
-            selectFmuDirectory(fmuDirectoryPath, dispatch);
+        const handleOpenDirectoryClick = async () => {
             setLoading(true);
+            const success = await selectFmuDirectory(fmuDirectoryPath, dispatch);
+            if (!success) {
+                setLoading(false);
+            }
         };
 
         const handleCollapseAll = () => {
@@ -167,9 +170,12 @@ export const Explorer: React.FC = () => {
             return (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
                     <LoadingButton variant="contained" onClick={handleOpenDirectoryClick} loading={loading}>
-                        Select FMU Directory
+                        Select FMU Model Directory
                     </LoadingButton>
-                    <Typography>In order to start using the editor, please select your FMU directory.</Typography>
+                    <Typography>In order to start using the editor, please select your FMU model directory.</Typography>
+                    <Typography>Example:
+                        <strong> /project/your_project/resmod/ff</strong>
+                    </Typography>
                 </Stack>
             );
         }
@@ -177,9 +183,9 @@ export const Explorer: React.FC = () => {
             return (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
                     <LoadingButton variant="contained" onClick={toggleDrawer(true)} loading={loading}>
-                        Select Working Directory
+                        Select Model Version
                     </LoadingButton>
-                    <Typography>In order to start using the editor, please select your working directory.</Typography>
+                    <Typography>In order to start using the editor, please select your model version.</Typography>
                 </Stack>
             );
         }
@@ -279,8 +285,10 @@ export const Explorer: React.FC = () => {
         <Surface elevation="raised" className="Explorer">
             <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
                 <List className="DirectoryDrawer">
-                    {fmuDirectory !== null &&
-                        fmuDirectory.getContent().map(el => (
+                    {fmuDirectory !== null && fmuDirectory
+                        .getContent()
+                        .filter(el => el.isDirectory())
+                        .map(el => (
                             <ListItem key={el.absolutePath()} disablePadding>
                                 <ListItemButton onClick={() => handleWorkingDirectoryChange(el.absolutePath())}>
                                     <ListItemIcon>
