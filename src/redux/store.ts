@@ -1,7 +1,6 @@
-import {Middleware, configureStore} from "@reduxjs/toolkit";
+import {configureStore, Middleware} from "@reduxjs/toolkit";
 
 import {createLogger} from "redux-logger";
-
 import {filesSlice} from "./reducers/files";
 import {uiSlice} from "./reducers/ui";
 import {uiCoachSlice} from "./reducers/uiCoach";

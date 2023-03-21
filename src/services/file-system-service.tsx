@@ -15,44 +15,63 @@ import {
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import worker from "worker-loader!@workers/file-system-watcher.worker";
 
-import {environmentService} from "./environment-service";
+import {EnvironmentServiceTopics, environmentService} from "./environment-service";
 
-export enum FileSystemWatcherMessageTypes {
+export enum FileSystemWatcherTopics {
     AVAILABLE_WORKING_DIRECTORIES_CHANGED = "AVAILABLE_WORKING_DIRECTORIES_CHANGED",
     WORKING_DIRECTORY_CONTENT_CHANGED = "WORKING_DIRECTORY_CONTENT_CHANGED",
 }
 
 type FileSystemWatcherMessages = {
-    [FileSystemWatcherMessageTypes.AVAILABLE_WORKING_DIRECTORIES_CHANGED]: undefined;
-    [FileSystemWatcherMessageTypes.WORKING_DIRECTORY_CONTENT_CHANGED]: undefined;
+    [FileSystemWatcherTopics.AVAILABLE_WORKING_DIRECTORIES_CHANGED]: undefined;
+    [FileSystemWatcherTopics.WORKING_DIRECTORY_CONTENT_CHANGED]: undefined;
 };
 
 class FileSystemWatcherService {
     private fileSystemWatcherWorker: Webworker<FileSystemWatcherRequests, FileSystemWatcherResponses>;
     private messageBus: MessageBus<FileSystemWatcherMessages>;
-    private unsubscribeFunc: () => void;
     private username: string;
+    private fmuDirectoryPath: string;
+    private workingDirectoryPath: string;
 
     constructor() {
         this.fileSystemWatcherWorker = new Webworker<FileSystemWatcherRequests, FileSystemWatcherResponses>({
             Worker: worker,
         });
 
-        this.username = environmentService.getUsername();
-
         this.messageBus = new MessageBus<FileSystemWatcherMessages>();
 
-        this.unsubscribeFunc = store.subscribe(() => {
+        this.username = environmentService.getUsername();
+        this.fmuDirectoryPath = store.getState().files.fmuDirectoryPath;
+        this.workingDirectoryPath = store.getState().files.workingDirectoryPath;
+        this.notifyWorkerAboutChanges();
+
+        store.subscribe(() => {
             const {fmuDirectoryPath, workingDirectoryPath} = store.getState().files;
-            this.updateValues(fmuDirectoryPath, workingDirectoryPath);
+            if (fmuDirectoryPath === this.fmuDirectoryPath && workingDirectoryPath === this.workingDirectoryPath) {
+                return;
+            }
+
+            this.fmuDirectoryPath = fmuDirectoryPath;
+            this.workingDirectoryPath = workingDirectoryPath;
+            this.notifyWorkerAboutChanges();
+        });
+
+        environmentService.getMessageBus().subscribe(EnvironmentServiceTopics.USERNAME_CHANGED, ({username}) => {
+            if (username === this.username) {
+                return;
+            }
+
+            this.username = username;
+            this.notifyWorkerAboutChanges();
         });
 
         this.fileSystemWatcherWorker.on(FileSystemWatcherResponseType.AVAILABLE_WORKING_DIRECTORIES_CHANGED, () => {
-            this.messageBus.publish(FileSystemWatcherMessageTypes.AVAILABLE_WORKING_DIRECTORIES_CHANGED);
+            this.messageBus.publish(FileSystemWatcherTopics.AVAILABLE_WORKING_DIRECTORIES_CHANGED);
         });
 
         this.fileSystemWatcherWorker.on(FileSystemWatcherResponseType.WORKING_DIRECTORY_CONTENT_CHANGED, () => {
-            this.messageBus.publish(FileSystemWatcherMessageTypes.WORKING_DIRECTORY_CONTENT_CHANGED);
+            this.messageBus.publish(FileSystemWatcherTopics.WORKING_DIRECTORY_CONTENT_CHANGED);
         });
     }
 
@@ -60,15 +79,11 @@ class FileSystemWatcherService {
         return this.messageBus;
     }
 
-    destructor() {
-        this.unsubscribeFunc();
-    }
-
-    public updateValues(fmuDirectory: string, directory: string): void {
+    private notifyWorkerAboutChanges(): void {
         this.fileSystemWatcherWorker.postMessage(FileSystemWatcherRequestType.UPDATE_VALUES, {
-            fmuDirectory,
+            fmuDirectory: this.fmuDirectoryPath,
             username: this.username,
-            directory,
+            workingDirectory: this.workingDirectoryPath,
         });
     }
 }

@@ -2,6 +2,8 @@ import {MessageBus} from "@src/framework/message-bus";
 
 import {Webworker} from "@workers/worker-utils";
 
+import store from "@redux/store";
+
 import {
     ChangelogWatcherRequestTypes,
     ChangelogWatcherRequests,
@@ -27,14 +29,36 @@ export type ChangelogWatcherMessages = {
 
 class ChangelogWatcherService extends ServiceBase<ChangelogWatcherMessages> {
     private changelogWatcherWorker: Webworker<ChangelogWatcherRequests, ChangelogWatcherResponses>;
+    private workingDirectoryPath: string;
 
     constructor() {
         super();
+
         this.changelogWatcherWorker = new Webworker<ChangelogWatcherRequests, ChangelogWatcherResponses>({
             Worker: worker,
         });
+
         this.changelogWatcherWorker.on(ChangelogWatcherResponseTypes.MODIFIED, () => {
             this.messageBus.publish(ChangelogWatcherTopics.MODIFIED);
+        });
+
+        this.workingDirectoryPath = store.getState().files.workingDirectoryPath;
+        this.notifyWorkerAboutWorkingDirectoryChange();
+
+        store.subscribe(() => {
+            const {workingDirectoryPath} = store.getState().files;
+            if (workingDirectoryPath === this.workingDirectoryPath) {
+                return;
+            }
+
+            this.workingDirectoryPath = workingDirectoryPath;
+            this.notifyWorkerAboutWorkingDirectoryChange();
+        });
+    }
+
+    private notifyWorkerAboutWorkingDirectoryChange() {
+        this.changelogWatcherWorker.postMessage(ChangelogWatcherRequestTypes.SET_WORKING_DIRECTORY, {
+            workingDirectoryPath: this.workingDirectoryPath,
         });
     }
 

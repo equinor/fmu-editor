@@ -1,4 +1,3 @@
-const fs = require("fs");
 const path = require("path");
 const webpack = require("webpack");
 
@@ -14,8 +13,8 @@ const ModuleNotFoundPlugin = require("react-dev-utils/ModuleNotFoundPlugin");
 const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
 const ESLintPlugin = require("eslint-webpack-plugin");
 const getCSSModuleLocalIdent = require("react-dev-utils/getCSSModuleLocalIdent");
-const getPublicUrlOrPath = require("react-dev-utils/getPublicUrlOrPath");
 const getClientEnvironment = require("./webpack-utils/env");
+const paths = require("./webpack-utils/paths");
 
 const imageInlineSizeLimit = parseInt(process.env.IMAGE_INLINE_SIZE_LIMIT || "10000", 10);
 const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== "false";
@@ -39,35 +38,6 @@ const hasJsxRuntime = (() => {
         return false;
     }
 })();
-
-const appDirectory = fs.realpathSync(process.cwd());
-const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
-
-// We use `PUBLIC_URL` environment variable or "homepage" field to infer
-// "public path" at which the app is served.
-// webpack needs to know it to put the right <script> hrefs into HTML even in
-// single-page apps that may serve index.html for nested URLs like /todos/42.
-// We can't use a relative path in HTML because we don't want to load something
-// like /todos/42/static/js/bundle.7289d.js. We have to know the root.
-const publicUrlOrPath = getPublicUrlOrPath(
-    process.env.NODE_ENV === "development",
-    /* eslint-disable-next-line import/no-dynamic-require */
-    require(resolveApp("package.json")).homepage,
-    process.env.PUBLIC_URL
-);
-
-const paths = {
-    src: resolveApp("src"),
-    build: resolveApp("build"),
-    dist: resolveApp("dist"),
-    public: resolveApp("public"),
-    assets: resolveApp("static"),
-    appPath: resolveApp("."),
-    appPackageJson: resolveApp("package.json"),
-    appNodeModules: resolveApp("node_modules"),
-    publicUrlOrPath,
-    appTsBuildInfoFile: resolveApp("node_modules/.cache/tsconfig.tsbuildinfo"),
-};
 
 module.exports = () => {
     // We will provide `paths.publicUrlOrPath` to our app
@@ -147,15 +117,15 @@ module.exports = () => {
 
     const shouldUseReactRefresh = true;
 
-    const makeConfig = preview => ({
+    const makeRendererConfig = preview => ({
         name: preview ? "preview" : "main",
         mode: isEnvDevelopment ? "development" : "production",
         target: preview ? "web" : "electron-renderer",
         entry: preview
             ? {
-                  preview: path.join(paths.src, "preview", "index.tsx"),
+                  preview: path.resolve(paths.src, path.join("preview", "index.tsx")),
               }
-            : {main: path.join(paths.src, "index.tsx")},
+            : {main: path.resolve(paths.src, "index.tsx")},
         devtool: isEnvProduction ? "source-map" : isEnvDevelopment && "cheap-module-source-map",
         output: {
             path: paths.build,
@@ -165,7 +135,7 @@ module.exports = () => {
                 ? "static/js/[name].[contenthash:8].chunk.js"
                 : isEnvDevelopment && "static/js/[name].chunk.js",
             assetModuleFilename: "static/media/[name].[hash][ext]",
-            publicPath: publicUrlOrPath,
+            publicPath: paths.publicUrlOrPath,
             devtoolModuleFilenameTemplate: isEnvProduction
                 ? info => path.relative(paths.src, info.absoluteResourcePath).replace(/\\/g, "/")
                 : isEnvDevelopment && (info => path.resolve(info.absoluteResourcePath).replace(/\\/g, "/")),
@@ -486,5 +456,5 @@ module.exports = () => {
         },
     });
 
-    return [makeConfig(false), makeConfig(true)];
+    return [makeRendererConfig(false), makeRendererConfig(true)];
 };

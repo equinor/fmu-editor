@@ -6,7 +6,7 @@ import {v4} from "uuid";
 
 import {Directory} from "./directory";
 import {File} from "./file";
-import {Snapshot} from "./snapshot";
+import {SyncSnapshot} from "./snapshot";
 
 export type FileMap = {
     file: File;
@@ -24,7 +24,7 @@ const deduplicate = (fileMap: FileMap[]): FileMap[] => {
 
 export const compareDirectories = (workingDirectory: string, user: string): FileChange[] => {
     const changes: FileChange[] = [];
-    const snapshot = new Snapshot(workingDirectory, user);
+    const snapshot = new SyncSnapshot(workingDirectory, user);
     const mainDirectory = new Directory("./", workingDirectory);
     const userDirectory = mainDirectory.getUserVersion(user) as Directory;
 
@@ -118,7 +118,7 @@ export const pushFiles = (
     workingDirectory: string
 ): {pushedFilesPaths: string[]; notPushedFilesPaths: string[]; commit: ICommit} => {
     const committedFileChanges: FileChange[] = [];
-    const snapshot = new Snapshot(workingDirectory, username);
+    const snapshot = new SyncSnapshot(workingDirectory, username);
 
     fileChanges.forEach(fileChange => {
         if (fileChange.type === FileChangeType.DELETED) {
@@ -169,7 +169,7 @@ export const pullFiles = (
     pulledFilesPaths: string[];
     notPulledFilesPaths: string[];
 } => {
-    const snapshot = new Snapshot(workingDirectory, username);
+    const snapshot = new SyncSnapshot(workingDirectory, username);
     const pulledFileChanges: FileChange[] = [];
 
     fileChanges.forEach(fileChange => {

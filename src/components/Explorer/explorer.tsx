@@ -3,6 +3,7 @@ import {
     CircularProgress,
     Drawer,
     IconButton,
+    LinearProgress,
     List,
     ListItem,
     ListItemButton,
@@ -13,7 +14,8 @@ import {
     useTheme,
 } from "@mui/material";
 import {useEnvironmentService} from "@services/environment-service";
-import {FileSystemWatcherMessageTypes, fileSystemWatcherService} from "@services/file-system-service";
+import {FileOperationsTopics} from "@services/file-operations-service";
+import {FileSystemWatcherTopics} from "@services/file-system-service";
 
 import React from "react";
 import {VscCheck, VscChevronDown, VscCollapseAll, VscLock, VscNewFile, VscNewFolder, VscRefresh} from "react-icons/vsc";
@@ -29,6 +31,8 @@ import {setFileTreeStates, setWorkingDirectoryPath} from "@redux/reducers/files"
 import {setActiveItemPath, setCreateFile, setCreateFolder} from "@redux/reducers/ui";
 import {selectFmuDirectory} from "@redux/thunks";
 
+import {FileOperationsResponseType, FileOperationsResponses, FileOperationsStatus} from "@shared-types/file-operations";
+
 import path from "path";
 
 import {DirectoryComponent} from "./components/directory-component";
@@ -42,12 +46,33 @@ export const Explorer: React.FC = () => {
     const [workingDirectory, setWorkingDirectory] = React.useState<Directory | null>(null);
     const [drawerOpen, setDrawerOpen] = React.useState<boolean>(false);
     const [loading, setLoading] = React.useState<boolean>(false);
+    const [copyUserDirectoryState, setCopyUserDirectoryState] = React.useState<
+        FileOperationsResponses[FileOperationsResponseType.COPY_USER_DIRECTORY_PROGRESS]
+    >({
+        status: FileOperationsStatus.SUCCESS,
+        progress: 0,
+    });
 
     const explorerRef = React.useRef<HTMLDivElement | null>(null);
 
     const dispatch = useAppDispatch();
     const theme = useTheme();
     const activeItemPath = useAppSelector(state => state.ui.explorer.activeItemPath);
+
+    React.useEffect(() => {
+        const handleCopyUserDirectoryProgress = (
+            progress: FileOperationsResponses[FileOperationsResponseType.COPY_USER_DIRECTORY_PROGRESS]
+        ) => {
+            setCopyUserDirectoryState(progress);
+        };
+
+        const unsubscribeFunc = AppMessageBus.fileOperations.subscribe(
+            FileOperationsTopics.COPY_USER_DIRECTORY_PROGRESS,
+            handleCopyUserDirectoryProgress
+        );
+
+        return unsubscribeFunc;
+    }, []);
 
     React.useEffect(() => {
         const relativePath = path.relative(workingDirectoryPath, activeItemPath);
@@ -76,7 +101,7 @@ export const Explorer: React.FC = () => {
         handleWorkingDirectoriesChange();
 
         const unsubscribeFunc = AppMessageBus.fileSystem.subscribe(
-            FileSystemWatcherMessageTypes.AVAILABLE_WORKING_DIRECTORIES_CHANGED,
+            FileSystemWatcherTopics.AVAILABLE_WORKING_DIRECTORIES_CHANGED,
             handleWorkingDirectoriesChange
         );
 
@@ -100,9 +125,10 @@ export const Explorer: React.FC = () => {
     }, [refreshExplorer, workingDirectoryPath, username]);
 
     React.useEffect(() => {
-        const unsubscribeFunc = fileSystemWatcherService
-            .getMessageBus()
-            .subscribe(FileSystemWatcherMessageTypes.WORKING_DIRECTORY_CONTENT_CHANGED, refreshExplorer);
+        const unsubscribeFunc = AppMessageBus.fileSystem.subscribe(
+            FileSystemWatcherTopics.WORKING_DIRECTORY_CONTENT_CHANGED,
+            refreshExplorer
+        );
 
         return unsubscribeFunc;
     }, [refreshExplorer]);
@@ -160,6 +186,28 @@ export const Explorer: React.FC = () => {
                         Select Model Version
                     </LoadingButton>
                     <Typography>In order to start using the editor, please select your model version.</Typography>
+                </Stack>
+            );
+        }
+
+        if (copyUserDirectoryState.status === FileOperationsStatus.IN_PROGRESS) {
+            return (
+                <Stack className="ExplorerNoDirectory" spacing={2}>
+                    <LinearProgress value={copyUserDirectoryState.progress * 100} variant="determinate" />
+                    <Typography>
+                        Initializing your working directory. This may take a while depending on the size of the FMU
+                        directory...
+                    </Typography>
+                </Stack>
+            );
+        }
+
+        if (copyUserDirectoryState.status === FileOperationsStatus.ERROR) {
+            return (
+                <Stack className="ExplorerNoDirectory" spacing={2}>
+                    <Typography>
+                        Your working directory could not be initialized. Please try again or seek help.
+                    </Typography>
                 </Stack>
             );
         }
@@ -230,6 +278,7 @@ export const Explorer: React.FC = () => {
         workingDirectoryPath,
         workingDirectory,
         loading,
+        copyUserDirectoryState,
     ]);
 
     return (

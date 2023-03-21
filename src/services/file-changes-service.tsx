@@ -1,4 +1,4 @@
-import {Snapshot} from "@utils/file-system/snapshot";
+import {SyncSnapshot} from "@utils/file-system/snapshot";
 
 import {Webworker} from "@workers/worker-utils";
 
@@ -16,7 +16,7 @@ import {
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import worker from "worker-loader!@workers/file-changes-watcher.worker";
 
-import {environmentService} from "./environment-service";
+import {EnvironmentServiceTopics, environmentService} from "./environment-service";
 import {ServiceBase} from "./service-base";
 
 export enum FileChangesTopics {
@@ -37,7 +37,7 @@ export type FileChangesMessages = {
 
 class FileChangesWatcherService extends ServiceBase<FileChangesMessages> {
     private worker: Webworker<FileChangesRequests, FileChangesResponses>;
-    private snapshot: Snapshot | null;
+    private snapshot: SyncSnapshot;
     private initialized: boolean;
     private workingDirectoryPath: string;
 
@@ -56,27 +56,40 @@ class FileChangesWatcherService extends ServiceBase<FileChangesMessages> {
             this.initialized = true;
         });
 
+        this.workingDirectoryPath = store.getState().files.workingDirectoryPath;
+        this.notifyWorkerAboutChanges();
+        this.makeSnapshot();
+
         store.subscribe(() => {
             const state = store.getState();
-            if (this.workingDirectoryPath !== state.files.workingDirectoryPath) {
-                this.initialized = false;
-                this.messageBus.publish(FileChangesTopics.INITIALIZATION_STATE_CHANGED, {
-                    initialized: false,
-                });
-
-                this.worker.postMessage(FileChangesWatcherRequestType.SET_WORKING_DIRECTORY_PATH, {
-                    workingDirectoryPath: state.files.workingDirectoryPath,
-                });
-
-                this.snapshot = new Snapshot(state.files.workingDirectoryPath, environmentService.getUsername());
-                this.messageBus.publish(FileChangesTopics.SNAPSHOT_CHANGED);
-
-                this.workingDirectoryPath = state.files.workingDirectoryPath;
+            if (this.workingDirectoryPath === state.files.workingDirectoryPath) {
+                return;
             }
+            this.workingDirectoryPath = state.files.workingDirectoryPath;
+            this.notifyWorkerAboutChanges();
+            this.makeSnapshot();
+        });
+
+        environmentService.getMessageBus().subscribe(EnvironmentServiceTopics.USERNAME_CHANGED, this.makeSnapshot);
+    }
+
+    private notifyWorkerAboutChanges() {
+        this.initialized = false;
+        this.messageBus.publish(FileChangesTopics.INITIALIZATION_STATE_CHANGED, {
+            initialized: false,
+        });
+
+        this.worker.postMessage(FileChangesWatcherRequestType.SET_WORKING_DIRECTORY_PATH, {
+            workingDirectoryPath: this.workingDirectoryPath,
         });
     }
 
-    public getSnapshot(): Snapshot | null {
+    public makeSnapshot() {
+        this.snapshot = new SyncSnapshot(this.workingDirectoryPath, environmentService.getUsername());
+        this.messageBus.publish(FileChangesTopics.SNAPSHOT_CHANGED);
+    }
+
+    public getSnapshot(): SyncSnapshot | null {
         return this.snapshot;
     }
 

@@ -10,13 +10,14 @@ import {
     FileOperationsRequests,
     FileOperationsResponseType,
     FileOperationsResponses,
+    FileOperationsStatus,
 } from "@shared-types/file-operations";
 
 // @ts-ignore
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import FileOperationsWorker from "worker-loader!@workers/file-operations.worker";
 
-import {environmentService} from "./environment-service";
+import {EnvironmentServiceTopics, environmentService} from "./environment-service";
 import {ServiceBase} from "./service-base";
 
 export enum PushState {
@@ -55,6 +56,8 @@ export type FileOperationsMessages = {
 
 class FileOperationsService extends ServiceBase<FileOperationsMessages> {
     private worker: Webworker<FileOperationsRequests, FileOperationsResponses>;
+    private workingDirectoryPath: string;
+    private username: string;
 
     constructor() {
         super();
@@ -67,7 +70,47 @@ class FileOperationsService extends ServiceBase<FileOperationsMessages> {
             this.messageBus.publish(FileOperationsTopics.COPY_USER_DIRECTORY_PROGRESS, progress);
         });
 
+        this.worker.on(FileOperationsResponseType.USER_DIRECTORY_INITIALIZED, payload => {
+            this.messageBus.publish(FileOperationsTopics.COPY_USER_DIRECTORY_PROGRESS, {
+                progress: 1,
+                status: payload.success ? FileOperationsStatus.SUCCESS : FileOperationsStatus.ERROR,
+                message: payload.errorMessage,
+            });
+        });
+
         this.messageBus = new MessageBus<FileOperationsMessages>();
+
+        this.workingDirectoryPath = store.getState().files.workingDirectoryPath;
+        this.username = environmentService.getUsername();
+        this.notifyWorkerAboutChanges();
+
+        store.subscribe(() => {
+            const state = store.getState();
+            if (state.files.workingDirectoryPath === this.workingDirectoryPath) {
+                return;
+            }
+            this.workingDirectoryPath = state.files.workingDirectoryPath;
+            this.notifyWorkerAboutChanges();
+        });
+
+        environmentService.getMessageBus().subscribe(
+            EnvironmentServiceTopics.USERNAME_CHANGED,
+            ({username}) => {
+                if (username === this.username) {
+                    return;
+                }
+                this.username = username;
+                this.notifyWorkerAboutChanges();
+            },
+            true
+        );
+    }
+
+    public notifyWorkerAboutChanges() {
+        this.worker.postMessage(FileOperationsRequestType.SET_USER_DIRECTORY, {
+            username: this.username,
+            directory: this.workingDirectoryPath,
+        });
     }
 
     public copyUserDirectory(): Promise<

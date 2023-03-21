@@ -23,7 +23,7 @@
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/equinor/fmu-editor.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/equinor/fmu-editor/alerts/)
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/equinor/fmu-editor.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/equinor/fmu-editor/context:javascript)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier%20%28JavaScript%29-ff69b4.svg)](https://github.com/prettier/prettier)
-![Libraries.io dependency status for latest release](https://img.shields.io/librariesio/release/equinor/webviz-config-editor)
+![Libraries.io dependency status for latest release](https://img.shields.io/librariesio/release/equinor/fmu-editor)
 
 Enhance your work with FMU by using this integrated development environment. Benefit from its schema validation, supportive editor environment and its source control capabilities.
 
@@ -54,15 +54,33 @@ Feature requests are always welcome 😊👍. If you'd like to contribute, pleas
 ## Build Process
 
 1. Install Node.js >= 18.13.0 (https://nodejs.org/en/ or for Node Version Manager https://github.com/nvm-sh/nvm).
-2. Install dependencies:
+
+2. Clone the repository. Since we are working with Git submodules, please call the clone command with the `--recurse-submodules` flag.
+    ```bash
+    git clone --recurse-submodules [-j8] https://github.com/equinor/fmu-editor.git
+    ```
+    *`-j8` is an optional performance optimization that fetches up to 8 submodules at a time in parallel (available since git v2.8)*
+
+    If you already cloned the repository without the `--recurse-submodules` flag, you can simply run
+    ```bash
+    git submodule update --init --recursive [--jobs 8]
+    ```
+
+    When installing, npm will try to update and init the submodules automatically. However, this only works when you are logged in to your GitHub account.
+
+3. Install dependencies:
     ```bash
     npm install
     ```
-3. Start electron app in developer mode:
+
+4. Start electron app in developer mode:
     ```bash
-    npm run electron:dev
+    npm run electron:dev # For the default dev mode
+    npm run electron:dev:no-msal # No MSAL login required
+    npm run electron:dev:msal # MSAL login with persistent login
     ```
-4. In order to test the production-ready app, run:
+
+5. In order to test the production-ready app, run:
     ```bash
     npm run electron:build
     ```

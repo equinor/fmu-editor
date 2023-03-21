@@ -2,7 +2,7 @@ import {Changelog} from "@utils/file-system/changelog";
 import {Directory} from "@utils/file-system/directory";
 import {File} from "@utils/file-system/file";
 import {pullFiles, pushFiles} from "@utils/file-system/operations";
-import {Snapshot} from "@utils/file-system/snapshot";
+import {SyncSnapshot} from "@utils/file-system/snapshot";
 
 import {
     FileOperationsRequestType,
@@ -11,6 +11,8 @@ import {
     FileOperationsResponses,
     FileOperationsStatus,
 } from "@shared-types/file-operations";
+
+import { DIRECTORY_PATHS } from "@global/constants";
 
 import path from "path";
 
@@ -23,7 +25,7 @@ let currentUsername: string = "";
 let currentWorkingDirectoryPath: string = "";
 
 const copyToUserDirectory = (workingDirectoryPath: string, user: string): void => {
-    const userDirectoryPath = path.join(".users", user);
+    const userDirectoryPath = path.join(DIRECTORY_PATHS.USERS, user);
     const mainDirectory = new Directory("", workingDirectoryPath);
     const userDirectory = new Directory(userDirectoryPath, workingDirectoryPath);
 
@@ -49,8 +51,8 @@ const copyToUserDirectory = (workingDirectoryPath: string, user: string): void =
                 (fileOrDir as unknown as File).copyTo(
                     path.join(userDirectory.absolutePath(), fileOrDir.relativePath())
                 );
+                callback();
             }
-            callback();
         });
     } catch (e) {
         webworker.postMessage(FileOperationsResponseType.USER_DIRECTORY_INITIALIZED, {
@@ -66,14 +68,14 @@ const maybeInitUserDirectory = (workingDirectoryPath: string, user: string): voi
         return;
     }
 
-    const userDirectoryPath = path.join(".users", user);
+    const userDirectoryPath = path.join(DIRECTORY_PATHS.USERS, user);
     const userDirectory = new Directory(userDirectoryPath, workingDirectoryPath);
 
-    if (!userDirectory.exists()) {
+    if (!userDirectory.exists() || userDirectory.isEmpty()) {
         copyToUserDirectory(workingDirectoryPath, user);
     }
 
-    const snapshot = new Snapshot(workingDirectoryPath, user);
+    const snapshot = new SyncSnapshot(workingDirectoryPath, user);
     if (!snapshot.exists()) {
         snapshot.make();
     }

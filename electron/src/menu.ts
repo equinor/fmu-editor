@@ -1,8 +1,6 @@
 import {BrowserWindow, Menu, MenuItemConstructorOptions} from "electron";
 
-import {PROCESS_ENV} from "./env";
-
-const isDev = PROCESS_ENV.NODE_ENV === "development";
+import {isDev} from "./env";
 
 function createPreviewWindow() {
     const win = new BrowserWindow({
@@ -19,7 +17,7 @@ function createPreviewWindow() {
         },
     });
 
-    if (isDev) {
+    if (isDev()) {
         win.loadURL("http://localhost:3000/preview.html");
     } else {
         win.loadURL(`file://${__dirname}/preview.html`);
@@ -121,7 +119,7 @@ export const createMenu = (
                 },
             ],
         },
-        ...(isDev
+        ...(isDev()
             ? [
                   {
                       label: "Debug",
