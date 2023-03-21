@@ -15,6 +15,7 @@
 -   [Introduction](#introduction)
 -   [Features](#features)
 -   [Feedback](#feedback)
+-   [Development](#development)
 -   [Build Process](#build-process)
 
 ## Introduction
@@ -50,6 +51,23 @@ Available via Komodo.
 Feel free to send us feedback in the 💬 [discussions forum](https://github.com/equinor/fmu-editor/discussions) or ❗[file an issue](https://github.com/equinor/fmu-editor/issues).
 
 Feature requests are always welcome 😊👍. If you'd like to contribute, please take a look at our 📜 [guidelines](https://github.com/equinor/fmu-editor/blob/master/doc/CONTRIBUTE.md).
+
+
+## Development
+
+### Getting Started
+
+This repository has at least one submodule. Therefore you'll need to do a recursive clone:
+
+```bash
+git clone --recursive git@github.com:equinor/fmu-editor.git
+```
+
+If you've already cloned but not recursively, you can initialize any submodules with
+
+```bash
+git submodule update --init
+```
 
 ## Build Process
 
