@@ -1,8 +1,9 @@
 import path from "path";
 
+import { DIRECTORY_PATHS } from "@global/directory-paths";
+
 import {Directory} from "./directory";
 import {File} from "./file";
-import { DIRECTORY_PATHS } from "@global/directory-paths";
 
 export interface ISnapshot {}
 
