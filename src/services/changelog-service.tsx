@@ -29,9 +29,11 @@ export type ChangelogWatcherMessages = {
 
 class ChangelogWatcherService extends ServiceBase<ChangelogWatcherMessages> {
     private changelogWatcherWorker: Webworker<ChangelogWatcherRequests, ChangelogWatcherResponses>;
+    private workingDirectoryPath: string;
 
     constructor() {
         super();
+
         this.changelogWatcherWorker = new Webworker<ChangelogWatcherRequests, ChangelogWatcherResponses>({
             Worker: worker,
         });
@@ -40,11 +42,19 @@ class ChangelogWatcherService extends ServiceBase<ChangelogWatcherMessages> {
             this.messageBus.publish(ChangelogWatcherTopics.MODIFIED);
         });
 
+        this.workingDirectoryPath = store.getState().files.workingDirectoryPath;
+
         store.subscribe(() => {
             const {workingDirectoryPath} = store.getState().files;
-            this.changelogWatcherWorker.postMessage(ChangelogWatcherRequestTypes.SET_WORKING_DIRECTORY, {
-                workingDirectoryPath,
-            });
+            if (workingDirectoryPath === this.workingDirectoryPath) return;
+            this.workingDirectoryPath = workingDirectoryPath;
+            this.notifyWorkerAboutWorkingDirectoryChange();
+        });
+    }
+
+    private notifyWorkerAboutWorkingDirectoryChange() {
+        this.changelogWatcherWorker.postMessage(ChangelogWatcherRequestTypes.SET_WORKING_DIRECTORY, {
+            workingDirectoryPath: this.workingDirectoryPath,
         });
     }
 
