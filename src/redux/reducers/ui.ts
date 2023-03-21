@@ -40,7 +40,7 @@ export const uiSlice = createSlice({
         },
         setDiffUserFile: (
             state: Draft<UiState>,
-            action: PayloadAction<{userFile?: string; origin: FileChangeOrigin}>
+            action: PayloadAction<{userFile?: string;}>
         ) => {
             state.diff.modifiedRelativeFilePath = action.payload.userFile;
         },

@@ -49,7 +49,7 @@ export const SingleFileChangesBrowser: React.VFC = () => {
 
     const handleClose = React.useCallback(() => {
         dispatch(resetDiffFiles());
-        dispatch(setView(View.Main));
+        dispatch(setView(View.Editor));
     }, [dispatch]);
 
     return (

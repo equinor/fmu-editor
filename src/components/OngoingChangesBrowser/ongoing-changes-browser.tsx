@@ -4,11 +4,14 @@ import {IconButton, Stack} from "@mui/material";
 import React from "react";
 import {VscClose} from "react-icons/vsc";
 
+import {File} from "@utils/file-system/file";
+
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {resetDiffFiles, setView} from "@redux/reducers/ui";
+import {resetDiffFiles, setDiffUserFile, setView} from "@redux/reducers/ui";
 
+import {FileChangeOrigin} from "@shared-types/file-changes";
 import {View} from "@shared-types/ui";
 
 import {OngoingChangesBrowserItem} from "./components/ongoing-changes-browser-item";
@@ -16,13 +19,30 @@ import "./ongoing-changes-browser.css";
 
 export const OngoingChangesBrowser: React.VFC = () => {
     const diffFile = useAppSelector(state => state.ui.diff.originalRelativeFilePath);
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const ongoingChanges = useOngoingChangesForFile(diffFile);
     const dispatch = useAppDispatch();
 
-    const handleClose = React.useCallback(() => {
+    const handleClose = () => {
         dispatch(resetDiffFiles());
         dispatch(setView(View.Editor));
-    }, [dispatch]);
+    };
+
+    React.useEffect(() => {
+        if (ongoingChanges.length === 0) {
+            dispatch(setDiffUserFile({}));
+            return;
+        }
+        const relFilePath = ongoingChanges[0].relativePath;
+        const user = ongoingChanges[0].user;
+        const file = new File(relFilePath, workingDirectoryPath);
+        dispatch(
+            setDiffUserFile({
+                userFile: file.getUserVersion(user).relativePath(),
+                origin: FileChangeOrigin.USER,
+            })
+        );
+    }, [ongoingChanges, workingDirectoryPath, dispatch]);
 
     return (
         <Surface elevation="raised" className="Explorer">
