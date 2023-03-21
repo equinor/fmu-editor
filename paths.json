@@ -12,6 +12,8 @@
             "@global/*": ["src/global/*"],
             "@hooks/*": ["src/hooks/*"],
             "@hooks": ["src/hooks"],
+            "@languages": ["src/languages"],
+            "@languages/*": ["src/languages/*"],
             "@preview": ["src/preview"],
             "@preview/*": ["src/preview/*"],
             "@redux/*": ["src/redux/*"],
@@ -30,8 +32,6 @@
             "@utils": ["src/utils/"],
             "@workers/*": ["src/workers/*"],
             "@workers": ["src/workers"]
-            "@languages": ["src/languages"],
-            "@languages/*": ["src/languages/*"]
         }
     }
 }
