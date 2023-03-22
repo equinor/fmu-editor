@@ -96,6 +96,9 @@ export const PageTabs: React.VFC = () => {
                     className="MenuTab"
                     onClick={() => handlePageClick(View.SourceControl)}
                 />
+                <Tab style={{visibility: "hidden"}} value={View.OngoingChanges} />
+                <Tab style={{visibility: "hidden"}} value={View.Merge} />
+                <Tab style={{visibility: "hidden"}} value={View.SingleFileChanges} />
             </Tabs>
             <div className="GlobalSettings">
                 <Login />

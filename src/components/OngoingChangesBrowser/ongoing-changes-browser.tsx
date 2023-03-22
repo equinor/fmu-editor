@@ -9,9 +9,8 @@ import {File} from "@utils/file-system/file";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {resetDiffFiles, setDiffUserFile, setView} from "@redux/reducers/ui";
+import {resetDiffFiles, setDiffModifiedFilePath, setView} from "@redux/reducers/ui";
 
-import {FileChangeOrigin} from "@shared-types/file-changes";
 import {View} from "@shared-types/ui";
 
 import {OngoingChangesBrowserItem} from "./components/ongoing-changes-browser-item";
@@ -30,16 +29,15 @@ export const OngoingChangesBrowser: React.VFC = () => {
 
     React.useEffect(() => {
         if (ongoingChanges.length === 0) {
-            dispatch(setDiffUserFile({}));
+            dispatch(setDiffModifiedFilePath({}));
             return;
         }
         const relFilePath = ongoingChanges[0].relativePath;
         const user = ongoingChanges[0].user;
         const file = new File(relFilePath, workingDirectoryPath);
         dispatch(
-            setDiffUserFile({
-                userFile: file.getUserVersion(user).relativePath(),
-                origin: FileChangeOrigin.USER,
+            setDiffModifiedFilePath({
+                modifiedRelativeFilePath: file.getUserVersion(user).relativePath(),
             })
         );
     }, [ongoingChanges, workingDirectoryPath, dispatch]);

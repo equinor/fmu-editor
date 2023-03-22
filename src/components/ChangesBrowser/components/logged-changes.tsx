@@ -50,8 +50,8 @@ export const LoggedChanges: React.VFC = () => {
                 : path.relative(workingDirectoryPath, path.join(workingDirectoryPath, file));
             dispatch(
                 setDiffFiles({
-                    mainFile,
-                    userFile: currentCommit.snapshotPath
+                    originalRelativeFilePath: mainFile,
+                    modifiedRelativeFilePath: currentCommit.snapshotPath
                         ? path.relative(workingDirectoryPath, path.join(currentCommit.snapshotPath, file))
                         : file,
                     origin: FileChangeOrigin.USER,

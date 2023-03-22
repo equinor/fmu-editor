@@ -13,7 +13,8 @@ import {Pull} from "@components/Pull";
 import {ResizablePanels} from "@components/ResizablePanels";
 import {Toolbar} from "@components/Toolbar";
 
-import {useAppSelector} from "@redux/hooks";
+import {useAppDispatch, useAppSelector} from "@redux/hooks";
+import {setDiffModifiedFilePath} from "@redux/reducers/ui";
 
 import {View} from "@shared-types/ui";
 
@@ -27,6 +28,7 @@ import {SingleFileChangesBrowser} from "../SingleFileChangesBrowser/single-file-
 
 export const MainWindow: React.FC = () => {
     const theme = useTheme();
+    const dispatch = useAppDispatch();
 
     const mainWindowRef = React.useRef<HTMLDivElement | null>(null);
     const files = useAppSelector(state => state.files);
@@ -44,6 +46,10 @@ export const MainWindow: React.FC = () => {
         }
         document.title = "FMU Editor";
     }, [files, view]);
+
+    const handleOngoingChangesEditorClose = () => {
+        dispatch(setDiffModifiedFilePath({}));
+    };
 
     return (
         <div className="MainWindow" ref={mainWindowRef} style={{backgroundColor: theme.palette.background.default}}>
@@ -66,7 +72,9 @@ export const MainWindow: React.FC = () => {
                         <Page name={View.OngoingChanges}>
                             <ResizablePanels direction="horizontal" id="user-changes" minSizes={[300, 0]}>
                                 <OngoingChangesBrowser />
-                                {originalRelativeFilePath ? <DiffEditor /> : null}
+                                {originalRelativeFilePath ? (
+                                    <DiffEditor onClose={handleOngoingChangesEditorClose} />
+                                ) : null}
                             </ResizablePanels>
                         </Page>
                         <Page name={View.SingleFileChanges}>

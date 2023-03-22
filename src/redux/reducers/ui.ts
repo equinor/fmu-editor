@@ -38,17 +38,17 @@ export const uiSlice = createSlice({
         setCurrentCommit: (state: Draft<UiState>, action: PayloadAction<ICommitExtended | undefined>) => {
             state.currentCommit = action.payload;
         },
-        setDiffUserFile: (
+        setDiffModifiedFilePath: (
             state: Draft<UiState>,
-            action: PayloadAction<{userFile?: string;}>
+            action: PayloadAction<{modifiedRelativeFilePath?: string}>
         ) => {
-            state.diff.modifiedRelativeFilePath = action.payload.userFile;
+            state.diff.modifiedRelativeFilePath = action.payload.modifiedRelativeFilePath;
         },
-        setDiffMainFile: (
+        setDiffOriginalFilePath: (
             state: Draft<UiState>,
-            action: PayloadAction<{mainFile?: string; origin: FileChangeOrigin}>
+            action: PayloadAction<{originalRelativeFilePath?: string}>
         ) => {
-            state.diff.originalRelativeFilePath = action.payload.mainFile;
+            state.diff.originalRelativeFilePath = action.payload.originalRelativeFilePath;
         },
         setChangesBrowserView: (state: Draft<UiState>, action: PayloadAction<ChangesBrowserView>) => {
             state.changesBrowserView = action.payload;
@@ -58,10 +58,14 @@ export const uiSlice = createSlice({
         },
         setDiffFiles: (
             state: Draft<UiState>,
-            action: PayloadAction<{mainFile?: string; userFile?: string; origin: FileChangeOrigin}>
+            action: PayloadAction<{
+                originalRelativeFilePath?: string;
+                modifiedRelativeFilePath?: string;
+                origin: FileChangeOrigin;
+            }>
         ) => {
-            state.diff.originalRelativeFilePath = action.payload.mainFile;
-            state.diff.modifiedRelativeFilePath = action.payload.userFile;
+            state.diff.originalRelativeFilePath = action.payload.originalRelativeFilePath;
+            state.diff.modifiedRelativeFilePath = action.payload.modifiedRelativeFilePath;
             state.diff.fileOrigin = action.payload.origin;
         },
         resetDiffFiles: (state: Draft<UiState>) => {
@@ -96,8 +100,8 @@ export const {
     setChangesBrowserView,
     setPreviewOpen,
     setDiffFiles,
-    setDiffMainFile,
-    setDiffUserFile,
+    setDiffOriginalFilePath,
+    setDiffModifiedFilePath,
     resetDiffFiles,
     setDragParentFolder,
     resetDragParentFolder,

@@ -9,10 +9,9 @@ import {CommitList} from "@components/CommitList";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {resetDiffFiles, setDiffUserFile, setView} from "@redux/reducers/ui";
+import {resetDiffFiles, setDiffModifiedFilePath, setView} from "@redux/reducers/ui";
 
 import {ISnapshotCommitBundle} from "@shared-types/changelog";
-import {FileChangeOrigin} from "@shared-types/file-changes";
 import {NotificationType} from "@shared-types/notifications";
 import {View} from "@shared-types/ui";
 
@@ -43,7 +42,9 @@ export const SingleFileChangesBrowser: React.VFC = () => {
 
     React.useEffect(() => {
         dispatch(
-            setDiffUserFile({userFile: path.relative(workingDirectoryPath, activeFile), origin: FileChangeOrigin.USER})
+            setDiffModifiedFilePath({
+                modifiedRelativeFilePath: path.relative(workingDirectoryPath, activeFile),
+            })
         );
     }, [activeFile, dispatch, workingDirectoryPath]);
 
