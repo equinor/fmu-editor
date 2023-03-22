@@ -78,9 +78,11 @@ class ChangelogWatcherService extends ServiceBase<ChangelogWatcherMessages> {
         });
     }
 
-    public getChangesForFile(filePath: string): Promise<ISnapshotCommitBundle[]> {
+    public getChangesForFile(relativeFilePath: string): Promise<ISnapshotCommitBundle[]> {
         return new Promise((resolve, reject) => {
-            this.changelogWatcherWorker.postMessage(ChangelogWatcherRequestTypes.GET_CHANGES_FOR_FILE, {filePath});
+            this.changelogWatcherWorker.postMessage(ChangelogWatcherRequestTypes.GET_CHANGES_FOR_FILE, {
+                relativeFilePath,
+            });
             this.changelogWatcherWorker.on(ChangelogWatcherResponseTypes.CHANGES_FOR_FILE, ({changes}) => {
                 resolve(changes);
             });

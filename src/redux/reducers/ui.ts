@@ -14,6 +14,9 @@ export const uiSlice = createSlice({
     reducers: {
         setView: (state: Draft<UiState>, action: PayloadAction<View>) => {
             state.view = action.payload;
+            if ([View.Editor, View.SourceControl].includes(action.payload)) {
+                electronStore.set("ui.activeView", action.payload);
+            }
         },
         setTheme: (state: Draft<UiState>, action: PayloadAction<Themes>) => {
             electronStore.set("ui.settings.theme", action.payload);

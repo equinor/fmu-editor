@@ -29,17 +29,17 @@ const refreshChangelog = () => {
 // eslint-disable-next-line no-restricted-globals
 self.setInterval(refreshChangelog, 3000);
 
-webworker.on(ChangelogWatcherRequestTypes.SET_WORKING_DIRECTORY, ({workingDirectory}) => {
-    changelog.setWorkingDirectory(workingDirectory);
+webworker.on(ChangelogWatcherRequestTypes.SET_WORKING_DIRECTORY, ({workingDirectoryPath}) => {
+    changelog.setWorkingDirectoryPath(workingDirectoryPath);
 });
 
 webworker.on(ChangelogWatcherRequestTypes.APPEND_COMMIT, ({commit}) => {
     changelog.appendCommit(commit);
 });
 
-webworker.on(ChangelogWatcherRequestTypes.GET_CHANGES_FOR_FILE, ({filePath}) => {
+webworker.on(ChangelogWatcherRequestTypes.GET_CHANGES_FOR_FILE, ({relativeFilePath}) => {
     webworker.postMessage(ChangelogWatcherResponseTypes.CHANGES_FOR_FILE, {
-        changes: changelog.getChangesForFile(filePath),
+        changes: changelog.getChangesForFile(relativeFilePath),
     });
 });
 

@@ -9,13 +9,18 @@ import {VscSourceControl} from "react-icons/vsc";
 import {CommitList} from "@components/CommitList";
 import {Surface} from "@components/Surface";
 
-import {ISnapshotCommitBundle} from "@shared-types/changelog";
+import {useAppDispatch} from "@redux/hooks";
+import {setCurrentCommit} from "@redux/reducers/ui";
+
+import {ICommit, ISnapshotCommitBundle} from "@shared-types/changelog";
 import {NotificationType} from "@shared-types/notifications";
 
 import "./commit-browser.css";
 
 export const CommitBrowser: React.FC = () => {
     const [commitBundles, setCommitBundles] = React.useState<ISnapshotCommitBundle[]>([]);
+
+    const dispatch = useAppDispatch();
 
     React.useEffect(() => {
         const getChangelogChanges = () => {
@@ -40,6 +45,13 @@ export const CommitBrowser: React.FC = () => {
         return unsubscribeFunc;
     }, []);
 
+    const handleCommitClick = React.useCallback(
+        (commit: ICommit, snapshotPath: string, compareSnapshotPath: string) => {
+            dispatch(setCurrentCommit({...commit, snapshotPath, compareSnapshotPath}));
+        },
+        [dispatch]
+    );
+
     return (
         <Surface elevation="none" className="CommitBrowser">
             <div className="CommitBrowserContent">
@@ -49,7 +61,7 @@ export const CommitBrowser: React.FC = () => {
                         <Typography variant="body2">No commits in the current working directory yet</Typography>
                     </Stack>
                 ) : (
-                    <CommitList commitBundles={commitBundles} />
+                    <CommitList commitBundles={commitBundles} onCommitClick={handleCommitClick} />
                 )}
             </div>
         </Surface>

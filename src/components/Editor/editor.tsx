@@ -1,4 +1,5 @@
 import {useYamlSchemas} from "@hooks/useYamlSchema";
+import {setDiagnosticsOptions as setErtOptions} from "@languages/monaco-ert/src";
 import {Button, IconButton, Typography, useTheme} from "@mui/material";
 import useSize from "@react-hook/size";
 
@@ -25,8 +26,6 @@ import {openFile} from "@redux/thunks";
 import {CodeEditorViewState} from "@shared-types/files";
 import {IpcMessages} from "@shared-types/ipc";
 import {View} from "@shared-types/ui";
-
-import {setDiagnosticsOptions as setErtOptions} from "@languages/monaco-ert/src";
 
 import FmuLogo from "@assets/fmu-logo.svg";
 
@@ -306,7 +305,7 @@ export const Editor: React.FC<EditorProps> = () => {
                     Drop into editor to open file
                 </div>
                 <div className="EditorContainer" style={{display: !noModels ? "flex" : "none"}}>
-                    <ResizablePanels direction="vertical" id="Editor-Issues" minSizes={[0, 80]}>
+                    <ResizablePanels direction="vertical" id="editor-issues" minSizes={[0, 80]}>
                         <div className="Editor">
                             <FileTabs
                                 onFileChange={handleFileChange}
@@ -338,7 +337,7 @@ export const Editor: React.FC<EditorProps> = () => {
                             />
                             <ResizablePanels
                                 direction="horizontal"
-                                id="Editor-Preview"
+                                id="editor-preview"
                                 minSizes={[100, 200]}
                                 visible={[true, previewVisible]}
                             >

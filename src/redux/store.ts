@@ -1,9 +1,9 @@
-import {configureStore, Middleware} from "@reduxjs/toolkit";
+import {Middleware, configureStore} from "@reduxjs/toolkit";
 
 import {createLogger} from "redux-logger";
+
 import {filesSlice} from "./reducers/files";
 import {uiSlice} from "./reducers/ui";
-import {uiCoachSlice} from "./reducers/uiCoach";
 
 const middlewares: Middleware[] = [];
 
@@ -19,7 +19,6 @@ if (process.env.NODE_ENV === `development`) {
 const store = configureStore({
     reducer: {
         ui: uiSlice.reducer,
-        uiCoach: uiCoachSlice.reducer,
         files: filesSlice.reducer,
     },
     middleware: getDefaultMiddleware => [...getDefaultMiddleware().concat(middlewares)],

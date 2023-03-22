@@ -28,10 +28,16 @@
     cursor: pointer;
 }
 
-.CommitItem--selected, .CommitItem--selected:hover {
+.CommitItem--selected, .CommitItem--selected:hover, .CommitItem__Time--selected {
      background-color: var(--primary);
      color: var(--text-on-primary);
      border-left: 2px solid var(--primary);
+}
+
+.CommitItem__Text {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .CommitList__NoCommits {

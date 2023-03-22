@@ -70,12 +70,18 @@ export const LoggedChanges: React.VFC = () => {
         );
     }
 
+    const commitTitle = currentCommit.message.split("\n")[0];
+    const commitMessage = currentCommit.message.split("\n").slice(1).join("<br />");
+
     return (
         <Stack direction="column" className="ChangesBrowserContent" spacing={2}>
             <div className="ChangesBrowserContentHeader" title={currentCommit.id}>
-                Commit: {currentCommit.id}
+                <span>Commit: {currentCommit.id}</span>
             </div>
-            <div className="ChangesBrowserText">{currentCommit.message}</div>
+            <div className="ChangesBrowserTextWrapper">
+                <div className="ChangesBrowserTextTitle">{commitTitle}</div>
+                {commitMessage.length > 0 && <div className="ChangesBrowserText">{commitMessage}</div>}
+            </div>
             <div className="ChangesBrowserUser">
                 <Avatar user={currentCommit.author} size={40} getDetails={(_, details) => setUserDetails(details)} />
                 <div>

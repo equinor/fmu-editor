@@ -61,13 +61,13 @@ export enum ChangelogWatcherResponseTypes {
 
 export type ChangelogWatcherRequests = {
     [ChangelogWatcherRequestTypes.SET_WORKING_DIRECTORY]: {
-        workingDirectory: string;
+        workingDirectoryPath: string;
     };
     [ChangelogWatcherRequestTypes.APPEND_COMMIT]: {
         commit: ICommit;
     };
     [ChangelogWatcherRequestTypes.GET_CHANGES_FOR_FILE]: {
-        filePath: string;
+        relativeFilePath: string;
     };
     [ChangelogWatcherRequestTypes.GET_ALL_CHANGES]: {};
 };

@@ -27,8 +27,10 @@ export const Commit: React.FC<CommitProps> = props => {
             <ListItemAvatar>
                 <Avatar user={props.user} size={24} />
             </ListItemAvatar>
-            {summary}
-            <ListItemSecondaryAction className="CommitItem__Time">
+            <div className="CommitItem__Text">{summary}</div>
+            <ListItemSecondaryAction
+                className={`CommitItem__Time${currentCommit?.id === props.id ? " CommitItem__Time--selected" : ""}`}
+            >
                 {new Date(props.datetime).toLocaleTimeString()}
             </ListItemSecondaryAction>
         </ListItem>

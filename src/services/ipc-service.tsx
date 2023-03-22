@@ -5,12 +5,13 @@ import React from "react";
 import {useMainProcessDataProvider} from "@components/MainProcessDataProvider/main-process-data-provider";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setInitialConfigurationDone} from "@redux/reducers/uiCoach";
 import {saveFile} from "@redux/thunks";
 
 import {NotificationType} from "@shared-types/notifications";
 
 import {notificationsService} from "./notifications-service";
+
+import electronStore from "../utils/electron-store";
 
 export const IpcService: React.FC = props => {
     const dispatch = useAppDispatch();
@@ -42,12 +43,13 @@ export const IpcService: React.FC = props => {
             });
         });
 
-        addListener("debug:reset", () => {
-            dispatch(setInitialConfigurationDone(false));
+        addListener("debug:reset-electron-store", () => {
+            electronStore.clear();
             notificationsService.publishNotification({
                 type: NotificationType.SUCCESS,
-                message: "Initial configuration state reset.",
+                message: "Electron store successfully reset.",
             });
+            window.location.reload();
         });
 
         addListener("push-notification", (_, notification) => {

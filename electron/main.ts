@@ -10,19 +10,16 @@ import ElectronStore from "electron-store";
 
 import path from "path";
 
+import {IS_DEV, MSAL_PERSISTENCE, NO_MSAL} from "./src/env";
 import {initIpc, pushNotification, pushStackedNotifications} from "./src/ipc-messages";
 import {createMenu} from "./src/menu";
 import {getAppIcon} from "./src/utils";
-import {isDev} from "./src/env";
 
 import {NotificationType} from "../src/shared-types/notifications";
 
 Object.assign(console, ElectronLog.functions);
 
 const appTitle = "FMU Editor";
-
-const msalDeactivated = process.argv.includes("--deactivate-msal");
-const msalPersistence = process.argv.includes("--msal-persistence");
 
 initIpc();
 
@@ -42,7 +39,7 @@ async function createWindow() {
         },
     });
 
-    if (!msalDeactivated) {
+    if (!NO_MSAL) {
         const config: MsalElectronConfig = {
             clientId: "6f2755e8-06e5-4f2e-8129-029c1c71d347",
             authority: "https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0",
@@ -51,7 +48,7 @@ async function createWindow() {
             cachePlugin: undefined,
         };
 
-        if (msalPersistence) {
+        if (MSAL_PERSISTENCE) {
             pushNotification({
                 type: NotificationType.INFORMATION,
                 message: "Using MSAL persistence",
@@ -83,14 +80,14 @@ async function createWindow() {
 
     createMenu({allActionsDisabled: true});
 
-    if (isDev()) {
+    if (IS_DEV) {
         win.loadURL("http://localhost:3000");
     } else {
         win.loadURL(`file://${__dirname}/../index.html`);
     }
 
     // Hot Reloading
-    if (isDev()) {
+    if (IS_DEV) {
         // 'node_modules/.bin/electronPath'
         /* eslint-disable global-require */
         require("electron-reload")(__dirname, {
@@ -105,7 +102,7 @@ async function createWindow() {
 
 const openApplication = async () => {
     await app.whenReady();
-    if (!isDev()) {
+    if (!IS_DEV) {
         // DevTools
         installExtension(REACT_DEVELOPER_TOOLS)
             .then(name => console.log(`Added Extension:  ${name}`))

@@ -1,5 +1,5 @@
-import { app } from "electron";
+import {app} from "electron";
 
-export function isDev() {
-    return !app.isPackaged;
-}
+export const IS_DEV = !app.isPackaged;
+export const NO_MSAL = process.argv.includes("--deactivate-msal");
+export const MSAL_PERSISTENCE = process.argv.includes("--msal-persistence");

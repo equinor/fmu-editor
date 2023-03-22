@@ -1,6 +1,6 @@
 import {BrowserWindow, Menu, MenuItemConstructorOptions} from "electron";
 
-import {isDev} from "./env";
+import {IS_DEV} from "./env";
 
 function createPreviewWindow() {
     const win = new BrowserWindow({
@@ -17,7 +17,7 @@ function createPreviewWindow() {
         },
     });
 
-    if (isDev()) {
+    if (IS_DEV) {
         win.loadURL("http://localhost:3000/preview.html");
     } else {
         win.loadURL(`file://${__dirname}/preview.html`);
@@ -119,7 +119,7 @@ export const createMenu = (
                 },
             ],
         },
-        ...(isDev()
+        ...(IS_DEV
             ? [
                   {
                       label: "Debug",
@@ -129,9 +129,12 @@ export const createMenu = (
                           {type: "separator"},
                           {role: "toggleDevTools"},
                           {
-                              label: "Reset Initialization",
-                              click(_: any, browserWindow: BrowserWindow) {
-                                  browserWindow.webContents.send("debug:reset-init");
+                              label: "Reset Electron Store",
+                              click() {
+                                  const window = BrowserWindow.getFocusedWindow();
+                                  if (window) {
+                                      window.webContents.send("debug:reset-electron-store");
+                                  }
                               },
                           },
                           {

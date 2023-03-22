@@ -2,9 +2,6 @@ import {List, ListSubheader} from "@mui/material";
 
 import React from "react";
 
-import {useAppDispatch} from "@redux/hooks";
-import {setCurrentCommit} from "@redux/reducers/ui";
-
 import {ICommit, ISnapshotCommitBundle} from "@shared-types/changelog";
 
 import "./commit-list.css";
@@ -12,17 +9,23 @@ import {Commit} from "./components/commit";
 
 export type CommitListProps = {
     commitBundles: ISnapshotCommitBundle[];
+    onCommitClick?: (
+        commit: ICommit,
+        snapshotPath: string | null,
+        compareSnapshotPath: string | null | undefined
+    ) => void;
 };
 
 export const CommitList: React.FC<CommitListProps> = props => {
-    const dispatch = useAppDispatch();
-
     const handleCommitClick = (
         commit: ICommit,
         snapshotPath: string | null,
         compareSnapshotPath: string | null | undefined
     ) => {
-        dispatch(setCurrentCommit({...commit, snapshotPath, compareSnapshotPath}));
+        if (!props.onCommitClick) {
+            return;
+        }
+        props.onCommitClick(commit, snapshotPath, compareSnapshotPath);
     };
 
     if (props.commitBundles.length === 0) {
