@@ -88,18 +88,19 @@ export class Changelog {
 
         this.createLocalChangelogFileIfNotExists();
 
-        const content = this.changelogFile.readJson();
+        const content: ILocalChangelog = this.changelogFile.readJson();
+        const {snapshotCommits, lastModified} = this.getSnapshotCommits();
 
         this.changelog = {
             created: content.created,
             directory: content.directory,
             modified: content.modified,
             log: [
-                ...this.getSnapshotCommits(),
+                ...snapshotCommits,
                 {
                     snapshotPath: null,
                     modified: content.modified,
-                    commits: content.log,
+                    commits: content.log.filter(el => el.datetime > lastModified),
                 },
             ],
         };
@@ -113,18 +114,26 @@ export class Changelog {
         return this.changelog;
     }
 
-    private getSnapshotCommits: () => ISnapshotCommitBundle[] = () => {
+    private getSnapshotCommits(): {snapshotCommits: ISnapshotCommitBundle[]; lastModified: number} {
         if (!this.workingDirectoryPath) {
-            return [];
+            return {snapshotCommits: [], lastModified: 0};
         }
 
         if (!this.changelogFile.exists()) {
-            return [];
+            return {snapshotCommits: [], lastModified: 0};
         }
 
         const snapshotDirectory = new Directory(DIRECTORY_PATHS.SNAPSHOTS, this.workingDirectoryPath);
+        const snapshotFolders = snapshotDirectory
+            .getContent()
+            .filter(item => item.isDirectory())
+            .sort((a, b) => {
+                const aModified = new File(SYSTEM_FILES.CHANGELOG, a.absolutePath()).modifiedTime();
+                const bModified = new File(SYSTEM_FILES.CHANGELOG, b.absolutePath()).modifiedTime();
+                return aModified - bModified;
+            });
 
-        const snapshotFolders = snapshotDirectory.getContent().filter(item => item.isDirectory());
+        let currentLastModified = 0;
         const snapshots: ISnapshotCommitBundle[] = [];
         snapshotFolders.forEach(folder => {
             const changelogFile = new File(SYSTEM_FILES.CHANGELOG, folder.absolutePath());
@@ -132,16 +141,18 @@ export class Changelog {
                 return;
             }
 
-            const snapshotChangelog = changelogFile.readJson();
+            const snapshotChangelog: ILocalChangelog = changelogFile.readJson();
             snapshots.push({
                 snapshotPath: folder.absolutePath(),
-                modified: changelogFile.modifiedTime(),
-                commits: snapshotChangelog.log,
+                modified: snapshotChangelog.modified,
+                commits: snapshotChangelog.log.filter(el => el.datetime > currentLastModified),
             });
+
+            currentLastModified = snapshotChangelog.modified;
         });
 
-        return snapshots;
-    };
+        return {snapshotCommits: snapshots, lastModified: currentLastModified};
+    }
 
     public saveLocalChangelog(): boolean {
         if (!this.workingDirectoryPath) {

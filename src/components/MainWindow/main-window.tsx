@@ -65,13 +65,13 @@ export const MainWindow: React.FC = () => {
                 <PageTabs />
                 <div className="InnerContentWrapper">
                     <Pages activePage={view}>
-                        <Page name={View.Editor}>
+                        <Page name={View.Editor} persistent>
                             <ResizablePanels direction="horizontal" id="file-explorer" minSizes={[250, 0]}>
                                 <Explorer />
                                 <Editor />
                             </ResizablePanels>
                         </Page>
-                        <Page name={View.SourceControl}>
+                        <Page name={View.SourceControl} persistent>
                             <ResizablePanels direction="horizontal" id="source-control" minSizes={[300, 0]}>
                                 <ChangesBrowser />
                                 {originalRelativeFilePath ? (

@@ -1,5 +1,7 @@
+import {useFileChanges} from "@hooks/useFileChanges";
 import {useOngoingChangesForFile} from "@hooks/useOngoingChangesForFile";
-import {AvatarGroup} from "@mui/material";
+import {AvatarGroup, Avatar as MuiAvatar, useTheme} from "@mui/material";
+import {useEnvironmentService} from "@services/environment-service";
 import {notificationsService} from "@services/notifications-service";
 
 import React from "react";
@@ -26,14 +28,22 @@ export type FileComponentProps = {
     level: number;
 };
 
+const FILE_ORIGINS = [FileChangeOrigin.USER, FileChangeOrigin.BOTH];
+
 export const FileComponent: React.FC<FileComponentProps> = props => {
     const [fileName, setFileName] = React.useState<string>(props.file.baseName());
     const [editMode, setEditMode] = React.useState<boolean>(false);
     const [deleted, setDeleted] = React.useState<boolean>(false);
+    const [uncommitted, setUncommitted] = React.useState<boolean>(false);
 
     const ref = React.useRef<HTMLAnchorElement | null>(null);
 
+    const theme = useTheme();
+
     const userChanges = useOngoingChangesForFile(props.file.getMainVersion().relativePath());
+    const {fileChanges} = useFileChanges(FILE_ORIGINS);
+    const {username} = useEnvironmentService();
+
     const dispatch = useAppDispatch();
     const globalSettings = useGlobalSettings();
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
@@ -57,6 +67,18 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
     React.useEffect(() => {
         setFileName(props.file.baseName());
     }, [props.file]);
+
+    React.useEffect(() => {
+        setUncommitted(
+            fileChanges.some(change => {
+                const changeFile = new File(change.relativePath, workingDirectoryPath);
+                return (
+                    changeFile.getUserVersion(username).relativePath() ===
+                    props.file.getUserVersion(username).relativePath()
+                );
+            })
+        );
+    }, [fileChanges, props.file, workingDirectoryPath, username]);
 
     const handleUserChangesClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         dispatch(
@@ -197,8 +219,25 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
                             }}
                             onClick={handleUserChangesClick}
                         >
+                            {uncommitted && (
+                                <span title="You have uncommitted changes">
+                                    <MuiAvatar
+                                        key="uncommitted-changes"
+                                        sx={{
+                                            width: 16,
+                                            height: 16,
+                                            backgroundColor: theme.palette.info.light,
+                                        }}
+                                    />
+                                </span>
+                            )}
                             {userChanges.map(change => (
-                                <Avatar key={change.user} user={change.user} size={16} />
+                                <Avatar
+                                    titleFormatter={user => `${user} has uncommitted changes`}
+                                    key={change.user}
+                                    user={change.user}
+                                    size={16}
+                                />
                             ))}
                         </AvatarGroup>
                     </div>

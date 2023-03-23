@@ -1,4 +1,4 @@
-import {Typography} from "@mui/material";
+import {CircularProgress, Typography} from "@mui/material";
 import {Stack} from "@mui/system";
 import {ChangelogWatcherTopics, changelogWatcherService} from "@services/changelog-service";
 import {notificationsService} from "@services/notifications-service";
@@ -18,6 +18,7 @@ import {NotificationType} from "@shared-types/notifications";
 import "./commit-browser.css";
 
 export const CommitBrowser: React.FC = () => {
+    const [initialized, setInitialized] = React.useState<boolean>(false);
     const [commitBundles, setCommitBundles] = React.useState<ISnapshotCommitBundle[]>([]);
 
     const dispatch = useAppDispatch();
@@ -34,6 +35,9 @@ export const CommitBrowser: React.FC = () => {
                         type: NotificationType.ERROR,
                         message: error,
                     });
+                })
+                .finally(() => {
+                    setInitialized(true);
                 });
         };
         getChangelogChanges();
@@ -52,18 +56,31 @@ export const CommitBrowser: React.FC = () => {
         [dispatch]
     );
 
+    const makeContent = () => {
+        if (!initialized) {
+            return (
+                <Stack direction="column" className="CommitBrowserEmpty" spacing={2}>
+                    <CircularProgress />
+                    <Typography variant="body2">Loading commits...</Typography>
+                </Stack>
+            );
+        }
+
+        if (commitBundles.length === 0) {
+            return (
+                <Stack direction="column" className="CommitBrowserEmpty" spacing={2}>
+                    <VscSourceControl size={40} />
+                    <Typography variant="body2">No commits in the current working directory yet</Typography>
+                </Stack>
+            );
+        }
+
+        return <CommitList commitBundles={commitBundles} onCommitClick={handleCommitClick} />;
+    };
+
     return (
         <Surface elevation="none" className="CommitBrowser">
-            <div className="CommitBrowserContent">
-                {commitBundles.length === 0 || commitBundles.at(0)?.commits.length === 0 ? (
-                    <Stack direction="column" className="CommitBrowserEmpty" spacing={2}>
-                        <VscSourceControl size={40} />
-                        <Typography variant="body2">No commits in the current working directory yet</Typography>
-                    </Stack>
-                ) : (
-                    <CommitList commitBundles={commitBundles} onCommitClick={handleCommitClick} />
-                )}
-            </div>
+            <div className="CommitBrowserContent">{makeContent()}</div>
         </Surface>
     );
 };

@@ -1,3 +1,5 @@
+import {environmentService} from "@services/environment-service";
+
 import {ipcRenderer} from "electron";
 
 import electronStore from "@utils/electron-store";
@@ -7,7 +9,6 @@ import {generateHashCode} from "@utils/hash";
 import {EventSource, File, FilesState} from "@shared-types/files";
 import {ChangesBrowserView, Themes, UiState, View} from "@shared-types/ui";
 
-import {SelectionDirection} from "monaco-editor";
 import path from "path";
 
 const paneConfiguration = electronStore.get("ui.paneConfiguration");
@@ -60,21 +61,12 @@ const initialFilesState: FilesState = {
             const userFile = new FileInterface(
                 path.relative(workingDirectoryPath, file.filePath),
                 workingDirectoryPath
-            );
+            ).getUserVersion(environmentService.getUsername());
             const fileContent = userFile.readString();
             return {
                 filePath: file.filePath,
                 associatedWithFile: userFile.exists(),
-                editorValue: fileContent,
-                editorViewState: file.editorViewState === "null" ? null : file.editorViewState,
                 hash: fileContent ? generateHashCode(fileContent) : "",
-                selection: {
-                    startLineNumber: 0,
-                    startColumn: 0,
-                    endLineNumber: 0,
-                    endColumn: 0,
-                    direction: SelectionDirection.LTR,
-                },
                 title: "",
                 permanentOpen: file.permanentOpen,
             };

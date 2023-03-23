@@ -12,15 +12,13 @@ import {NotificationType} from "@shared-types/notifications";
 import {notificationsService} from "./notifications-service";
 
 import electronStore from "../utils/electron-store";
+import {getEditorValue} from "../utils/monaco";
 
 export const IpcService: React.FC = props => {
     const dispatch = useAppDispatch();
     const activeFilePath = useAppSelector(state => state.files.activeFilePath);
     const associatedWithFile = useAppSelector(
         state => state.files.files.find(el => el.filePath === state.files.activeFilePath)?.associatedWithFile || false
-    );
-    const currentEditorValue = useAppSelector(
-        state => state.files.files.find(el => el.filePath === state.files.activeFilePath)?.editorValue || ""
     );
     const mainProcessData = useMainProcessDataProvider();
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
@@ -33,7 +31,7 @@ export const IpcService: React.FC = props => {
         };
 
         addListener("save-file", () => {
-            saveFile(activeFilePath, currentEditorValue, workingDirectoryPath, dispatch);
+            saveFile(activeFilePath, getEditorValue(activeFilePath) || "", workingDirectoryPath, dispatch);
         });
 
         addListener("error", (_, errorMessage) => {
@@ -61,7 +59,7 @@ export const IpcService: React.FC = props => {
                 ipcRenderer.removeAllListeners(channelName);
             });
         };
-    }, [activeFilePath, currentEditorValue, dispatch, mainProcessData, associatedWithFile, workingDirectoryPath]);
+    }, [activeFilePath, dispatch, mainProcessData, associatedWithFile, workingDirectoryPath]);
 
     return <>{props.children}</>;
 };
