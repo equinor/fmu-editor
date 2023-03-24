@@ -14,6 +14,27 @@
     font-weight: var(--h6-font-weight) !important;
     font-size: var(--h6-font-size) !important;
     text-transform: uppercase;
+    display: flex;
+    gap: var(--spacing-m);
+    align-items: center;
+    padding-bottom: var(--spacing-x);
+}
+
+.CommitSnapshotBundleHeader h3 {
+    min-width: 150px;
+}
+
+.CommitSnapshotBundleHeader span {
+    text-transform: none;
+    font-size: var(--body-short-font-size);
+    font-weight: var(--body-short-font-weight);
+    color: var(--text-secondary);
+    opacity: 0.5;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 4;
+    text-align: right;
+    white-space: nowrap;
 }
 
 .CommitItem {
@@ -28,10 +49,16 @@
     cursor: pointer;
 }
 
-.CommitItem--selected, .CommitItem--selected:hover {
+.CommitItem--selected, .CommitItem--selected:hover, .CommitItem__Time--selected {
      background-color: var(--primary);
      color: var(--text-on-primary);
      border-left: 2px solid var(--primary);
+}
+
+.CommitItem__Text {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .CommitList__NoCommits {

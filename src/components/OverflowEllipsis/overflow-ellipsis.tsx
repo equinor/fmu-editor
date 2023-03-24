@@ -1,4 +1,4 @@
-import useSize from "@react-hook/size";
+import {useElementSize} from "@hooks/useElementSize";
 
 import React from "react";
 
@@ -14,30 +14,32 @@ export type OverflowEllipsisType = {
     showFullTextAsTitle?: boolean;
 };
 
+const measureTextWidth = (text: string, font: string): number => {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (context) {
+        context.font = font;
+        return context.measureText(text).width;
+    }
+    return 0;
+};
+
 export const OverflowEllipsis: React.FC<OverflowEllipsisType> = props => {
     const [adjustedText, setAdjustedText] = React.useState<string>(props.text);
     const ref = React.useRef<HTMLDivElement | null>(null);
-    const size = useSize(ref.current);
+    const size = useElementSize(ref);
 
     React.useLayoutEffect(() => {
-        const measureTextWidth = (text: string, font?: string): number => {
-            const canvas = document.createElement("canvas");
-            const context = canvas.getContext("2d");
-            if (context && ref.current) {
-                context.font = font || getComputedStyle(ref.current).font;
-
-                return context.measureText(text).width;
-            }
-            return 0;
-        };
-
-        if (size[0] === 0) {
+        if (size.width === 0) {
             return;
         }
         let ellipsis = "";
         if (props.ellipsisPosition === EllipsisPosition.LEFT) {
             let newText = props.text;
-            while (measureTextWidth(`${ellipsis}${newText}`) > size[0] && newText.length > 0) {
+            while (
+                measureTextWidth(`${ellipsis}${newText}`, getComputedStyle(ref.current).font) > size.width &&
+                newText.length > 0
+            ) {
                 newText = newText.substring(1);
                 ellipsis = "...";
             }
@@ -45,7 +47,10 @@ export const OverflowEllipsis: React.FC<OverflowEllipsisType> = props => {
         }
         if (props.ellipsisPosition === EllipsisPosition.RIGHT) {
             let newText = props.text;
-            while (measureTextWidth(`${newText}${ellipsis}`) > size[0] && newText.length > 0) {
+            while (
+                measureTextWidth(`${newText}${ellipsis}`, getComputedStyle(ref.current).font) > size.width &&
+                newText.length > 0
+            ) {
                 newText = newText.substring(0, newText.length - 1);
                 ellipsis = "...";
             }
@@ -57,7 +62,10 @@ export const OverflowEllipsis: React.FC<OverflowEllipsisType> = props => {
             let secondPartOfText = props.text.substring(middlePosition);
             let count = 0;
             while (
-                measureTextWidth(`${firstPartOfText}${ellipsis}${secondPartOfText}`) > size[0] &&
+                measureTextWidth(
+                    `${firstPartOfText}${ellipsis}${secondPartOfText}`,
+                    getComputedStyle(ref.current).font
+                ) > size.width &&
                 firstPartOfText.length + secondPartOfText.length > 0
             ) {
                 firstPartOfText = firstPartOfText.substring(0, firstPartOfText.length - 1);

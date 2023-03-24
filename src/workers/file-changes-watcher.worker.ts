@@ -16,6 +16,7 @@ const webworker = new Webworker<FileChangesResponses, FileChangesRequests>({self
 
 let currentWorkingDirectoryPath: string | null = null;
 let interval: ReturnType<typeof setInterval> | null = null;
+let oldData: string | null = null;
 
 const checkForFileChanges = () => {
     if (!currentWorkingDirectoryPath) {
@@ -31,6 +32,11 @@ const checkForFileChanges = () => {
             fileChanges = [...fileChanges, ...compareDirectories(currentWorkingDirectoryPath, user)];
         });
     }
+
+    if (oldData === JSON.stringify(fileChanges)) {
+        return;
+    }
+    oldData = JSON.stringify(fileChanges);
 
     // eslint-disable-next-line no-restricted-globals
     webworker.postMessage(FileChangesWatcherResponseType.FILE_CHANGES, {fileChanges});

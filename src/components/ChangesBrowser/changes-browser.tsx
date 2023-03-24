@@ -44,6 +44,7 @@ export const ChangesBrowser: React.VFC = () => {
                             onClick={() => handleViewChange(ChangesBrowserView.CurrentChanges)}
                             sx={{width: "100%", borderRadius: 0}}
                             variant="contained"
+                            title="Click here to see your file changes"
                         >
                             {userFileChanges.length} file change{userFileChanges.length > 1 && "s"} to commit
                         </Button>

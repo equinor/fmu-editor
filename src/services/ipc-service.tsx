@@ -5,21 +5,20 @@ import React from "react";
 import {useMainProcessDataProvider} from "@components/MainProcessDataProvider/main-process-data-provider";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setInitialConfigurationDone} from "@redux/reducers/uiCoach";
 import {saveFile} from "@redux/thunks";
 
 import {NotificationType} from "@shared-types/notifications";
 
 import {notificationsService} from "./notifications-service";
 
+import electronStore from "../utils/electron-store";
+import {getEditorValue} from "../utils/monaco";
+
 export const IpcService: React.FC = props => {
     const dispatch = useAppDispatch();
     const activeFilePath = useAppSelector(state => state.files.activeFilePath);
     const associatedWithFile = useAppSelector(
         state => state.files.files.find(el => el.filePath === state.files.activeFilePath)?.associatedWithFile || false
-    );
-    const currentEditorValue = useAppSelector(
-        state => state.files.files.find(el => el.filePath === state.files.activeFilePath)?.editorValue || ""
     );
     const mainProcessData = useMainProcessDataProvider();
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
@@ -32,7 +31,7 @@ export const IpcService: React.FC = props => {
         };
 
         addListener("save-file", () => {
-            saveFile(activeFilePath, currentEditorValue, workingDirectoryPath, dispatch);
+            saveFile(activeFilePath, getEditorValue(activeFilePath) || "", workingDirectoryPath, dispatch);
         });
 
         addListener("error", (_, errorMessage) => {
@@ -42,12 +41,13 @@ export const IpcService: React.FC = props => {
             });
         });
 
-        addListener("debug:reset", () => {
-            dispatch(setInitialConfigurationDone(false));
+        addListener("debug:reset-electron-store", () => {
+            electronStore.clear();
             notificationsService.publishNotification({
                 type: NotificationType.SUCCESS,
-                message: "Initial configuration state reset.",
+                message: "Electron store successfully reset.",
             });
+            window.location.reload();
         });
 
         addListener("push-notification", (_, notification) => {
@@ -59,7 +59,7 @@ export const IpcService: React.FC = props => {
                 ipcRenderer.removeAllListeners(channelName);
             });
         };
-    }, [activeFilePath, currentEditorValue, dispatch, mainProcessData, associatedWithFile, workingDirectoryPath]);
+    }, [activeFilePath, dispatch, mainProcessData, associatedWithFile, workingDirectoryPath]);
 
     return <>{props.children}</>;
 };

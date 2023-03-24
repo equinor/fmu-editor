@@ -20,7 +20,8 @@ export const useUserFileChanges = (): FileChange[] => {
 
         const unsubscribeFunc = AppMessageBus.fileChanges.subscribe(
             FileChangesTopics.FILES_CHANGED,
-            handleUserFileChangesChange
+            handleUserFileChangesChange,
+            true
         );
 
         return unsubscribeFunc;

@@ -20,6 +20,14 @@ import {View} from "@shared-types/ui";
 
 import "./page-tabs.css";
 
+const viewRelatedTab = {
+    [View.Editor]: View.Editor,
+    [View.SourceControl]: View.SourceControl,
+    [View.Merge]: View.SourceControl,
+    [View.OngoingChanges]: View.Editor,
+    [View.SingleFileChanges]: View.Editor,
+};
+
 export const PageTabs: React.VFC = () => {
     const [initialized, setInitialized] = React.useState(fileChangesWatcherService.isInitialized());
     const view = useAppSelector(state => state.ui.view);
@@ -69,7 +77,7 @@ export const PageTabs: React.VFC = () => {
 
     return (
         <Surface className="TabMenu" elevation="raised">
-            <Tabs orientation="vertical" value={view} color="inherit" onChange={handlePageChange}>
+            <Tabs orientation="vertical" value={viewRelatedTab[view]} color="inherit" onChange={handlePageChange}>
                 <Tab
                     icon={<VscEdit color="inherit" size={24} title="Editor" />}
                     value={View.Editor}

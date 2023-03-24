@@ -13,7 +13,8 @@ import {Pull} from "@components/Pull";
 import {ResizablePanels} from "@components/ResizablePanels";
 import {Toolbar} from "@components/Toolbar";
 
-import {useAppSelector} from "@redux/hooks";
+import {useAppDispatch, useAppSelector} from "@redux/hooks";
+import {resetDiffFiles, setDiffModifiedFilePath} from "@redux/reducers/ui";
 
 import {View} from "@shared-types/ui";
 
@@ -27,6 +28,7 @@ import {SingleFileChangesBrowser} from "../SingleFileChangesBrowser/single-file-
 
 export const MainWindow: React.FC = () => {
     const theme = useTheme();
+    const dispatch = useAppDispatch();
 
     const mainWindowRef = React.useRef<HTMLDivElement | null>(null);
     const files = useAppSelector(state => state.files);
@@ -45,34 +47,54 @@ export const MainWindow: React.FC = () => {
         document.title = "FMU Editor";
     }, [files, view]);
 
+    const handleOngoingChangesDiffEditorClose = () => {
+        dispatch(setDiffModifiedFilePath({}));
+    };
+
+    const handleSourceControlDiffEditorClose = () => {
+        dispatch(resetDiffFiles());
+    };
+
+    const handleSingleFileChangesDiffEditorClose = () => {
+        dispatch(resetDiffFiles());
+    };
+
     return (
         <div className="MainWindow" ref={mainWindowRef} style={{backgroundColor: theme.palette.background.default}}>
             <div className="ContentWrapper">
                 <PageTabs />
                 <div className="InnerContentWrapper">
                     <Pages activePage={view}>
-                        <Page name={View.Editor}>
+                        <Page name={View.Editor} persistent>
                             <ResizablePanels direction="horizontal" id="file-explorer" minSizes={[250, 0]}>
                                 <Explorer />
                                 <Editor />
                             </ResizablePanels>
                         </Page>
-                        <Page name={View.SourceControl}>
+                        <Page name={View.SourceControl} persistent>
                             <ResizablePanels direction="horizontal" id="source-control" minSizes={[300, 0]}>
                                 <ChangesBrowser />
-                                {originalRelativeFilePath ? <DiffEditor /> : <CommitBrowser />}
+                                {originalRelativeFilePath ? (
+                                    <DiffEditor onClose={handleSourceControlDiffEditorClose} />
+                                ) : (
+                                    <CommitBrowser />
+                                )}
                             </ResizablePanels>
                         </Page>
                         <Page name={View.OngoingChanges}>
                             <ResizablePanels direction="horizontal" id="user-changes" minSizes={[300, 0]}>
                                 <OngoingChangesBrowser />
-                                {originalRelativeFilePath ? <DiffEditor /> : null}
+                                {originalRelativeFilePath ? (
+                                    <DiffEditor onClose={handleOngoingChangesDiffEditorClose} />
+                                ) : null}
                             </ResizablePanels>
                         </Page>
                         <Page name={View.SingleFileChanges}>
                             <ResizablePanels direction="horizontal" id="single-file-changes" minSizes={[300, 0]}>
                                 <SingleFileChangesBrowser />
-                                {originalRelativeFilePath ? <DiffEditor /> : null}
+                                {originalRelativeFilePath ? (
+                                    <DiffEditor onClose={handleSingleFileChangesDiffEditorClose} />
+                                ) : null}
                             </ResizablePanels>
                         </Page>
                         <Page name={View.Merge}>

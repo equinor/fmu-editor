@@ -270,23 +270,33 @@ export const DirectoryComponent: React.VFC<DirectoryComponentProps> = props => {
 
     const handleDirectoryTitleClick = React.useCallback(
         (e: React.MouseEvent<HTMLAnchorElement>) => {
+            if (createFile || createFolder) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
             handleDirStateChange();
             dispatch(setActiveItemPath(props.directory.absolutePath()));
             e.preventDefault();
             e.stopPropagation();
         },
-        [props.directory, dispatch, handleDirStateChange]
+        [props.directory, dispatch, handleDirStateChange, createFile, createFolder]
     );
 
     const handleDirectoryClick = React.useCallback(
         (e: React.MouseEvent<HTMLDivElement>) => {
             if (props.rootDirectory) {
+                if (createFile || createFolder) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
                 dispatch(setActiveItemPath(props.directory.absolutePath()));
                 e.preventDefault();
                 e.stopPropagation();
             }
         },
-        [props.directory, dispatch, props.rootDirectory]
+        [props.directory, dispatch, props.rootDirectory, createFile, createFolder]
     );
 
     if (deleted) {

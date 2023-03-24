@@ -17,7 +17,7 @@ import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-setti
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {resetDiffFiles, setDiffFiles} from "@redux/reducers/ui";
+import {setDiffFiles} from "@redux/reducers/ui";
 
 import {FileChangeOrigin} from "@shared-types/file-changes";
 import {NotificationType} from "@shared-types/notifications";
@@ -65,7 +65,11 @@ window.MonacoEnvironment = {
 // @ts-ignore
 const {yaml} = languages || {};
 
-export const DiffEditor: React.VFC = () => {
+export type DiffEditorProps = {
+    onClose?: () => void;
+};
+
+export const DiffEditor: React.VFC<DiffEditorProps> = props => {
     const [visible, setVisible] = React.useState<boolean>(false);
     const [originalEditorWidth, setOriginalEditorWidth] = React.useState<number>(0);
     const [conflicts, setConflicts] = React.useState<monaco.editor.IChange[]>([]);
@@ -224,7 +228,7 @@ export const DiffEditor: React.VFC = () => {
     ]);
 
     const handleClose = () => {
-        dispatch(resetDiffFiles());
+        props.onClose && props.onClose();
         setVisible(false);
     };
 
@@ -242,7 +246,13 @@ export const DiffEditor: React.VFC = () => {
                     type: NotificationType.INFORMATION,
                     message: "Saved merged file",
                 });
-                dispatch(setDiffFiles({mainFile: undefined, userFile: undefined, origin: undefined}));
+                dispatch(
+                    setDiffFiles({
+                        originalRelativeFilePath: undefined,
+                        modifiedRelativeFilePath: undefined,
+                        origin: undefined,
+                    })
+                );
                 setVisible(false);
             } else {
                 notificationsService.publishNotification({

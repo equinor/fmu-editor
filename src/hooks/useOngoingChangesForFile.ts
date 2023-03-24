@@ -24,7 +24,8 @@ export const useOngoingChangesForFile = (relativeFilePath: string): FileChange[]
 
         const unsubscribeFunc = AppMessageBus.fileChanges.subscribe(
             FileChangesTopics.FILES_CHANGED,
-            handleFileChangesChange
+            handleFileChangesChange,
+            true
         );
 
         return unsubscribeFunc;

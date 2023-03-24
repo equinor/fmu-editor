@@ -43,9 +43,8 @@ export class MessageBus<
     }
 
     public publish(messageType: string, payload?: MessageTypes[Topics]): void {
-        if (this._messageCache[messageType]) {
-            this._messageCache[messageType] = payload;
-        }
+        this._messageCache[messageType] = payload;
+
         if (this._subscribers[messageType]) {
             this._subscribers[messageType].forEach((handler: (payload: MessageTypes[Topics]) => void) =>
                 handler(payload)

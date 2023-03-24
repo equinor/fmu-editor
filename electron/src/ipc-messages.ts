@@ -1,18 +1,16 @@
 import {BrowserWindow, app, ipcMain} from "electron";
 
 import {saveFileDialog, selectFileDialog} from "./commands";
-import {isDev} from "./env";
+import {IS_DEV, NO_MSAL} from "./env";
 import {createMenu} from "./menu";
 
 import {FileExplorerOptions, FileOptions} from "../../src/shared-types/file-explorer-options";
 import {IpcMessages} from "../../src/shared-types/ipc";
 import {Notification} from "../../src/shared-types/notifications";
 
-let signedIn = false;
+let signedIn = NO_MSAL;
 
 export const initIpc = () => {
-    const clearElectronStore = process.argv.includes("--clear-config");
-
     const userDataDir = app.getPath("userData");
     const userHomeDir = app.getPath("home");
     const appDir = app.getAppPath();
@@ -23,8 +21,7 @@ export const initIpc = () => {
             userDataDir,
             userHomeDir,
             appDir,
-            isDev: isDev(),
-            clearElectronStore,
+            isDev: IS_DEV,
         };
     });
 

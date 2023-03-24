@@ -54,23 +54,12 @@ const ICodeEditorViewState = {
 };
 
 const schema = {
-    preferences: {
-        type: "object",
-        properties: {
-            pathToPythonInterpreter: {
-                type: "string",
-            },
-            pathToYamlSchemaFile: {
-                type: "string",
-            },
-            webvizTheme: {
-                type: "string",
-            },
-        },
-    },
     ui: {
         type: "object",
         properties: {
+            activeView: {
+                type: "string",
+            },
             settings: {
                 type: "object",
                 properties: {
@@ -89,20 +78,6 @@ const schema = {
                         },
                     },
                 },
-            },
-            recentDocuments: {
-                type: "array",
-                items: {
-                    type: "string",
-                },
-            },
-        },
-    },
-    uiCoach: {
-        type: "object",
-        properties: {
-            initialConfigurationDone: {
-                type: "boolean",
             },
         },
     },
@@ -131,27 +106,20 @@ const schema = {
 };
 
 const defaults = {
-    preferences: {
-        pathToPythonInterpreter: "",
-        pathToYamlSchemaFile: "",
-        webvizTheme: "",
-    },
     ui: {
         settings: {
             theme: "light",
             editorFontSize: 1.0,
         },
         paneConfiguration: {
-            "Editor-Issues": [75, 25],
+            "editor-issues": [75, 25],
             "file-explorer": [25, 75],
-            "Editor-Preview": [50, 50],
+            "editor-preview": [50, 50],
             pull: [25, 75],
             "source-control": [25, 75],
+            "single-file-changes": [25, 75],
+            "user-changes": [25, 75],
         },
-        recentDocument: [],
-    },
-    uiCoach: {
-        initialConfigurationDone: false,
     },
     files: {
         activeFile: "",

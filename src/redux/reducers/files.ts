@@ -4,32 +4,30 @@ import {Draft, PayloadAction, createSlice} from "@reduxjs/toolkit";
 
 import electronStore from "@utils/electron-store";
 import {generateHashCode} from "@utils/hash";
+import {getEditorValue, monacoViewStateManager} from "@utils/monaco";
 
 import initialState from "@redux/initial-state";
 
-import {CodeEditorViewState, DiffEditorViewState, File, FilesState} from "@shared-types/files";
+import {File, FilesState} from "@shared-types/files";
 
-import {SelectionDirection} from "monaco-editor";
 import path from "path";
 
 const disposeUnusedDefaultModel = (files: File[]) => {
-    if (
-        files.length === 1 &&
-        files[0].filePath === path.join(__dirname, "Untitled-1.yaml") &&
-        files[0].editorValue === ""
-    ) {
+    if (files.length === 1 && files[0].filePath === path.join(__dirname, "Untitled-1.yaml")) {
         files.shift();
     }
 };
 
 const updateFilesInElectronStore = (state: Draft<FilesState>) => {
+    const oldState = electronStore.get("files.files", []);
+
     const adjustedFiles = state.files.map(file => {
-        const {editorViewState, ...rest} = file;
         return {
-            ...rest,
-            editorViewState: editorViewState === null ? "null" : editorViewState,
+            ...file,
+            editorViewState: oldState.find(f => f.filePath === file.filePath)?.editorViewState || "null",
         };
     });
+
     electronStore.set("files.files", adjustedFiles);
 };
 
@@ -66,46 +64,19 @@ export const filesSlice = createSlice({
             state.fileTreeStates = newState;
             electronStore.set("files.fileTreeStates", newState);
         },
-        setActiveFile: (
+        setActiveFilePath: (
             state: Draft<FilesState>,
             action: PayloadAction<{
                 filePath: string;
-                viewState: CodeEditorViewState | null;
             }>
         ) => {
-            const currentlyActiveFile = state.files.find(file => file.filePath === state.activeFilePath);
-            if (currentlyActiveFile) {
-                currentlyActiveFile.editorViewState = action.payload.viewState;
-            }
             state.activeFilePath = action.payload.filePath;
             electronStore.set("files.activeFilePath", action.payload.filePath);
         },
-        setValue: (state: Draft<FilesState>, action: PayloadAction<string>) => {
+        setUnsavedChanges: (state: Draft<FilesState>) => {
             state.files = state.files.map(el =>
-                el.filePath === state.activeFilePath ? {...el, editorValue: action.payload, unsavedChanges: true} : el
+                el.filePath === state.activeFilePath ? {...el, unsavedChanges: true} : el
             );
-        },
-        setEditorViewState: (state: Draft<FilesState>, action: PayloadAction<CodeEditorViewState | null>) => {
-            state.files = state.files.map(el =>
-                el.filePath === state.activeFilePath
-                    ? {
-                          ...el,
-                          editorViewState: action.payload,
-                      }
-                    : el
-            );
-            updateFilesInElectronStore(state);
-        },
-        setDiffEditorViewState: (state: Draft<FilesState>, action: PayloadAction<DiffEditorViewState | null>) => {
-            state.files = state.files.map(el =>
-                el.filePath === state.activeFilePath
-                    ? {
-                          ...el,
-                          diffEditorViewState: action.payload,
-                      }
-                    : el
-            );
-            updateFilesInElectronStore(state);
         },
         renameFile: (state: Draft<FilesState>, action: PayloadAction<{oldFilePath: string; newFilePath: string}>) => {
             state.files = state.files.map(el =>
@@ -178,15 +149,6 @@ export const filesSlice = createSlice({
 
             state.files.push({
                 associatedWithFile: true,
-                selection: {
-                    startLineNumber: 0,
-                    startColumn: 0,
-                    endLineNumber: 0,
-                    endColumn: 0,
-                    direction: SelectionDirection.LTR,
-                },
-                editorValue: action.payload.fileContent,
-                editorViewState: null,
                 hash: generateHashCode(action.payload.fileContent),
                 filePath: action.payload.filePath,
                 title: "",
@@ -231,6 +193,7 @@ export const filesSlice = createSlice({
                     window.setTimeout(() => model.dispose(), 100); // Dispose model after 1 second - this is a workaround for an error that occurs in the DiffEditor when disposing the model immediately
                 }
                 updateFilesInElectronStore(state);
+                monacoViewStateManager.clearForFile(action.payload);
             }
         },
         closeAllFiles: (state: Draft<FilesState>) => {
@@ -244,13 +207,15 @@ export const filesSlice = createSlice({
             state.activeFilePath = "";
 
             updateFilesInElectronStore(state);
+            monacoViewStateManager.clear();
         },
         markAsSaved: (state: Draft<FilesState>, action: PayloadAction<string>) => {
+            const editorValue = getEditorValue(action.payload);
             state.files = state.files.map(f =>
                 f.filePath === action.payload
                     ? {
                           ...f,
-                          hash: generateHashCode(f.editorValue),
+                          hash: generateHashCode(editorValue),
                           associatedWithFile: true,
                           permanentOpen: true,
                       }
@@ -285,15 +250,12 @@ export const {
     setFmuDirectoryPath,
     setWorkingDirectoryPath,
     setFileTreeStates,
-    setActiveFile,
+    setActiveFilePath,
     addFile,
     closeFile,
     closeAllFiles,
     markAsSaved,
     changeFilePath,
-    setValue,
-    setEditorViewState,
-    setDiffEditorViewState,
     setPermanentOpen,
     renameFile,
     renameDirectory,

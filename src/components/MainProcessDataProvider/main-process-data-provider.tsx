@@ -24,5 +24,4 @@ export const MainProcessDataProvider: React.FC = ({children}) => {
     return <DataProvider value={data}>{children}</DataProvider>;
 };
 
-export const useMainProcessDataProvider = (): MainProcessData =>
-    useDataProvider();
+export const useMainProcessDataProvider = (): MainProcessData => useDataProvider();

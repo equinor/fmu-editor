@@ -13,6 +13,7 @@ export type AvatarProps = {
     user: string;
     size?: number;
     getDetails?: (user: string, details: IDynamicPerson | null) => void;
+    titleFormatter?: (user: string) => string;
 };
 
 const cachedData: Record<string, {details: IDynamicPerson; image: string}> = {};
@@ -85,13 +86,15 @@ export const Avatar: React.FC<AvatarProps> = props => {
         loadAvatar();
     }, [props.user]);
 
+    const titleUser = `${personDetails.displayName ?? ""}${
+        !signedIn ? " (sign in to load user details and profile pictures)" : ""
+    }`;
+
     return (
         <MuiAvatar
             src={personImage}
             alt={`${personDetails.givenName ?? ""} ${personDetails.surname ?? ""}`}
-            title={`${personDetails.displayName ?? ""}${
-                !signedIn ? " (sign in to load user details and profile pictures)" : ""
-            }`}
+            title={props.titleFormatter ? props.titleFormatter(titleUser) : titleUser}
             sx={{
                 width: props.size || defaultSize,
                 height: props.size || defaultSize,

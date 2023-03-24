@@ -7,9 +7,9 @@ import {File} from "@utils/file-system/file";
 import {Avatar} from "@components/MicrosoftGraph/Avatar";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {setDiffUserFile} from "@redux/reducers/ui";
+import {setDiffModifiedFilePath} from "@redux/reducers/ui";
 
-import {FileChange, FileChangeOrigin} from "@shared-types/file-changes";
+import {FileChange} from "@shared-types/file-changes";
 
 export type UserChangesBrowserItemProps = {
     change: FileChange;
@@ -26,9 +26,8 @@ export const OngoingChangesBrowserItem: React.FC<UserChangesBrowserItemProps> = 
     const handleClick = (filePath: string, user: string) => {
         const file = new File(filePath, workingDirectoryPath);
         dispatch(
-            setDiffUserFile({
-                userFile: file.getUserVersion(user).relativePath(),
-                origin: FileChangeOrigin.USER,
+            setDiffModifiedFilePath({
+                modifiedRelativeFilePath: file.getUserVersion(user).relativePath(),
             })
         );
     };

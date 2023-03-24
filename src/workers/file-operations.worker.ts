@@ -1,3 +1,5 @@
+import {DIRECTORY_PATHS} from "@global/constants";
+
 import {Changelog} from "@utils/file-system/changelog";
 import {Directory} from "@utils/file-system/directory";
 import {File} from "@utils/file-system/file";
@@ -12,8 +14,6 @@ import {
     FileOperationsStatus,
 } from "@shared-types/file-operations";
 
-import { DIRECTORY_PATHS } from "@global/constants";
-
 import path from "path";
 
 import {Webworker} from "./worker-utils";
@@ -21,8 +21,8 @@ import {Webworker} from "./worker-utils";
 // eslint-disable-next-line no-restricted-globals
 const webworker = new Webworker<FileOperationsResponses, FileOperationsRequests>({self});
 
-let currentUsername: string = "";
-let currentWorkingDirectoryPath: string = "";
+let currentUsername: string | null = null;
+let currentWorkingDirectoryPath: string | null = null;
 
 const copyToUserDirectory = (workingDirectoryPath: string, user: string): void => {
     const userDirectoryPath = path.join(DIRECTORY_PATHS.USERS, user);
@@ -63,6 +63,10 @@ const copyToUserDirectory = (workingDirectoryPath: string, user: string): void =
 };
 
 const maybeInitUserDirectory = (workingDirectoryPath: string, user: string): void => {
+    if (!user || !workingDirectoryPath) {
+        return;
+    }
+
     const workingDirectory = new Directory("", currentWorkingDirectoryPath);
     if (!workingDirectory.exists()) {
         return;

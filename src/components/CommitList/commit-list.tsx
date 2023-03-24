@@ -2,27 +2,39 @@ import {List, ListSubheader} from "@mui/material";
 
 import React from "react";
 
-import {useAppDispatch} from "@redux/hooks";
-import {setCurrentCommit} from "@redux/reducers/ui";
+import {OverflowEllipsis} from "@components/OverflowEllipsis";
+import {EllipsisPosition} from "@components/OverflowEllipsis/overflow-ellipsis";
+
+import {useAppSelector} from "@redux/hooks";
 
 import {ICommit, ISnapshotCommitBundle} from "@shared-types/changelog";
+
+import path from "path";
 
 import "./commit-list.css";
 import {Commit} from "./components/commit";
 
 export type CommitListProps = {
     commitBundles: ISnapshotCommitBundle[];
+    onCommitClick?: (
+        commit: ICommit,
+        snapshotPath: string | null,
+        compareSnapshotPath: string | null | undefined
+    ) => void;
 };
 
 export const CommitList: React.FC<CommitListProps> = props => {
-    const dispatch = useAppDispatch();
+    const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
 
     const handleCommitClick = (
         commit: ICommit,
         snapshotPath: string | null,
         compareSnapshotPath: string | null | undefined
     ) => {
-        dispatch(setCurrentCommit({...commit, snapshotPath, compareSnapshotPath}));
+        if (!props.onCommitClick) {
+            return;
+        }
+        props.onCommitClick(commit, snapshotPath, compareSnapshotPath);
     };
 
     if (props.commitBundles.length === 0) {
@@ -39,7 +51,18 @@ export const CommitList: React.FC<CommitListProps> = props => {
                         <li key={`section-${bundle.snapshotPath}`}>
                             <ul className="CommitSnapshotBundle">
                                 <ListSubheader className="CommitSnapshotBundleHeader">
-                                    {new Date(bundle.modified).toDateString()}
+                                    <h3>{new Date(bundle.modified).toDateString()}</h3>{" "}
+                                    <span>
+                                        <OverflowEllipsis
+                                            text={
+                                                bundle.snapshotPath !== null
+                                                    ? path.relative(workingDirectoryPath, bundle.snapshotPath)
+                                                    : "current working directory"
+                                            }
+                                            ellipsisPosition={EllipsisPosition.LEFT}
+                                            showFullTextAsTitle
+                                        />
+                                    </span>
                                 </ListSubheader>
                                 {bundle.commits.map(commit => (
                                     <React.Fragment key={commit.id}>

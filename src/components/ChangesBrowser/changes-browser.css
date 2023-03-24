@@ -35,14 +35,20 @@
     text-transform: uppercase;
     justify-content: space-between;
     align-items: center;
-    text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
     min-width: 0;
     width: 100%;
 }
 
-.ChangesBrowserList, .ChangesBrowserText {
+.ChangesBrowserContentHeader span {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.ChangesBrowserList, .ChangesBrowserText, .ChangesBrowserTextTitle {
     background-color: var(--background-light);
     height: 20vh;
     min-height: 100px;
@@ -52,7 +58,20 @@
     white-space: pre-wrap;
 }
 
+.ChangesBrowserTextWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xx);
+}
+
 .ChangesBrowserText {
+    padding: var(--spacing-s);
+    height: auto;
+    min-height: auto;
+}
+
+.ChangesBrowserTextTitle {
+    font-weight: var(--body-long-bold-font-weight);
     padding: var(--spacing-s);
     height: auto;
     min-height: auto;

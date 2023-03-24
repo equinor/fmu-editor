@@ -43,8 +43,8 @@ export const Pull: React.VFC = () => {
             const file = new File(filePath, workingDirectoryPath);
             dispatch(
                 setDiffFiles({
-                    mainFile: file.getMainVersion().relativePath(),
-                    userFile: file.getUserVersion(username).relativePath(),
+                    originalRelativeFilePath: file.getMainVersion().relativePath(),
+                    modifiedRelativeFilePath: file.getUserVersion(username).relativePath(),
                     origin,
                 })
             );
@@ -129,8 +129,8 @@ export const Pull: React.VFC = () => {
             const file = new File(relativeFilePath, workingDirectoryPath);
             dispatch(
                 setDiffFiles({
-                    mainFile: file.getMainVersion().relativePath(),
-                    userFile: file.getUserVersion(username).relativePath(),
+                    originalRelativeFilePath: file.getMainVersion().relativePath(),
+                    modifiedRelativeFilePath: file.getUserVersion(username).relativePath(),
                     origin: FileChangeOrigin.BOTH,
                 })
             );

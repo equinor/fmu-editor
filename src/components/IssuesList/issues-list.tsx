@@ -6,6 +6,8 @@ import {monaco} from "react-monaco-editor";
 
 import {Surface} from "@components/Surface";
 
+import {useAppSelector} from "@redux/hooks";
+
 import {FileItem} from "./components/file-item";
 import "./issues-list.css";
 
@@ -34,30 +36,36 @@ const countIssues = (issues: FileIssues[]): number => {
 export const IssuesList: React.VFC<IssuesListProps> = props => {
     const [issues, setIssues] = React.useState<FileIssues[]>([]);
 
-    const handleMarkersChange = React.useCallback(() => {
-        if (!props.monacoRef.current || !props.monacoEditorRef.current) {
-            return;
-        }
-        const newIssues = [];
-        const markers = props.monacoRef.current.editor.getModelMarkers({}).sort(compareMarkers);
-        markers.forEach(marker => {
-            const fileUri = marker.resource.path;
-            const issue = newIssues.find(el => el.fileUri === fileUri);
-            if (issue) {
-                issue.markers.push(marker);
-            } else {
-                newIssues.push({fileUri, markers: [marker]});
-            }
-        });
-        setIssues(newIssues);
-    }, [props.monacoRef, props.monacoEditorRef]);
+    const activeFilePath = useAppSelector(state => state.files.activeFilePath);
 
     React.useEffect(() => {
-        if (!props.monacoRef) {
+        if (!props.monacoRef.current) {
             return;
         }
+
+        const handleMarkersChange = () => {
+            if (!props.monacoRef.current || !props.monacoEditorRef.current) {
+                return;
+            }
+            const newIssues = [];
+            const markers = props.monacoRef.current.editor
+                .getModelMarkers({})
+                .filter(marker => marker.resource.path === activeFilePath)
+                .sort(compareMarkers);
+            markers.forEach(marker => {
+                const fileUri = marker.resource.path;
+                const issue = newIssues.find(el => el.fileUri === fileUri);
+                if (issue) {
+                    issue.markers.push(marker);
+                } else {
+                    newIssues.push({fileUri, markers: [marker]});
+                }
+            });
+            setIssues(newIssues);
+        };
+
         props.monacoRef.current.editor.onDidChangeMarkers(handleMarkersChange);
-    }, [props.monacoRef, handleMarkersChange]);
+    }, [props.monacoRef, props.monacoEditorRef, activeFilePath]);
 
     const selectMarker = React.useCallback(
         (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, marker: monaco.editor.IMarker) => {

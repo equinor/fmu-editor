@@ -1,33 +1,29 @@
 /* eslint-disable max-classes-per-file */
+import {DIRECTORY_PATHS, SYSTEM_FILES} from "@global/constants";
+
 import {ICommit, IGlobalChangelog, ILocalChangelog, ISnapshotCommitBundle} from "@shared-types/changelog";
-import { DIRECTORY_PATHS, SYSTEM_FILES } from "@global/constants";
 
-import fs from "fs";
-import path from "path";
-
-class DirectoryNotSetError extends Error {
-    constructor() {
-        super("Changelog directory not set");
-        this.name = "DirectoryNotSetError";
-    }
-}
+import {Directory} from "./directory";
+import {File} from "./file";
 
 export class Changelog {
-    private workingDirectory: string | null;
+    private workingDirectoryPath: string | null;
     private changelog: IGlobalChangelog | null;
+    private changelogFile: File | null;
 
-    constructor(directory: string | null = null) {
-        this.workingDirectory = directory;
+    constructor(workingDirectoryPath: string | null = null) {
+        this.workingDirectoryPath = workingDirectoryPath;
         this.changelog = null;
+        this.changelogFile = null;
         this.maybeRefresh();
     }
 
     public isInitialized(): boolean {
-        return this.workingDirectory !== null;
+        return this.workingDirectoryPath !== null;
     }
 
     public modifiedTimestamp(): number {
-        if (!this.workingDirectory) {
+        if (!this.workingDirectoryPath) {
             return 0;
         }
 
@@ -39,32 +35,10 @@ export class Changelog {
         return this.changelog.modified;
     }
 
-    public setWorkingDirectory(directory: string) {
-        this.workingDirectory = directory;
+    public setWorkingDirectoryPath(workingDirectoryPath: string) {
+        this.workingDirectoryPath = workingDirectoryPath;
         this.changelog = null;
         this.maybeRefresh();
-    }
-
-    private localChangelogPath(): string {
-        if (!this.workingDirectory) {
-            throw new DirectoryNotSetError();
-        }
-        return path.join(this.workingDirectory, SYSTEM_FILES.CHANGELOG);
-    }
-
-    private getRelativeFilePath(filePath: string): string {
-        if (!this.workingDirectory) {
-            return filePath;
-        }
-
-        return path.relative(this.workingDirectory, filePath);
-    }
-
-    private snapshotsPath(): string {
-        if (!this.workingDirectory) {
-            throw new DirectoryNotSetError();
-        }
-        return path.join(this.workingDirectory, DIRECTORY_PATHS.SNAPSHOTS);
     }
 
     private static changelogIsCorrectlyFormatted(content: any): boolean {
@@ -79,12 +53,12 @@ export class Changelog {
     }
 
     private createLocalChangelogFileIfNotExists(): boolean {
-        if (!this.workingDirectory) {
+        if (!this.workingDirectoryPath) {
             return false;
         }
 
-        if (fs.existsSync(this.localChangelogPath())) {
-            const content = JSON.parse(fs.readFileSync(this.localChangelogPath()).toString());
+        if (this.changelogFile && this.changelogFile.exists()) {
+            const content = this.changelogFile.readJson();
             if (Changelog.changelogIsCorrectlyFormatted(content)) {
                 return false;
             }
@@ -94,33 +68,39 @@ export class Changelog {
 
         const currentChangelog: ILocalChangelog = {
             created: currentTimestamp,
-            directory: this.workingDirectory,
+            directory: this.workingDirectoryPath,
             modified: currentTimestamp,
             log: [],
         };
-        fs.writeFileSync(this.localChangelogPath(), JSON.stringify(currentChangelog));
+
+        this.changelogFile.writeJson(currentChangelog);
         return true;
     }
 
     public maybeRefresh() {
-        if (!this.workingDirectory) {
+        if (!this.workingDirectoryPath) {
             return;
+        }
+
+        if (!this.changelogFile) {
+            this.changelogFile = new File(SYSTEM_FILES.CHANGELOG, this.workingDirectoryPath);
         }
 
         this.createLocalChangelogFileIfNotExists();
 
-        const content = JSON.parse(fs.readFileSync(this.localChangelogPath()).toString());
+        const content: ILocalChangelog = this.changelogFile.readJson();
+        const {snapshotCommits, lastModified} = this.getSnapshotCommits();
 
         this.changelog = {
             created: content.created,
             directory: content.directory,
             modified: content.modified,
             log: [
-                ...this.getSnapshotCommits(),
+                ...snapshotCommits,
                 {
                     snapshotPath: null,
                     modified: content.modified,
-                    commits: content.log,
+                    commits: content.log.filter(el => el.datetime > lastModified),
                 },
             ],
         };
@@ -134,35 +114,48 @@ export class Changelog {
         return this.changelog;
     }
 
-    private getSnapshotCommits: () => ISnapshotCommitBundle[] = () => {
-        if (!this.workingDirectory) {
-            return [];
+    private getSnapshotCommits(): {snapshotCommits: ISnapshotCommitBundle[]; lastModified: number} {
+        if (!this.workingDirectoryPath) {
+            return {snapshotCommits: [], lastModified: 0};
         }
 
-        if (!fs.existsSync(this.snapshotsPath())) {
-            return [];
+        if (!this.changelogFile.exists()) {
+            return {snapshotCommits: [], lastModified: 0};
         }
 
-        const snapshotFolders = fs.readdirSync(this.snapshotsPath()).filter(item => !/(^|\/)\.[^\/\.]/g.test(item));
+        const snapshotDirectory = new Directory(DIRECTORY_PATHS.SNAPSHOTS, this.workingDirectoryPath);
+        const snapshotFolders = snapshotDirectory
+            .getContent()
+            .filter(item => item.isDirectory())
+            .sort((a, b) => {
+                const aModified = new File(SYSTEM_FILES.CHANGELOG, a.absolutePath()).modifiedTime();
+                const bModified = new File(SYSTEM_FILES.CHANGELOG, b.absolutePath()).modifiedTime();
+                return aModified - bModified;
+            });
+
+        let currentLastModified = 0;
         const snapshots: ISnapshotCommitBundle[] = [];
         snapshotFolders.forEach(folder => {
-            const snapshotPath = path.join(this.snapshotsPath(), folder, SYSTEM_FILES.CHANGELOG);
-            if (!fs.existsSync(snapshotPath)) {
+            const changelogFile = new File(SYSTEM_FILES.CHANGELOG, folder.absolutePath());
+            if (!changelogFile.exists()) {
                 return;
             }
-            const snapshotChangelog = JSON.parse(fs.readFileSync(snapshotPath).toString());
+
+            const snapshotChangelog: ILocalChangelog = changelogFile.readJson();
             snapshots.push({
-                snapshotPath: path.join(this.snapshotsPath(), folder),
-                modified: fs.statSync(snapshotPath).mtime.getTime(),
-                commits: snapshotChangelog.log,
+                snapshotPath: folder.absolutePath(),
+                modified: snapshotChangelog.modified,
+                commits: snapshotChangelog.log.filter(el => el.datetime > currentLastModified),
             });
+
+            currentLastModified = snapshotChangelog.modified;
         });
 
-        return snapshots;
-    };
+        return {snapshotCommits: snapshots, lastModified: currentLastModified};
+    }
 
     public saveLocalChangelog(): boolean {
-        if (!this.workingDirectory) {
+        if (!this.workingDirectoryPath) {
             return false;
         }
 
@@ -181,7 +174,7 @@ export class Changelog {
         };
 
         try {
-            fs.writeFileSync(this.localChangelogPath(), JSON.stringify(localChangelog));
+            this.changelogFile.writeJson(localChangelog);
             return true;
         } catch (_) {
             return false;
@@ -189,7 +182,7 @@ export class Changelog {
     }
 
     public appendCommit(commit: ICommit): boolean {
-        if (!this.workingDirectory) {
+        if (!this.workingDirectoryPath) {
             return false;
         }
 
@@ -208,11 +201,11 @@ export class Changelog {
         return this.saveLocalChangelog();
     }
 
-    public getChangesForFile(filePath: string): ISnapshotCommitBundle[] {
-        if (!filePath || filePath === "") {
+    public getChangesForFile(relativeFilePath: string): ISnapshotCommitBundle[] {
+        if (!relativeFilePath || relativeFilePath === "") {
             return [];
         }
-        if (!this.workingDirectory) {
+        if (!this.workingDirectoryPath) {
             return [];
         }
 
@@ -224,9 +217,7 @@ export class Changelog {
         const bundles: ISnapshotCommitBundle[] = [];
 
         this.changelog.log.forEach(bundle => {
-            const commits = bundle.commits.filter(commit =>
-                commit.files.some(el => el.path === this.getRelativeFilePath(filePath))
-            );
+            const commits = bundle.commits.filter(commit => commit.files.some(el => el.path === relativeFilePath));
             if (commits.length > 0) {
                 bundles.push({
                     snapshotPath: bundle.snapshotPath,
@@ -240,7 +231,7 @@ export class Changelog {
     }
 
     public getAllChanges(): ISnapshotCommitBundle[] {
-        if (!this.workingDirectory) {
+        if (!this.workingDirectoryPath) {
             return [];
         }
 
