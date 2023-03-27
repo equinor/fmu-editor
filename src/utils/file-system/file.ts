@@ -9,6 +9,7 @@ export interface IFile extends IFileBasic {
     hash(): string | null;
     readString(): string | null;
     readJson(): any | null;
+    readBuffer(): Buffer | null;
     getModifications(): Modification[];
     writeString(str: string): boolean;
     writeJson(json: any): boolean;
@@ -135,6 +136,16 @@ export class File extends FileBasic implements IFile {
         } catch (e) {
             this._error = e;
             return false;
+        }
+    }
+
+    public readBuffer(): Buffer | null {
+        try {
+            const content = fs.readFileSync(this.absolutePath());
+            return content;
+        } catch (e) {
+            this._error = e;
+            return null;
         }
     }
 
