@@ -1,6 +1,7 @@
+import {monacoMainEditorInstances} from "@editors/monaco";
+import {EditorType, GlobalSettings} from "@global/global-settings";
 import {Error as ErrorIcon} from "@mui/icons-material";
 import {Badge, Grid} from "@mui/material";
-import {monacoMainEditorInstances} from "@root/src/utils/monaco";
 
 import React from "react";
 import {monaco} from "react-monaco-editor";
@@ -8,6 +9,8 @@ import {monaco} from "react-monaco-editor";
 import {Surface} from "@components/Surface";
 
 import {useAppSelector} from "@redux/hooks";
+
+import path from "path";
 
 import {FileItem} from "./components/file-item";
 import "./issues-list.css";
@@ -40,12 +43,19 @@ export const IssuesList: React.VFC<IssuesListProps> = props => {
     const monacoEditorInstance = monacoMainEditorInstances.getMonacoEditorInstance();
 
     React.useEffect(() => {
+        if (GlobalSettings.editorTypeForFileExtension(path.extname(activeFilePath)) !== EditorType.Monaco) {
+            setIssues([]);
+            return;
+        }
+
         if (!monacoInstance) {
+            setIssues([]);
             return;
         }
 
         const handleMarkersChange = () => {
             if (!monacoInstance || !monacoEditorInstance) {
+                setIssues([]);
                 return;
             }
             const newIssues = [];

@@ -10,8 +10,6 @@ import {openFile} from "@redux/thunks";
 
 import path from "path";
 
-import {useGlobalSettings} from "../../GlobalSettingsProvider/global-settings-provider";
-
 export enum NewItemType {
     FILE = "file",
     DIRECTORY = "directory",
@@ -29,21 +27,20 @@ export const NewItem: React.VFC<NewItemProps> = props => {
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
 
     const dispatch = useAppDispatch();
-    const globalSettings = useGlobalSettings();
 
     const handleSubmit = React.useCallback(
         (name: string) => {
             if (props.type === NewItemType.FILE) {
                 const newFile = new File(path.join(props.directoryRelativePath, name), workingDirectoryPath);
                 newFile.writeString("");
-                openFile(newFile.absolutePath(), workingDirectoryPath, dispatch, globalSettings, true);
+                openFile(newFile.absolutePath(), workingDirectoryPath, dispatch, true);
             } else if (props.type === NewItemType.DIRECTORY) {
                 const newDirectory = new Directory(path.join(props.directoryRelativePath, name), workingDirectoryPath);
                 newDirectory.makeIfNotExists();
             }
             props.onSubmit(name);
         },
-        [props, dispatch, globalSettings, workingDirectoryPath]
+        [props, dispatch, workingDirectoryPath]
     );
 
     const handleKeyDown = React.useCallback(

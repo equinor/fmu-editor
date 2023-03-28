@@ -11,7 +11,6 @@ import {getFileIcon} from "@src/file-icons";
 import {File} from "@utils/file-system/file";
 
 import {ContextMenu} from "@components/ContextMenu";
-import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
 import {Avatar} from "@components/MicrosoftGraph/Avatar";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
@@ -45,14 +44,13 @@ export const FileComponent: React.FC<FileComponentProps> = props => {
     const {username} = useEnvironmentService();
 
     const dispatch = useAppDispatch();
-    const globalSettings = useGlobalSettings();
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const activeItemPath = useAppSelector(state => state.ui.explorer.activeItemPath);
 
     const handleFileClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         if (editMode) return;
         dispatch(setActiveItemPath(props.file.absolutePath()));
-        openFile(props.file.absolutePath(), workingDirectoryPath, dispatch, globalSettings);
+        openFile(props.file.absolutePath(), workingDirectoryPath, dispatch);
         e.preventDefault();
         e.stopPropagation();
     };

@@ -1,0 +1,70 @@
+.SpreadSheetEditor {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: overlay;
+    position: relative;
+}
+
+.SpreadSheetEditor__ScrollOverlay {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.SpreadSheetEditor__TableWrapper {
+    overflow: hidden;
+    position: sticky;
+    left: 0;
+    top: 0;
+}
+
+.SpreadSheetTable {
+    border-spacing: 1px;
+    border-collapse: collapse;
+}
+
+.SpreadSheetTable tr td:first-child {
+    font-weight: var(--body-font-weight-bold);
+    text-align: center;
+    background-color: var(--background-light);
+}
+
+.SpreadSheetTable th {
+    background-color: var(--background-light);
+}
+
+.SpreadSheetTable td, .SpreadSheetTable th {
+    border: 1px var(--background-medium) solid;
+}
+
+.SpreadSheetTable th, .SpreadSheetTable tr td:first-child {
+    border: 1px var(--background-medium) solid;
+}
+
+.SpreadSheetTable input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: transparent;
+    color: var(--text-primary);
+    margin: 0px;
+    outline: 0px;
+    border: 0px;
+}
+
+.SpreadSheetTable .focused-header {
+    background-color: var(--primary) !important;
+    color: var(--text-on-primary);
+}
+
+.SpreadSheetTable .hovered-header {
+    background-color: var(--primary-hover-alt) !important;
+}
+
+.SpreadSheetTable .focused-cell {
+    outline: 3px solid var(--primary);
+}

@@ -6,6 +6,8 @@
             "@assets": ["src/assets/"],
             "@components/*": ["src/components/*"],
             "@components": ["src/components/"],
+            "@editors": ["src/editors"],
+            "@editors/*": ["src/editors/*"],
             "@framework": ["src/framework"],
             "@framework/*": ["src/framework/*"],
             "@global": ["src/global"],

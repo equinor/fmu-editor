@@ -1,10 +1,10 @@
+import {editor} from "@editors/editor";
+
 import {monaco} from "react-monaco-editor";
 
 import {Draft, PayloadAction, createSlice} from "@reduxjs/toolkit";
 
 import electronStore from "@utils/electron-store";
-import {generateHashCode} from "@utils/hash";
-import {getEditorValue, monacoViewStateManager} from "@utils/monaco";
 
 import initialState from "@redux/initial-state";
 
@@ -71,6 +71,7 @@ export const filesSlice = createSlice({
             }>
         ) => {
             state.activeFilePath = action.payload.filePath;
+            editor.openFile(action.payload.filePath);
             electronStore.set("files.activeFilePath", action.payload.filePath);
         },
         setUnsavedChanges: (state: Draft<FilesState>) => {
@@ -125,10 +126,7 @@ export const filesSlice = createSlice({
             );
             updateFilesInElectronStore(state);
         },
-        addFile: (
-            state: Draft<FilesState>,
-            action: PayloadAction<{filePath: string; fileContent: string; permanentOpen: boolean}>
-        ) => {
+        addFile: (state: Draft<FilesState>, action: PayloadAction<{filePath: string; permanentOpen: boolean}>) => {
             // Do not open file when already opened, but make it active
             const openedFile = state.files.find(el => el.filePath === action.payload.filePath);
             state.activeFilePath = action.payload.filePath;
@@ -149,7 +147,7 @@ export const filesSlice = createSlice({
 
             state.files.push({
                 associatedWithFile: true,
-                hash: generateHashCode(action.payload.fileContent),
+                hash: editor.getHashCode(action.payload.filePath),
                 filePath: action.payload.filePath,
                 title: "",
                 permanentOpen: action.payload.permanentOpen,
@@ -193,7 +191,7 @@ export const filesSlice = createSlice({
                     window.setTimeout(() => model.dispose(), 100); // Dispose model after 1 second - this is a workaround for an error that occurs in the DiffEditor when disposing the model immediately
                 }
                 updateFilesInElectronStore(state);
-                monacoViewStateManager.clearForFile(action.payload);
+                editor.clearForFile(action.payload);
             }
         },
         closeAllFiles: (state: Draft<FilesState>) => {
@@ -207,15 +205,15 @@ export const filesSlice = createSlice({
             state.activeFilePath = "";
 
             updateFilesInElectronStore(state);
-            monacoViewStateManager.clear();
+            editor.clear();
         },
         markAsSaved: (state: Draft<FilesState>, action: PayloadAction<string>) => {
-            const editorValue = getEditorValue(action.payload);
+            const hashCode = editor.getHashCode(action.payload);
             state.files = state.files.map(f =>
                 f.filePath === action.payload
                     ? {
                           ...f,
-                          hash: generateHashCode(editorValue),
+                          hash: hashCode,
                           associatedWithFile: true,
                           permanentOpen: true,
                       }

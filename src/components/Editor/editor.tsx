@@ -1,5 +1,5 @@
+import {EditorType, GlobalSettings} from "@global/global-settings";
 import {Button, IconButton, Typography, useTheme} from "@mui/material";
-import {EditorType} from "@root/src/shared-types/global-settings";
 
 import {ipcRenderer} from "electron";
 
@@ -10,7 +10,6 @@ import {FileBasic} from "@utils/file-system/basic";
 import {File} from "@utils/file-system/file";
 
 import {FileTabs} from "@components/FileTabs";
-import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
 import {IssuesList} from "@components/IssuesList";
 import {Preview} from "@components/Preview";
 import {ResizablePanels} from "@components/ResizablePanels";
@@ -27,8 +26,8 @@ import FmuLogo from "@assets/fmu-logo.svg";
 
 import path from "path";
 
-import {CsvXlsxEditor} from "./components/csv-xlsx-editor";
 import {MonacoEditor} from "./components/monaco-editor";
+import {SpreadSheetEditor} from "./components/spreadsheet-editor";
 import "./editor.css";
 
 export const Editor: React.FC = () => {
@@ -45,7 +44,6 @@ export const Editor: React.FC = () => {
     const activeFilePath = useAppSelector(state => state.files.activeFilePath);
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const previewVisible = useAppSelector(state => state.ui.previewOpen);
-    const globalSettings = useGlobalSettings();
 
     const handleFileChange = React.useCallback(
         (filePath: string) => {
@@ -76,15 +74,15 @@ export const Editor: React.FC = () => {
             setUserFilePath(currentFile.relativePath());
             const fileExtension = path.extname(currentFile.absolutePath());
 
-            if (globalSettings.editorTypeForFileExtension(fileExtension) === EditorType.Monaco) {
+            if (GlobalSettings.editorTypeForFileExtension(fileExtension) === EditorType.Monaco) {
                 setEditorType(EditorType.Monaco);
-            } else if (globalSettings.editorTypeForFileExtension(fileExtension) === EditorType.CsvXlsx) {
-                setEditorType(EditorType.CsvXlsx);
+            } else if (GlobalSettings.editorTypeForFileExtension(fileExtension) === EditorType.SpreadSheet) {
+                setEditorType(EditorType.SpreadSheet);
             }
         }
 
         setNoModels(false);
-    }, [activeFilePath, files, globalSettings, workingDirectoryPath]);
+    }, [activeFilePath, files, workingDirectoryPath]);
 
     React.useEffect(() => {
         if (noModels) {
@@ -130,13 +128,11 @@ export const Editor: React.FC = () => {
             setDragOver(false);
             const droppedAsset = new FileBasic(e.dataTransfer.getData("text/plain"), workingDirectoryPath);
             if (droppedAsset.exists() && !droppedAsset.isDirectory()) {
-                openFile(droppedAsset.absolutePath(), workingDirectoryPath, dispatch, globalSettings);
+                openFile(droppedAsset.absolutePath(), workingDirectoryPath, dispatch);
             }
         },
-        [dispatch, globalSettings, workingDirectoryPath]
+        [dispatch, workingDirectoryPath]
     );
-
-    const monacoEditorVisible = fileExists;
 
     return (
         <div className="EditorWrapper" onDragOver={handleDragOver}>
@@ -191,30 +187,34 @@ export const Editor: React.FC = () => {
                                     </>
                                 }
                             />
-                            <ResizablePanels
-                                direction="horizontal"
-                                id="editor-preview"
-                                minSizes={[100, 200]}
-                                visible={[true, previewVisible]}
-                            >
-                                <div style={{height: "100%"}}>
-                                    <div
-                                        className="Editor__FileNotFound"
-                                        style={{
-                                            display: !fileExists ? "flex" : "none",
-                                        }}
-                                    >
-                                        <VscError style={{fontSize: 64, color: theme.palette.error.main}} />
-                                        <Typography variant="h6">File not found</Typography>
-                                        <Button onClick={() => createFile()} color="primary">
-                                            Create file now
-                                        </Button>
+                            <div className="EditorContent">
+                                <ResizablePanels
+                                    direction="horizontal"
+                                    id="editor-preview"
+                                    minSizes={[100, 200]}
+                                    visible={[true, previewVisible]}
+                                >
+                                    <div style={{height: "100%"}}>
+                                        <div
+                                            className="Editor__FileNotFound"
+                                            style={{
+                                                display: !fileExists ? "flex" : "none",
+                                            }}
+                                        >
+                                            <VscError style={{fontSize: 64, color: theme.palette.error.main}} />
+                                            <Typography variant="h6">File not found</Typography>
+                                            <Button onClick={() => createFile()} color="primary">
+                                                Create file now
+                                            </Button>
+                                        </div>
+                                        <MonacoEditor visible={fileExists && editorType === EditorType.Monaco} />
+                                        <SpreadSheetEditor
+                                            visible={fileExists && editorType === EditorType.SpreadSheet}
+                                        />
                                     </div>
-                                    <MonacoEditor visible={fileExists && editorType === EditorType.Monaco} />
-                                    <CsvXlsxEditor visible={fileExists && editorType === EditorType.CsvXlsx} />
-                                </div>
-                                <Preview filePath={userFilePath} />
-                            </ResizablePanels>
+                                    <Preview filePath={userFilePath} />
+                                </ResizablePanels>
+                            </div>
                         </div>
                         <IssuesList visible={noModels} />
                     </ResizablePanels>

@@ -4,6 +4,7 @@
 import {ElectronAuthenticator, MsalElectronConfig} from "@microsoft/mgt-electron-provider/dist/Authenticator";
 
 import {BrowserWindow, app} from "electron";
+import contextMenu from "electron-context-menu";
 import installExtension, {REACT_DEVELOPER_TOOLS} from "electron-devtools-installer";
 import * as ElectronLog from "electron-log";
 import ElectronStore from "electron-store";
@@ -22,6 +23,10 @@ Object.assign(console, ElectronLog.functions);
 const appTitle = "FMU Editor";
 
 initIpc();
+
+contextMenu({
+    showInspectElement: IS_DEV,
+});
 
 async function createWindow() {
     const win = new BrowserWindow({

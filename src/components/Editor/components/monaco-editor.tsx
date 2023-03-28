@@ -1,3 +1,6 @@
+import {editor} from "@editors/editor";
+import {monacoMainEditorInstances} from "@editors/monaco";
+import {EditorType, GlobalSettings} from "@global/global-settings";
 import {useElementSize} from "@hooks/useElementSize";
 import {useYamlSchemas} from "@hooks/useYamlSchema";
 import {setDiagnosticsOptions as setErtOptions} from "@languages/monaco-ert/src";
@@ -7,9 +10,6 @@ import React from "react";
 import ReactMonacoEditor, {EditorDidMount, EditorWillUnmount, monaco} from "react-monaco-editor";
 
 import {File} from "@utils/file-system/file";
-import {monacoMainEditorInstances, monacoViewStateManager} from "@utils/monaco";
-
-import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
 
 import {useAppSelector} from "@redux/hooks";
 
@@ -79,7 +79,7 @@ const handleEditorViewStateChanged = (monacoEditorRef?: monaco.editor.IStandalon
             const model = monacoEditorRef.getModel();
             if (model) {
                 const viewState = monacoEditorRef.saveViewState();
-                monacoViewStateManager.setViewState(model.uri.path, convertFromViewState(viewState));
+                editor.setViewState(model.uri.path, convertFromViewState(viewState));
             }
         }, 100);
     }
@@ -89,7 +89,7 @@ const handleModelChanged = (monacoEditorRef?: monaco.editor.IStandaloneCodeEdito
     if (monacoEditorRef) {
         const model = monacoEditorRef.getModel();
         if (model) {
-            monacoEditorRef.restoreViewState(monacoViewStateManager.getViewState(model.uri.path));
+            monacoEditorRef.restoreViewState(editor.getViewState(model.uri.path));
         }
     }
 };
@@ -111,7 +111,6 @@ export const MonacoEditor: React.FC<MonacoEditorProps> = props => {
     const theme = useTheme();
     const activeFilePath = useAppSelector(state => state.files.activeFilePath);
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
-    const globalSettings = useGlobalSettings();
 
     const fontSize = useAppSelector(state => state.ui.settings.editorFontSize);
 
@@ -125,11 +124,11 @@ export const MonacoEditor: React.FC<MonacoEditorProps> = props => {
         monacoEditorRef.current.updateOptions({fontSize: 12 * fontSize});
     }, [fontSize, monacoEditorRef]);
 
-    const handleEditorDidMount: EditorDidMount = React.useCallback((editor, monacoInstance) => {
-        monacoMainEditorInstances.setMonacoEditorInstance(editor);
+    const handleEditorDidMount: EditorDidMount = React.useCallback((monacoEditor, monacoInstance) => {
+        monacoMainEditorInstances.setMonacoEditorInstance(monacoEditor);
         monacoMainEditorInstances.setMonacoInstance(monacoInstance);
 
-        monacoEditorRef.current = editor;
+        monacoEditorRef.current = monacoEditor;
         monacoRef.current = monacoInstance;
         monacoEditorRef.current.onDidChangeModel(() => handleModelChanged(monacoEditorRef.current));
         monacoEditorRef.current.onDidChangeCursorPosition(() => handleEditorViewStateChanged(monacoEditorRef.current));
@@ -153,11 +152,16 @@ export const MonacoEditor: React.FC<MonacoEditorProps> = props => {
         if (!currentFile.exists()) {
             return;
         }
+
+        if (GlobalSettings.editorTypeForFileExtension(currentFile.extension()) !== EditorType.Monaco) {
+            return;
+        }
+
         let userModel = monaco.editor.getModel(monaco.Uri.file(activeFilePath));
         if (!userModel) {
             userModel = monaco.editor.createModel(
                 currentFile.readString(),
-                globalSettings.languageForFileExtension(path.extname(activeFilePath)),
+                GlobalSettings.languageForFileExtension(path.extname(activeFilePath)),
                 monaco.Uri.file(activeFilePath)
             );
         }
@@ -168,7 +172,7 @@ export const MonacoEditor: React.FC<MonacoEditorProps> = props => {
                 monacoEditor.focus();
             }
         }
-    }, [activeFilePath, globalSettings, lastActiveFilePath, workingDirectoryPath]);
+    }, [activeFilePath, lastActiveFilePath, workingDirectoryPath]);
 
     return (
         <div ref={editorRef} className="Editor" style={{display: props.visible ? "block" : "none"}}>
