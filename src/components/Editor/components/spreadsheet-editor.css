@@ -31,10 +31,14 @@
     font-weight: var(--body-font-weight-bold);
     text-align: center;
     background-color: var(--background-light);
+    position: relative;
+    user-select: none;
 }
 
 .SpreadSheetTable th {
     background-color: var(--background-light);
+    position: relative;
+    user-select: none;
 }
 
 .SpreadSheetTable td, .SpreadSheetTable th {
@@ -67,4 +71,32 @@
 
 .SpreadSheetTable .focused-cell {
     outline: 3px solid var(--primary);
+}
+
+.SpreadSheetEditor__column-resize-handle {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-left: -3px;
+    width: 6px;
+    height: 100%;
+    z-index: 100;
+    cursor: col-resize;
+    background-color: var(--background-medium);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.SpreadSheetEditor__row-resize-handle {
+    position: absolute;
+    top: 100%;
+    margin-top: -3px;
+    left: 0;
+    height: 6px;
+    width: 100%;
+    z-index: 100;
+    cursor: row-resize;
+    background-color: var(--background-medium);
+    opacity: 0;
+    transition: opacity 0.2s;
 }

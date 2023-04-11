@@ -12,7 +12,7 @@ import {useAppSelector} from "@redux/hooks";
 import {CodeEditorViewState} from "@shared-types/files";
 
 import path from "path";
-import {WorkBook, WorkSheet, utils} from "xlsx";
+import {ColInfo, RowInfo, WorkBook, WorkSheet, utils} from "xlsx";
 
 import "./spreadsheet-editor.css";
 
@@ -70,6 +70,8 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
     });
     const [maxCellRange, setMaxCellRange] = React.useState<{column: number; row: number}>({column: 0, row: 0});
     const [scrollCellRange, setScrollCellRange] = React.useState<{column: number; row: number}>({column: 0, row: 0});
+    const [columnWidths, setColumnWidths] = React.useState<{[key: number]: number}>({});
+    const [rowHeights, setRowHeights] = React.useState<{[key: number]: number}>({});
 
     const editorRef = React.useRef<HTMLDivElement | null>(null);
     const editorSize = useElementSize(editorRef);
@@ -87,6 +89,26 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             column: range.e.c,
             row: range.e.r,
         });
+
+        if (currentSheet["!cols"]) {
+            const newColumnWidths: {[key: number]: number} = {};
+            currentSheet["!cols"].forEach((col: ColInfo, index: number) => {
+                if (col && col.wpx) {
+                    newColumnWidths[index] = col.wpx;
+                }
+            });
+            setColumnWidths(newColumnWidths);
+        }
+
+        if (currentSheet["!rows"]) {
+            const newRowHeights: {[key: number]: number} = {};
+            currentSheet["!rows"].forEach((row: RowInfo, index: number) => {
+                if (row && row.hpx) {
+                    newRowHeights[index] = row.hpx;
+                }
+            });
+            setRowHeights(newRowHeights);
+        }
     }, [currentSheet]);
 
     const updateViewState = React.useCallback(
@@ -201,6 +223,72 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         }
     }, [activeFilePath, workingDirectoryPath]);
 
+    React.useEffect(() => {
+        let activeElement: HTMLElement | null = null;
+        let direction: "row" | "column" = "row";
+
+        const handlePointerDown = (e: PointerEvent) => {
+            if (
+                !(e.target instanceof HTMLElement) ||
+                (e.target.className !== "SpreadSheetEditor__column-resize-handle" &&
+                    e.target.className !== "SpreadSheetEditor__row-resize-handle")
+            ) {
+                return;
+            }
+
+            activeElement = e.target.parentElement;
+
+            if (e.target.className === "SpreadSheetEditor__column-resize-handle") {
+                document.body.style.cursor = "col-resize";
+                direction = "column";
+            }
+
+            if (e.target.className === "SpreadSheetEditor__row-resize-handle") {
+                document.body.style.cursor = "row-resize";
+                direction = "row";
+            }
+        };
+
+        const handlePointerUp = () => {
+            activeElement = null;
+            document.body.style.cursor = "default";
+        };
+
+        const handleColumnPointerMove = (e: PointerEvent) => {
+            if (!activeElement) {
+                return;
+            }
+
+            if (direction === "column") {
+                const colIndex = parseInt(activeElement.dataset.columnIndex ?? "0", 10);
+
+                const rect = activeElement.getBoundingClientRect();
+                const width = e.clientX - rect.left;
+
+                setColumnWidths(prev => ({...prev, [colIndex]: width}));
+            }
+
+            if (direction === "row") {
+                const rowIndex = parseInt(activeElement.dataset.rowIndex ?? "0", 10);
+
+                const rect = activeElement.getBoundingClientRect();
+                const height = e.clientY - rect.top;
+
+                setRowHeights(prev => ({...prev, [rowIndex]: height}));
+            }
+        };
+
+        document.addEventListener("pointerdown", handlePointerDown);
+        document.addEventListener("pointermove", handleColumnPointerMove);
+        document.addEventListener("pointerup", handlePointerUp);
+
+        return () => {
+            document.removeEventListener("pointermove", handleColumnPointerMove);
+            document.removeEventListener("pointerdown", handlePointerDown);
+            document.removeEventListener("pointerup", handlePointerUp);
+        };
+    }, []);
+
     const calcNumColumns = (): number => {
         return Math.ceil(editorSize.width / defaultCellSizeWithBorder.width);
     };
@@ -209,7 +297,23 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         return Math.ceil(editorSize.height / defaultCellSizeWithBorder.height) - 1;
     };
 
-    const makeHorizontalHeaders = (): React.ReactNode[] => {
+    const getRowHeight = (index: number): number => {
+        if (rowHeights[index]) {
+            return rowHeights[index];
+        }
+
+        return defaultCellSize.height;
+    };
+
+    const getColumnWidth = (index: number): number => {
+        if (columnWidths[index]) {
+            return columnWidths[index];
+        }
+
+        return defaultCellSize.width;
+    };
+
+    const makeColumnHeaders = (): React.ReactNode[] => {
         const headers = [];
         const startIndex = scrollCellLocation ? scrollCellLocation.column : 0;
         for (let i = 0; i < calcNumColumns(); i++) {
@@ -218,19 +322,22 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 <th
                     key={`horizontal-header-${absoluteIndex}`}
                     style={{
-                        width: i === 0 ? defaultCellSize.height : defaultCellSize.width,
+                        width: i === 0 ? defaultCellSize.height : getColumnWidth(absoluteIndex),
+                        minWidth: i === 0 ? defaultCellSize.height : getColumnWidth(absoluteIndex),
                         height: defaultCellSize.height,
                     }}
                     className={makeHeaderCellClassName(i === 0 ? -2 : absoluteIndex - 1, -1, focusedCell, hoveredCell)}
+                    data-column-index={absoluteIndex}
                 >
                     {i === 0 ? "" : makeColumnName(absoluteIndex)}
+                    {i > 0 && <div className="SpreadSheetEditor__column-resize-handle" />}
                 </th>
             );
         }
         return headers;
     };
 
-    const makeVerticalHeaders = (): React.ReactNode[] => {
+    const makeRowHeaders = (): React.ReactNode[] => {
         const headers = [];
         const startIndex = scrollCellLocation ? scrollCellLocation.row : 0;
         for (let i = 0; i < calcNumRows(); i++) {
@@ -240,11 +347,14 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                     key={`vertical-header-${absoluteIndex}`}
                     style={{
                         width: defaultCellSize.height,
-                        height: defaultCellSize.height,
+                        height: getRowHeight(absoluteIndex),
+                        minHeight: getRowHeight(absoluteIndex),
                     }}
                     className={makeHeaderCellClassName(-1, absoluteIndex, focusedCell, hoveredCell)}
+                    data-row-index={absoluteIndex}
                 >
                     {absoluteIndex + 1}
+                    <div className="SpreadSheetEditor__row-resize-handle" />
                 </td>
             );
         }
@@ -310,8 +420,8 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         });
     };
 
-    const verticalHeaders = makeVerticalHeaders();
-    const horizontalHeaders = makeHorizontalHeaders();
+    const verticalHeaders = makeRowHeaders();
+    const horizontalHeaders = makeColumnHeaders();
 
     const tableWidth = calcNumColumns() * defaultCellSizeWithBorder.width;
     const tableHeight = calcNumRows() * defaultCellSizeWithBorder.height;
