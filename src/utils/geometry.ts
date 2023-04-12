@@ -1,11 +1,8 @@
+import {Size} from '@shared-types/size';
+
 export type Point = {
     x: number;
     y: number;
-};
-
-export type Size = {
-    width: number;
-    height: number;
 };
 
 export const ORIGIN = Object.freeze({x: 0, y: 0});

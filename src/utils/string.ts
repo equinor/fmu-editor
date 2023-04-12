@@ -1,3 +1,10 @@
+export const dedent = (strings: TemplateStringsArray): string =>{
+    return strings
+        .join()
+        .replace(/^[ \t]+/gm, '')
+        .replaceAll('"""', '```');
+};
+
 export const capitalize = (str: string) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
 };
@@ -11,4 +18,9 @@ export const adjustToPlural = (str: string, amount: number) => {
         return str;
     }
     return `${str}s`;
+};
+
+export const trimPx = (valueWithUnit: string): number => {
+    const value = valueWithUnit.replace("px", "");
+    return Number(value);
 };

@@ -1,6 +1,7 @@
 import {useElementSize} from "@hooks/useElementSize";
 import {useYamlSchemas} from "@hooks/useYamlSchema";
 import {setDiagnosticsOptions as setErtOptions} from "@languages/monaco-ert/src";
+import {setDistOptions} from "@languages/dist";
 import {useTheme} from "@mui/material";
 
 import React from "react";
@@ -58,6 +59,7 @@ export const MonacoEditor: React.FC<MonacoEditorProps> = props => {
 
     useYamlSchemas(yaml);
     setErtOptions();
+    setDistOptions();
 
     const handleEditorDidMount: EditorDidMount = (editor, monacoInstance) => {
         props.onEditorDidMount(editor, monacoInstance);

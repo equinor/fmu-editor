@@ -10,6 +10,7 @@ export const GlobalSettingsProvider: React.FC = ({children}) => {
     const globalSettings: GlobalSettings = {
         supportedFileExtensions: [
             ".csv",
+            ".dist",
             ".ert",
             ".json",
             ".sh",
@@ -22,6 +23,7 @@ export const GlobalSettingsProvider: React.FC = ({children}) => {
         languageForFileExtension: (extension: string) => {
             const fileExtensionLanguageMap: Record<string, string> = {
                 ".csv": "csv",
+                ".dist": "dist",
                 ".ert": "ert",
                 ".py": "python",
                 ".json": "json",
