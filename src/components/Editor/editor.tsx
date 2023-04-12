@@ -26,8 +26,8 @@ import FmuLogo from "@assets/fmu-logo.svg";
 
 import path from "path";
 
+import {SpreadSheetEditor} from "./components/SpreadSheetEditor/spreadsheet-editor";
 import {MonacoEditor} from "./components/monaco-editor";
-import {SpreadSheetEditor} from "./components/spreadsheet-editor";
 import "./editor.css";
 
 export const Editor: React.FC = () => {

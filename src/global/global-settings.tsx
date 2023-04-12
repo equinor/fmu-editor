@@ -41,7 +41,7 @@ const extensionsLanguageMap = {
 
 export class GlobalSettings {
     static supportedFileExtensions(): string[] {
-        return [".csv", ".ert", ".json", ".sh", ".py", ".txt", ".xml", ".yaml", ".yml"];
+        return [".csv", ".ert", ".json", ".sh", ".py", ".txt", ".xlsx", ".xml", ".yaml", ".yml"];
     }
 
     static languageForFileExtension(extension: string): string {

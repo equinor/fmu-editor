@@ -7,6 +7,33 @@
     position: relative;
 }
 
+.SpreadSheetEditor .selection-frame {
+    position: absolute;
+    z-index: 10;
+    outline: 3px solid var(--primary);
+    pointer-events: none;
+}
+
+.SpreadSheetEditor .copying-frame {
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
+    background: 
+        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background-size: 4px 2px, 4px 2px, 2px 4px, 2px 4px;
+    background-position: 0 0, 0 100%, 0 0, 100% 0;
+    animation: linearGradientMove .3s infinite linear;
+}
+
+@keyframes linearGradientMove {
+    100% {
+        background-position: 4px 0, -4px 100%, 0 -4px, 100% 4px;
+    }
+}
+
 .SpreadSheetEditor__ScrollOverlay {
     position: absolute;
     top: 0px;
@@ -25,10 +52,17 @@
 .SpreadSheetTable {
     border-spacing: 1px;
     border-collapse: collapse;
+    cursor: crosshair;
+}
+
+.SpreadSheetTable tr th:first-child {
+    background-color: var(--background-medium);
+    border-right: 3px var(--background-medium) solid;
+    border-bottom: 3px var(--background-medium) solid;
 }
 
 .SpreadSheetTable tr td:first-child {
-    font-weight: var(--body-font-weight-bold);
+    font-weight: var(--body-long-bold-font-weight);
     text-align: center;
     background-color: var(--background-light);
     position: relative;
@@ -43,10 +77,12 @@
 
 .SpreadSheetTable td, .SpreadSheetTable th {
     border: 1px var(--background-medium) solid;
+    user-select: none;
 }
 
 .SpreadSheetTable th, .SpreadSheetTable tr td:first-child {
     border: 1px var(--background-medium) solid;
+    cursor: pointer;
 }
 
 .SpreadSheetTable input {
@@ -60,17 +96,34 @@
     border: 0px;
 }
 
-.SpreadSheetTable .focused-header {
-    background-color: var(--primary) !important;
-    color: var(--text-on-primary);
+.SpreadSheetTable .focused-header, .SpreadSheetTable .selected-header {
+    background-color: var(--primary-hover-alt) !important;
+    color: var(--primary);
+    font-weight: var(--body-long-bold-font-weight);
 }
 
 .SpreadSheetTable .hovered-header {
     background-color: var(--primary-hover-alt) !important;
 }
 
+.SpreadSheetTable th.selected-header {
+    border-bottom: 3px var(--primary) solid !important;
+}
+
+.SpreadSheetTable td.selected-header {
+    border-right: 3px var(--primary) solid !important;
+}
+
 .SpreadSheetTable .focused-cell {
-    outline: 3px solid var(--primary);
+    background-color: transparent !important;
+}
+
+.SpreadSheetTable .selected-cell {
+    background-color: var(--secondary-highlight);
+}
+
+.SpreadSheetTable .first-selected-cell {
+    background-color: transparent;
 }
 
 .SpreadSheetEditor__column-resize-handle {
