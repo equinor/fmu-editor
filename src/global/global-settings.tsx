@@ -45,14 +45,14 @@ export class GlobalSettings {
     }
 
     static languageForFileExtension(extension: string): string {
-        return extensionsLanguageMap[extension].language || "text";
+        return extensionsLanguageMap[extension]?.language ?? "text";
     }
 
     static editorTypeForFileExtension(extension: string): EditorType {
-        return extensionsLanguageMap[extension].editorType || EditorType.Monaco;
+        return extensionsLanguageMap[extension]?.editorType ?? EditorType.Monaco;
     }
 
     static bookTypeForFileExtension(extension: string): BookType | null {
-        return extensionsLanguageMap[extension].bookType || null;
+        return extensionsLanguageMap[extension]?.bookType ?? null;
     }
 }

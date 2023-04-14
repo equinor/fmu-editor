@@ -76,7 +76,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = props => {
     return (
         <th
             style={{
-                width: width,
+                width,
                 minWidth: width,
                 maxWidth: width,
                 height: props.height,

@@ -78,7 +78,8 @@ export const RowHeader: React.FC<RowHeaderProps> = props => {
             style={{
                 width: props.width,
                 minHeight: height,
-                height: height,
+                maxHeight: height,
+                height
             }}
             className={props.className}
             data-row-index={props.absoluteIndex}
