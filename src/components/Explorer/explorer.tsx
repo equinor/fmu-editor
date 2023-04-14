@@ -153,14 +153,15 @@ export const Explorer: React.FC = () => {
         []
     );
 
+    const handleOpenDirectoryClick = async () => {
+        setLoading(true);
+        const success = await selectFmuDirectory(fmuDirectoryPath, dispatch);
+        if (!success) {
+            setLoading(false);
+        }
+    };
+
     const makeContent = React.useCallback(() => {
-        const handleOpenDirectoryClick = async () => {
-            setLoading(true);
-            const success = await selectFmuDirectory(fmuDirectoryPath, dispatch);
-            if (!success) {
-                setLoading(false);
-            }
-        };
 
         const handleCollapseAll = () => {
             dispatch(setFileTreeStates([]));
@@ -281,14 +282,15 @@ export const Explorer: React.FC = () => {
         copyUserDirectoryState,
     ]);
 
+    const workingDirectoryCandidates = fmuDirectory !== null ? fmuDirectory
+        .getContent()
+        .filter(el => el.isDirectory()) : [];
+
     return (
         <Surface elevation="raised" className="Explorer">
             <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
                 <List className="DirectoryDrawer">
-                    {fmuDirectory !== null && fmuDirectory
-                        .getContent()
-                        .filter(el => el.isDirectory())
-                        .map(el => (
+                    {workingDirectoryCandidates.map(el => (
                             <ListItem key={el.absolutePath()} disablePadding>
                                 <ListItemButton onClick={() => handleWorkingDirectoryChange(el.absolutePath())}>
                                     <ListItemIcon>
@@ -300,7 +302,17 @@ export const Explorer: React.FC = () => {
                                     <ListItemText>{el.baseName()}</ListItemText>
                                 </ListItemButton>
                             </ListItem>
-                        ))}
+                    ))}
+                    {workingDirectoryCandidates.length === 0 && (
+                        <div style={{ padding: "var(--spacing-x)", width: 300 }}>
+                            The selected FMU directory
+                            does not contain any possible
+                            working directories.
+                            <LoadingButton variant="contained" color="secondary" style={{marginTop: "var(--spacing-m)"}} onClick={() => { handleOpenDirectoryClick(); setDrawerOpen(false); }} loading={loading}>
+                                Change FMU Model Directory
+                            </LoadingButton>
+                    </div>
+                    )}
                 </List>
             </Drawer>
             {makeContent()}

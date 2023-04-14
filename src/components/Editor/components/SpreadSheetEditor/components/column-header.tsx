@@ -9,12 +9,17 @@ export type ColumnHeaderProps = {
     className: string;
     onInsert: (absoluteIndex: number) => void;
     onDelete: (absoluteIndex: number) => void;
+    onResize: (absoluteIndex: number, width: number) => void;
 };
 
 export const ColumnHeader: React.FC<ColumnHeaderProps> = props => {
     const ref = React.useRef<HTMLTableCellElement | null>(null);
     const resizeHandleRef = React.useRef<HTMLDivElement | null>(null);
     const [width, setWidth] = React.useState<number>(props.width);
+
+    React.useEffect(() => {
+        props.onResize(props.absoluteIndex, width);
+    }, [width, props.onResize]);
 
     React.useEffect(() => {
         let dragging: boolean = false;

@@ -3,23 +3,13 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    overflow: overlay;
     position: relative;
 }
 
-.SpreadSheetEditor__ScrollOverlay {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    z-index: 10;
-    pointer-events: none;
-}
-
 .SpreadSheetEditor__TableWrapper {
-    overflow: hidden;
-    position: sticky;
-    left: 0;
-    top: 0;
+    overflow: auto;
+    position: relative;
+    overflow: overlay;
 }
 
 .SpreadSheetTable {
@@ -31,27 +21,35 @@
     height: 100%;
 }
 
-.SpreadSheetTable tr th:first-child {
-    background-color: var(--background-medium);
-    border-right: 3px var(--background-medium) solid;
-    border-bottom: 3px var(--background-medium) solid;
+.SpreadSheetEditor__HorizontalHeaderWrapper {
+    overflow: hidden;
 }
 
-.SpreadSheetTable tr td:first-child {
+.SpreadSheetEditor__VerticalHeaderWrapper {
+    overflow: hidden;
+}
+
+.SpreadSheetEditor__Wrapper {
+    display: flex;
+    flex-direction: row;
+}
+
+.SpreadSheetTable .row-header-cell {
     font-weight: var(--body-long-bold-font-weight);
     text-align: center;
     background-color: var(--background-light);
-    position: relative;
     user-select: none;
+    position: relative;
 }
 
 .SpreadSheetTable th {
     background-color: var(--background-light);
-    position: relative;
     user-select: none;
+    position: relative;
 }
 
-.SpreadSheetTable td, .SpreadSheetTable th {
+.SpreadSheetTable td,
+.SpreadSheetTable th {
     border: 1px var(--background-medium) solid;
     user-select: none;
     position: relative;
@@ -61,11 +59,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    width: 100%;
-    height: 100%;
     display: flex;
     align-items: center;
     flex-direction: row;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .SpreadSheetTable .selection-frame {
@@ -108,14 +106,13 @@
 }
 
 .SpreadSheetTable .copying-frame-top-bottom-left-right {
-    background: 
-        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
         linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
         linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y,
         linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
     background-size: 4px 2px, 4px 2px, 2px 4px, 2px 4px;
     background-position: 0 0, 0 100%, 0 0, 100% 0;
-    animation: linearGradientMove .3s infinite linear;
+    animation: linearGradientMove 0.3s infinite linear;
 }
 
 @keyframes linearGradientMove {
@@ -125,11 +122,10 @@
 }
 
 .SpreadSheetTable .copying-frame-top {
-    background: 
-        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x;
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x;
     background-size: 4px 2px;
     background-position: 0 0;
-    animation: linearGradientMoveTop .3s infinite linear;
+    animation: linearGradientMoveTop 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveTop {
@@ -139,12 +135,11 @@
 }
 
 .SpreadSheetTable .copying-frame-top-left {
-    background: 
-        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
         linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
     background-size: 4px 2px, 2px 4px;
     background-position: 0 0, 0 0;
-    animation: linearGradientMoveTopLeft .3s infinite linear;
+    animation: linearGradientMoveTopLeft 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveTopLeft {
@@ -154,12 +149,11 @@
 }
 
 .SpreadSheetTable .copying-frame-top-bottom {
-    background: 
-        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
         linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x;
     background-size: 4px 2px, 4px 2px;
     background-position: 0 0, 0 100%;
-    animation: linearGradientMoveTopBottom .3s infinite linear;
+    animation: linearGradientMoveTopBottom 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveTopBottom {
@@ -169,13 +163,12 @@
 }
 
 .SpreadSheetTable .copying-frame-top-bottom-left {
-    background: 
-        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
         linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
         linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
     background-size: 4px 2px, 4px 2px, 2px 4px;
     background-position: 0 0, 0 100%, 0 0;
-    animation: linearGradientMoveTopBottomLeft .3s infinite linear;
+    animation: linearGradientMoveTopBottomLeft 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveTopBottomLeft {
@@ -185,13 +178,12 @@
 }
 
 .SpreadSheetTable .copying-frame-top-bottom-right {
-    background: 
-        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
         linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
         linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
     background-size: 4px 2px, 4px 2px, 2px 4px;
     background-position: 0 0, 0 100%, 100% 0;
-    animation: linearGradientMoveTopBottomRight .3s infinite linear;
+    animation: linearGradientMoveTopBottomRight 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveTopBottomRight {
@@ -201,12 +193,11 @@
 }
 
 .SpreadSheetTable .copying-frame-top-right {
-    background: 
-        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
         linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
     background-size: 4px 2px, 2px 4px;
     background-position: 0 0, 100% 0;
-    animation: linearGradientMoveTopRight .3s infinite linear;
+    animation: linearGradientMoveTopRight 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveTopRight {
@@ -216,13 +207,12 @@
 }
 
 .SpreadSheetTable .copying-frame-top-left-right {
-    background: 
-        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
         linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y,
         linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
     background-size: 4px 2px, 2px 4px, 2px 4px;
     background-position: 0 0, 0 0, 100% 0;
-    animation: linearGradientMoveTopLeftRight .3s infinite linear;
+    animation: linearGradientMoveTopLeftRight 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveTopLeftRight {
@@ -232,12 +222,11 @@
 }
 
 .SpreadSheetTable .copying-frame-bottom-left {
-    background: 
-        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
         linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
     background-size: 4px 2px, 2px 4px;
     background-position: 0 100%, 0 0;
-    animation: linearGradientMoveBottomLeft .3s infinite linear;
+    animation: linearGradientMoveBottomLeft 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveBottomLeft {
@@ -247,12 +236,11 @@
 }
 
 .SpreadSheetTable .copying-frame-bottom-right {
-    background: 
-        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
         linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
     background-size: 4px 2px, 2px 4px;
     background-position: 0 100%, 100% 0;
-    animation: linearGradientMoveBottomRight .3s infinite linear;
+    animation: linearGradientMoveBottomRight 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveBottomRight {
@@ -262,13 +250,12 @@
 }
 
 .SpreadSheetTable .copying-frame-bottom-left-right {
-    background: 
-        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
         linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y,
         linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
     background-size: 4px 2px, 2px 4px, 2px 4px;
     background-position: 0 100%, 0 0, 100% 0;
-    animation: linearGradientMoveBottomLeftRight .3s infinite linear;
+    animation: linearGradientMoveBottomLeftRight 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveBottomLeftRight {
@@ -278,12 +265,11 @@
 }
 
 .SpreadSheetTable .copying-frame-left-right {
-    background: 
-        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y,
+    background: linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y,
         linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
     background-size: 2px 4px, 2px 4px;
     background-position: 0 0, 100% 0;
-    animation: linearGradientMoveLeftRight .3s infinite linear;
+    animation: linearGradientMoveLeftRight 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveLeftRight {
@@ -293,11 +279,10 @@
 }
 
 .SpreadSheetTable .copying-frame-bottom {
-    background: 
-        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x;
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x;
     background-size: 4px 2px;
     background-position: 0 100%;
-    animation: linearGradientMoveBottom .3s infinite linear;
+    animation: linearGradientMoveBottom 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveBottom {
@@ -307,11 +292,10 @@
 }
 
 .SpreadSheetTable .copying-frame-left {
-    background: 
-        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background: linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
     background-size: 2px 4px;
     background-position: 0 0;
-    animation: linearGradientMoveLeft .3s infinite linear;
+    animation: linearGradientMoveLeft 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveLeft {
@@ -321,11 +305,10 @@
 }
 
 .SpreadSheetTable .copying-frame-right {
-    background: 
-        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background: linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
     background-size: 2px 4px;
     background-position: 100% 0;
-    animation: linearGradientMoveRight .3s infinite linear;
+    animation: linearGradientMoveRight 0.3s infinite linear;
 }
 
 @keyframes linearGradientMoveRight {
@@ -334,7 +317,8 @@
     }
 }
 
-.SpreadSheetTable th, .SpreadSheetTable tr td:first-child {
+.SpreadSheetTable th,
+.SpreadSheetTable tr td:first-child {
     border: 1px var(--background-medium) solid;
     cursor: pointer;
 }
@@ -350,7 +334,8 @@
     border: 0px;
 }
 
-.SpreadSheetTable .focused-header, .SpreadSheetTable .selected-header {
+.SpreadSheetTable .focused-header,
+.SpreadSheetTable .selected-header {
     background-color: var(--primary-hover-alt) !important;
     color: var(--primary);
     font-weight: var(--body-long-bold-font-weight);

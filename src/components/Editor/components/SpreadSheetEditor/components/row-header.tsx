@@ -9,12 +9,17 @@ export type RowHeaderProps = {
     className: string;
     onInsert: (absoluteIndex: number) => void;
     onDelete: (absoluteIndex: number) => void;
+    onResize: (absoluteIndex: number, height: number) => void;
 };
 
 export const RowHeader: React.FC<RowHeaderProps> = props => {
     const ref = React.useRef<HTMLTableCellElement | null>(null);
     const resizeHandleRef = React.useRef<HTMLDivElement | null>(null);
     const [height, setHeight] = React.useState<number>(props.height);
+
+    React.useEffect(() => {
+        props.onResize(props.absoluteIndex, height);
+    }, [height, props.onResize]);
 
     React.useEffect(() => {
         let dragging: boolean = false;
@@ -79,7 +84,7 @@ export const RowHeader: React.FC<RowHeaderProps> = props => {
                 width: props.width,
                 minHeight: height,
                 maxHeight: height,
-                height
+                height,
             }}
             className={props.className}
             data-row-index={props.absoluteIndex}
