@@ -1,39 +1,9 @@
 /* eslint-disable max-classes-per-file */
-import {Distribution} from '@shared-types/distribution';
+import {beta, erf, erfinv, incompleteBeta} from "@utils/math";
 
-export function erf(x: number) {
-    const sign = x < 0 ? -1 : 1;
-    x = Math.abs(x);
-    // A&S formula 7.1.26
-    // https://personal.math.ubc.ca/~cbm/aands/page_299.htm
-    //
-    // There are more precise numerical approximations out there, but the
-    // precision comes with complexity. In particular this approximation
-    // becomes less precise above 0.85. Other implementations, e.g. in
-    // system libraries, separate these cases out conditionally based upon
-    // the value of x and use different approximation functions. As this
-    // is currently used for visualization and not sampling, this should be
-    // good enough for now.
-    const a = [0.254829592, -0.284496736, 1.421413741, -1.453152027, 1.061405429, 0.3275911];
-    const p = 0.3275911;
-    const t = 1 / (1 + p * x);
-    const y = 1 - (
-        ((((a[4] * t + a[3]) * t) + a[2]) * t + a[1]) * t + a[0]
-    ) * t * Math.exp(-x * x);
-    return sign * y;
-}
+import {Distribution} from "@shared-types/distribution";
 
-export function erfinv(p: number) {
-    // A&S formula 26.2.23
-    // https://personal.math.ubc.ca/~cbm/aands/page_933.htm
-    const t = Math.sqrt(Math.log(1 / (p * p)));
-    const tt = t * t;
-    const num = 2.515517 + 0.802853 * t + 0.010328 * tt;
-    const denom = 1 + 1.432788 * t + 0.189269 * tt + 0.001308 * tt * t;
-    return 1 - num / denom;
-}
-
-const DENSITY_FACTOR = 1 / (Math.sqrt(2 * Math.PI));
+const DENSITY_FACTOR = 1 / Math.sqrt(2 * Math.PI);
 
 export class Normal implements Distribution {
     protected readonly _median: number;
@@ -76,7 +46,7 @@ export class Normal implements Distribution {
     }
 
     pdf = (x: number): number => {
-        const z = -0.5 * ((x - this._mean) ** 2) / this._variance;
+        const z = (-0.5 * (x - this._mean) ** 2) / this._variance;
         return this._stdDensity * Math.exp(z);
     };
 
@@ -155,10 +125,10 @@ export class TruncatedNormal extends Normal {
     protected readonly Z: number;
 
     constructor(mean: number, std: number, min: number, max: number) {
+        super(mean, std);
         if (min >= max) {
             throw new Error("Maximum must be greater than minimum");
         }
-        super(mean, std);
         this._min = min;
         this._max = max;
 
@@ -204,10 +174,7 @@ export class TruncatedNormal extends Normal {
 
     get variance(): number {
         const tail = (this.pdfA - this.pdfB) / this.Z;
-        return this._variance * (1 
-            - (this.beta * this.pdfB - this.alpha * this.pdfA) / this.Z 
-            - (tail * tail)
-        ); 
+        return this._variance * (1 - (this.beta * this.pdfB - this.alpha * this.pdfA) / this.Z - tail * tail);
     }
 
     pdf = (x: number): number => {
@@ -303,7 +270,7 @@ export class Uniform implements Distribution {
         if (p <= 0 || p >= 1) {
             return NaN;
         }
-        return this._min + (p * (this._max - this._min));
+        return this._min + p * (this._max - this._min);
     };
 }
 
@@ -311,10 +278,10 @@ export class LogUniform extends Uniform {
     protected readonly lnFactor: number;
 
     constructor(min: number, max: number) {
+        super(min, max);
         if (min <= 0) {
             throw new Error("LogUniform can't have a negative minimum");
         }
-        super(min, max);
         this.lnFactor = Math.log(this._max / this._min);
     }
 
@@ -353,7 +320,7 @@ export class LogUniform extends Uniform {
         if (x > this._max) {
             return 1;
         }
-        return (Math.log(x / this._min) / this.lnFactor);
+        return Math.log(x / this._min) / this.lnFactor;
     };
 
     inv = (p: number): number => {
@@ -427,13 +394,13 @@ export class Dirac implements Distribution {
 export class DiscreteUniform extends Uniform {
     protected readonly _nbins: number;
     protected readonly _stepsize: number;
-    protected _xValues: number[];
+    protected readonly _xValues: number[];
 
     constructor(nbins: number, min: number, max: number) {
+        super(min, max);
         if (nbins < 1) {
             throw new Error("nbins must be greater than 0");
         }
-        super(min, max);
         this._nbins = nbins;
         this._stepsize = Math.abs(max - min) / (nbins - 1);
         // Floating point precision is a problem in the pdf function,
@@ -468,7 +435,7 @@ export class DiscreteUniform extends Uniform {
         if (x < this._min) {
             return 0;
         }
-        if (x === this._min || x === this._max || this._xValues.includes(x) ) {
+        if (x === this._min || x === this._max || this._xValues.includes(x)) {
             return 1 / this._nbins;
         }
         return 0;
@@ -504,13 +471,13 @@ export class ErrorSkewedNormal extends Normal {
     protected readonly _width: number;
 
     constructor(min: number, max: number, skew: number, width: number) {
+        super();
         if (min >= max) {
             throw new Error("Maximum must be greater than minimum");
         }
         if (width === 0) {
             throw new Error("width cannot be 0");
         }
-        super();
         this._min = min;
         this._max = max;
         this._skew = skew;
@@ -534,6 +501,7 @@ export class DiscreteErrorSkewedNormal extends Normal {
     protected readonly _width: number;
 
     constructor(nbins: number, min: number, max: number, skew: number, width: number) {
+        super();
         if (min >= max) {
             throw new Error("Maximum must be greater than minimum");
         }
@@ -543,7 +511,6 @@ export class DiscreteErrorSkewedNormal extends Normal {
         if (width === 0) {
             throw new Error("width cannot be 0");
         }
-        super();
         this._nbins = nbins;
         this._min = min;
         this._max = max;
@@ -555,9 +522,9 @@ export class DiscreteErrorSkewedNormal extends Normal {
         if (x < this._min || x > this._max) {
             return 0;
         }
-        const y = Math.floor(this._nbins * 0.5 * (1 + erf(
-            (x + this._skew) / (this._width * Math.SQRT2)
-        )) / (this._nbins - 1));
+        const y = Math.floor(
+            (this._nbins * 0.5 * (1 + erf((x + this._skew) / (this._width * Math.SQRT2)))) / (this._nbins - 1)
+        );
         return this._min + y * (this._max - this._min);
     };
 }
@@ -580,10 +547,7 @@ export class Triangular implements Distribution {
         this._max = max;
         this._median = NaN;
         this._mean = (min + max + mode) * 0.33333333333;
-        this._mode = mode;
-        this._variance = 0.05555555555 * (
-            min ** 2 + max ** 2 + mode ** 2 - min * max - min * mode - max * mode
-        );
+        this._variance = 0.05555555555 * (min ** 2 + max ** 2 + mode ** 2 - min * max - min * mode - max * mode);
         this._std = Math.sqrt(this._variance);
     }
 
@@ -642,5 +606,76 @@ export class Triangular implements Distribution {
             return this._min + Math.sqrt((this._max - this._min) * (this._mode - this._min) * p);
         }
         return this._max + Math.sqrt((this._max - this._min) * (this._max - this._mode) * (1 - p));
+    };
+}
+
+export class PERT implements Distribution {
+    protected readonly _max: number;
+    protected readonly _median: number;
+    protected readonly _mean: number;
+    protected readonly _min: number;
+    protected readonly _mode: number;
+    protected readonly _std: number;
+    protected readonly _variance: number;
+    protected readonly _alpha: number;
+    protected readonly _beta: number;
+
+    constructor(min: number, mode: number, max: number) {
+        if (min >= max) {
+            throw new Error("Maximum must be greater than minimum");
+        }
+        this._min = min;
+        this._mode = mode;
+        this._max = max;
+        this._median = (min + 6 * mode + max) * 0.125; // 1/8
+        this._mean = (min + 4 * mode + max) * 0.1666666666;
+        this._variance = 0.14285714285 * ((this._mean - min) * (max - this._mean));
+        this._std = Math.sqrt(this._variance);
+        this._alpha = 1 + 4 * ((mode - min) / (max - min));
+        this._beta = 1 + 4 * ((max - mode) / (max - min));
+    }
+
+    get median(): number {
+        return this._median;
+    }
+
+    get mean(): number {
+        return this._mean;
+    }
+
+    get mode(): number {
+        return this._mean;
+    }
+
+    get std(): number {
+        return this._std;
+    }
+
+    get variance(): number {
+        return this._variance;
+    }
+
+    pdf = (x: number): number => {
+        return (
+            ((x - this._min) ** (this._alpha - 1) * (this._max - x) ** (this._beta - 1)) /
+            (beta(this._alpha, this._beta) * (this._max - this._min) ** (this._alpha + this._beta - 1))
+        );
+    };
+
+    cdf = (x: number): number => {
+        if (x <= this._min) {
+            return 0;
+        }
+        if (x >= this._max) {
+            return 1;
+        }
+        return incompleteBeta(this._alpha, this._beta, x);
+    };
+
+    inv = (p: number): number => {
+        if (this._min && p) {
+            throw new Error("Not implemeneted!");
+        }
+        return NaN;
     };
 }
