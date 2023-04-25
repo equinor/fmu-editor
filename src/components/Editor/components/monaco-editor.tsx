@@ -1,12 +1,12 @@
 import {useElementSize} from "@hooks/useElementSize";
 import {useYamlSchemas} from "@hooks/useYamlSchema";
-import {setDiagnosticsOptions as setErtOptions} from "@languages/monaco-ert/src";
 import {setDistOptions} from "@languages/dist";
 import {useTheme} from "@mui/material";
 
 import React from "react";
 import ReactMonacoEditor, {EditorDidMount, EditorWillUnmount, monaco} from "react-monaco-editor";
 
+import {setDiagnosticsOptions as setErtOptions} from "monaco-ert";
 // @ts-ignore
 import {languages} from "monaco-editor";
 
