@@ -1,1 +1,1 @@
-export { GetStartedDialog } from "./get-started-dialog";
+export {GetStartedDialog} from "./get-started-dialog";

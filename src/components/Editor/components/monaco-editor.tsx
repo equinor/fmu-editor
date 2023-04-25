@@ -6,9 +6,9 @@ import {useTheme} from "@mui/material";
 import React from "react";
 import ReactMonacoEditor, {EditorDidMount, EditorWillUnmount, monaco} from "react-monaco-editor";
 
-import {setDiagnosticsOptions as setErtOptions} from "monaco-ert";
 // @ts-ignore
 import {languages} from "monaco-editor";
+import {setDiagnosticsOptions as setErtOptions} from "monaco-ert";
 
 declare global {
     interface Window {

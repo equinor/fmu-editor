@@ -1,4 +1,5 @@
-import { DIRECTORY_PATHS } from "@global/constants";
+import {DIRECTORY_PATHS} from "@global/constants";
+
 import {generateHashCode} from "@utils/hash";
 
 import fs from "fs";
@@ -19,7 +20,9 @@ export interface IDirectory extends IFileBasic {
 export class Directory extends FileBasic implements IDirectory {
     public getContent(recursive = false): FileBasic[] {
         const filesAndDirs: FileBasic[] = [];
-        const content = fs.readdirSync(this.absolutePath()).filter(item => !/(^|\/)\.[^\/\.]/g.test(item) && !Object.values(DIRECTORY_PATHS).includes(item));
+        const content = fs
+            .readdirSync(this.absolutePath())
+            .filter(item => !/(^|\/)\.[^\/\.]/g.test(item) && !Object.values(DIRECTORY_PATHS).includes(item));
         content.forEach(el => {
             const fullPath = path.join(this.absolutePath(), el);
             const stats = fs.statSync(fullPath);

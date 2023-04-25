@@ -1,1 +1,1 @@
-export { FileTabs } from "./file-tabs";
+export {FileTabs} from "./file-tabs";

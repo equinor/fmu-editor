@@ -1,1 +1,1 @@
-export { CommitBrowser } from './commit-browser';
+export {CommitBrowser} from "./commit-browser";

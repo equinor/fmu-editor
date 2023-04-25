@@ -1,7 +1,7 @@
+import {DIRECTORY_PATHS} from "@global/constants";
+
 import fs from "fs-extra";
 import path from "path";
-
-import { DIRECTORY_PATHS } from "@global/constants";
 
 export interface IFileBasic {
     exists(): boolean;
@@ -85,7 +85,10 @@ export class FileBasic implements IFileBasic {
             return this;
         }
         if (this.isSnapshotFile()) {
-            return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
+            return new (this.constructor as new (
+                relativeFilePath: string,
+                workingDirectoryPath: string
+            ) => typeof this)(
                 path.join(DIRECTORY_PATHS.USERS, user, this.getMainVersion().relativePath()),
                 this.workingDirectoryPath()
             );
@@ -98,7 +101,10 @@ export class FileBasic implements IFileBasic {
 
     public getSnapshotVersion(snapshot: string): this {
         if (this.isUserFile()) {
-            return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
+            return new (this.constructor as new (
+                relativeFilePath: string,
+                workingDirectoryPath: string
+            ) => typeof this)(
                 path.join(DIRECTORY_PATHS.SNAPSHOTS, snapshot, this.getMainVersion().relativePath()),
                 this.workingDirectoryPath()
             );
@@ -114,10 +120,10 @@ export class FileBasic implements IFileBasic {
 
     public getMainVersion(): this {
         if (this.isUserFile() || this.isSnapshotFile()) {
-            return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
-                this.relativePath().split(path.sep).slice(2).join(path.sep),
-                this.workingDirectoryPath()
-            );
+            return new (this.constructor as new (
+                relativeFilePath: string,
+                workingDirectoryPath: string
+            ) => typeof this)(this.relativePath().split(path.sep).slice(2).join(path.sep), this.workingDirectoryPath());
         }
         return this;
     }
@@ -224,7 +230,9 @@ export class FileBasic implements IFileBasic {
                 this.workingDirectoryPath() === other.workingDirectoryPath()
             );
         }
-        return this.relativePath() === other.relativePath() && this.workingDirectoryPath() === other.workingDirectoryPath();
+        return (
+            this.relativePath() === other.relativePath() && this.workingDirectoryPath() === other.workingDirectoryPath()
+        );
     }
 
     public isWritable(): boolean {

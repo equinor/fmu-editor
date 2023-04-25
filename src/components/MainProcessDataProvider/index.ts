@@ -1,1 +1,1 @@
-export { MainProcessDataProvider } from "./main-process-data-provider";
+export {MainProcessDataProvider} from "./main-process-data-provider";

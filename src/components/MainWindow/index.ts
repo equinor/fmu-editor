@@ -1,1 +1,1 @@
-export { MainWindow } from "./main-window";
+export {MainWindow} from "./main-window";
