@@ -674,7 +674,7 @@ export class PERT implements Distribution {
 
     inv = (p: number): number => {
         if (this._min && p) {
-            throw new Error("Not implemeneted!");
+            throw new Error("Not implemented!");
         }
         return NaN;
     };

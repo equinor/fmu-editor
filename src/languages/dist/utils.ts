@@ -49,7 +49,7 @@ export const validateLineTokens = (tokens: IDistToken[]): boolean => {
 
 const PLOT_MARGINS = {top: 10, right: 10, bottom: 40, left: 40};
 
-const appendScaleX = (xVals: number[], size: Size) => {
+const createScaleX = (xVals: number[], size: Size): d3.ScaleLinear<number, number, never> => {
     return d3
         .scaleLinear()
         .domain(<[number, number]>d3.extent(xVals))
@@ -57,7 +57,7 @@ const appendScaleX = (xVals: number[], size: Size) => {
         .nice();
 };
 
-const appendScaleY = (yVals: number[], size: Size) => {
+const createScaleY = (yVals: number[], size: Size): d3.ScaleLinear<number, number, never> => {
     return d3
         .scaleLinear()
         .domain(<[number, number]>[0, d3.max(yVals)])
@@ -69,7 +69,7 @@ const appendXAxis = (
     svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
     xAxis: d3.Axis<d3.NumberValue>,
     scY: d3.ScaleLinear<number, number, never>
-) => {
+): void => {
     const svgXAxis = svg
         .append("g")
         .attr("transform", `translate(0, ${scY(0)})`)
@@ -91,7 +91,7 @@ const appendYAxis = (
     yAxis: d3.Axis<d3.NumberValue>,
     scX: d3.ScaleLinear<number, number, never>,
     min: number
-) => {
+): void => {
     const svgYAxis = svg
         .append("g")
         .attr("transform", `translate(${scX(min)}, 0)`)
@@ -106,7 +106,7 @@ const appendLine = (
     svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
     points: [number, number][],
     stroke: string
-) => {
+): void => {
     svg.append("g")
         .append("path")
         .attr("d", d3.line().curve(d3.curveLinear)(<[number, number][]>points))
@@ -134,8 +134,8 @@ export const plotContinuousPdf = (
     }
     const xVals: number[] = d3.range(min, max, dx);
     const yVals = xVals.map(x => f(x));
-    const scX = appendScaleX(xVals, size);
-    const scY = appendScaleY(yVals, size);
+    const scX = createScaleX(xVals, size);
+    const scY = createScaleY(yVals, size);
 
     // Scale x and f(x) to the screen coordinates
     const points = <[number, number][]>xVals.map((d, i) => [scX(d), scY(yVals[i])]).filter(xy => xy[1]); // Filter undefined `y` values
@@ -158,8 +158,8 @@ export const plotDiscretePdf = (f: (x: number) => number, size: Size, nbins: num
     const dx = nbins === 1 ? 0.1 : Math.abs(max - min) / (nbins - 1);
     const xVals: number[] = d3.range(min, max + dx - 1e-15, dx);
     const yVals = xVals.map(x => f(x));
-    const scX = appendScaleX(xVals, size);
-    const scY = appendScaleY(yVals, size);
+    const scX = createScaleX(xVals, size);
+    const scY = createScaleY(yVals, size);
 
     // Scale x and f(x) to the screen coordinates
     const data = xVals.map((d, i) => [scX(d), scY(yVals[i])]).filter(xy => xy[1]); // Filter undefined `y` values
