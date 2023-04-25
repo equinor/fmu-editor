@@ -7,8 +7,15 @@ import {WorkBook, read, utils, write} from "xlsx";
 
 import {IEditor, IEditorBasic} from "./editor-basic";
 
+export type WorkBooks = {
+    [key: string]: {
+        workBook: WorkBook;
+        buffer: Buffer;
+    };
+};
+
 export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorBasic> {
-    private workBooks: Record<string, WorkBook>;
+    private workBooks: WorkBooks;
 
     constructor() {
         this.workBooks = {};
@@ -20,14 +27,16 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
         if (!workBook) {
             const file = new File(absoluteFilePath, "");
             if (file.exists()) {
-                workBook = read(file.readBuffer());
+                const buffer = file.readBuffer();
+                workBook = {
+                    workBook: read(buffer),
+                    buffer,
+                };
             }
         }
 
         if (workBook) {
-            workBook.SheetNames.forEach(sheetName => {
-                value += utils.sheet_to_txt(workBook.Sheets[sheetName]);
-            });
+            value = workBook.buffer.toString("utf-8");
         }
 
         return generateHashCode(value);
@@ -39,12 +48,14 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
             return;
         }
 
-        const workbook = read(currentFile.readBuffer());
-        this.workBooks[absoluteFilePath] = workbook;
+        const buffer = currentFile.readBuffer();
+
+        const workBook = read(buffer);
+        this.workBooks[absoluteFilePath] = {workBook, buffer};
     }
 
     public getModel<T>(absoluteFilePath: string): T | null {
-        return (this.workBooks[absoluteFilePath] as T) || null;
+        return (this.workBooks[absoluteFilePath]?.workBook as T) ?? null;
     }
 
     public closeFile(absoluteFilePath: string): void {
@@ -62,7 +73,7 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
         if (!bookType) {
             return false;
         }
-        const buffer = write(workBook, {bookType, bookSST: true, type: "buffer"});
+        const buffer = write(workBook.workBook, {bookType, bookSST: true, type: "buffer"});
         return file.writeBuffer(buffer);
     }
 
@@ -77,7 +88,7 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
         if (!bookType) {
             return false;
         }
-        const buffer = write(workBook, {bookType, bookSST: true, type: "buffer"});
+        const buffer = write(workBook.workBook, {bookType, bookSST: true, type: "buffer"});
         return file.writeBuffer(buffer);
     }
 }

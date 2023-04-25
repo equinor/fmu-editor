@@ -445,11 +445,9 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
 
     const changeCellValue = React.useCallback(
         (row: number, column: number, value: any) => {
-            /* cell object */
             const cell = {t: "?", v: value};
             const address = utils.encode_cell({c: column, r: row});
 
-            /* assign type */
             if (typeof value === "string") cell.t = "s";
             // string
             else if (typeof value === "number") cell.t = "n";
@@ -459,20 +457,16 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             else if (value instanceof Date) cell.t = "d";
             else throw new Error("cannot store value");
 
-            /* add to worksheet, overwriting a cell if it exists */
             currentSheet[address] = cell;
 
-            /* find the cell range */
             const range = utils.decode_range(currentSheet["!ref"]);
             const addr = utils.decode_cell(address);
 
-            /* extend the range to include the new cell */
             if (range.s.c > addr.c) range.s.c = addr.c;
             if (range.s.r > addr.r) range.s.r = addr.r;
             if (range.e.c < addr.c) range.e.c = addr.c;
             if (range.e.r < addr.r) range.e.r = addr.r;
 
-            /* update range */
             currentSheet["!ref"] = utils.encode_range(range);
 
             setMaxCellRange({
@@ -886,7 +880,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
 
     const handleFocusedCellChange = (row: number, column: number) => {
         setFocusedCell({row, column});
-        updateViewState(row, column);
+        // updateViewState(row, column);
         setCopyingSelection(null);
     };
 
@@ -954,10 +948,12 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                             style={{height: editorSize.height - 36}}
                         >
                             <table className="SpreadSheetTable" style={{width: defaultCellSizeWithBorder.height}}>
-                                {verticalHeaders.map((header, row) => (
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    <tr key={`row-${row}`}>{header}</tr>
-                                ))}
+                                <tbody>
+                                    {verticalHeaders.map((header, row) => (
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        <tr key={`row-${row}`}>{header}</tr>
+                                    ))}
+                                </tbody>
                             </table>
                         </div>
 
@@ -976,13 +972,11 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                                         {verticalHeaders.map((_, row) => (
                                             // eslint-disable-next-line react/no-array-index-key
                                             <tr key={`row-${row}`}>
-                                                {horizontalHeaders.map((_, column) => {
+                                                {horizontalHeaders.map((__, column) => {
                                                     const absoluteRow =
                                                         row + (scrollCellLocation ? scrollCellLocation.row : 0);
                                                     const absoluteColumn =
-                                                        column +
-                                                        (scrollCellLocation ? scrollCellLocation.column : 0) -
-                                                        1;
+                                                        column + (scrollCellLocation ? scrollCellLocation.column : 0);
                                                     return (
                                                         <td
                                                             key={makeCellKey(
@@ -1026,7 +1020,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                                                             focusedCell.column === absoluteColumn ? (
                                                                 <input
                                                                     type="text"
-                                                                    /* eslint-disable-next-line jsx-a11y/no-autofocus */
+                                                                    // eslint-disable-next-line jsx-a11y/no-autofocus
                                                                     autoFocus
                                                                     defaultValue={getValue(absoluteRow, absoluteColumn)}
                                                                     onChange={e =>
