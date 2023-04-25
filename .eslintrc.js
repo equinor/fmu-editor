@@ -90,5 +90,5 @@ module.exports = {
             },
         ],
     },
-    ignorePatterns: ["package.json", "./node_modules", "./dist", "**/dist/*.js"],
+    ignorePatterns: ["package.json", "**/dist", "**/build"],
 };
