@@ -47,8 +47,8 @@ const watchFileSystem = () => {
 // eslint-disable-next-line no-restricted-globals
 self.setInterval(watchFileSystem, 3000);
 
-webworker.on(FileSystemWatcherRequestType.UPDATE_VALUES, ({username, directory, fmuDirectory}) => {
-    currentDirectory = directory;
+webworker.on(FileSystemWatcherRequestType.UPDATE_VALUES, ({username, workingDirectory, fmuDirectory}) => {
+    currentDirectory = workingDirectory;
     currentUsername = username;
     currentFmuDirectory = fmuDirectory;
 });
