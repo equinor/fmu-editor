@@ -84,27 +84,23 @@ export class FileBasic implements IFileBasic {
         if (this.isUserFile()) {
             return this;
         }
+        const {constructor} = Object.getPrototypeOf(this);
         if (this.isSnapshotFile()) {
-            return new (this.constructor as new (
-                relativeFilePath: string,
-                workingDirectoryPath: string
-            ) => typeof this)(
+            return new constructor(
                 path.join(DIRECTORY_PATHS.USERS, user, this.getMainVersion().relativePath()),
                 this.workingDirectoryPath()
             );
         }
-        return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
+        return new constructor(
             path.join(DIRECTORY_PATHS.USERS, user, this.relativePath()),
             this.workingDirectoryPath()
         );
     }
 
     public getSnapshotVersion(snapshot: string): this {
+        const {constructor} = Object.getPrototypeOf(this);
         if (this.isUserFile()) {
-            return new (this.constructor as new (
-                relativeFilePath: string,
-                workingDirectoryPath: string
-            ) => typeof this)(
+            return new constructor(
                 path.join(DIRECTORY_PATHS.SNAPSHOTS, snapshot, this.getMainVersion().relativePath()),
                 this.workingDirectoryPath()
             );
@@ -112,7 +108,7 @@ export class FileBasic implements IFileBasic {
         if (this.isSnapshotFile()) {
             return this;
         }
-        return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
+        return new constructor(
             path.join(DIRECTORY_PATHS.SNAPSHOTS, snapshot, this.relativePath()),
             this.workingDirectoryPath()
         );
@@ -120,10 +116,11 @@ export class FileBasic implements IFileBasic {
 
     public getMainVersion(): this {
         if (this.isUserFile() || this.isSnapshotFile()) {
-            return new (this.constructor as new (
-                relativeFilePath: string,
-                workingDirectoryPath: string
-            ) => typeof this)(this.relativePath().split(path.sep).slice(2).join(path.sep), this.workingDirectoryPath());
+            const {constructor} = Object.getPrototypeOf(this);
+            return new constructor(
+                this.relativePath().split(path.sep).slice(2).join(path.sep),
+                this.workingDirectoryPath()
+            );
         }
         return this;
     }
