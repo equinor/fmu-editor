@@ -32,8 +32,7 @@
 
 .ResizeDragBar {
     background-color: var(--text-tertiary);
-    transition: background-color 0.5s ease-out 100ms,
-        border-color 0.5s ease-out 100ms;
+    transition: background-color 0.5s ease-out 100ms, border-color 0.5s ease-out 100ms;
     z-index: 100;
     position: relative;
 }

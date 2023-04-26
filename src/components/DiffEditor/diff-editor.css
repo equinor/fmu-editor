@@ -149,7 +149,7 @@
     gap: var(--spacing-s);
 }
 
-.DiffEditorHeader > div:nth-child(2){
+.DiffEditorHeader > div:nth-child(2) {
     border-left: 1px var(--background-medium) solid;
 }
 
@@ -157,13 +157,14 @@
     position: absolute;
     height: 100%;
     z-index: 999;
-    background: var(--background-color) repeating-linear-gradient(
-        -45deg,
-        var(--background-color),
-        var(--background-color) 6px,
-        var(--background-light) 6px,
-        var(--background-light) 8px
-    );
+    background: var(--background-color)
+        repeating-linear-gradient(
+            -45deg,
+            var(--background-color),
+            var(--background-color) 6px,
+            var(--background-light) 6px,
+            var(--background-light) 8px
+        );
     display: flex;
     align-items: center;
     justify-content: center;

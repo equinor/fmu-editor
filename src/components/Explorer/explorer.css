@@ -27,7 +27,7 @@
     display: flex;
     align-items: center;
     background-color: var(--background-light);
-} 
+}
 
 .ExplorerTitle > div {
     display: flex;
@@ -56,7 +56,7 @@
 }
 
 .ExplorerItemInput {
-    z-Index: 1000;
+    z-index: 1000;
     position: relative;
     margin-left: var(--spacing-s);
     background-color: var(--background-light);
@@ -99,7 +99,7 @@
 }
 
 .ExplorerItemNew {
-    z-Index: 1000;
+    z-index: 1000;
     position: relative;
 }
 
@@ -115,7 +115,7 @@
     color: var(--text-on-primary);
 }
 
-.ExplorerItem--active{
+.ExplorerItem--active {
     background-color: var(--secondary-highlight);
     color: var(--text-color);
 }

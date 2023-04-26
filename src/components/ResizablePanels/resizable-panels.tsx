@@ -182,9 +182,9 @@ export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
                     </div>
                     {index < props.children.length - 1 && (
                         <div
-                            className={`ResizeDragBar ResizeDragBar${props.direction === "horizontal" ? "Horizontal" : "Vertical"}${
-                                isDragging ? " ResizeDragBar--active" : ""
-                            }`}
+                            className={`ResizeDragBar ResizeDragBar${
+                                props.direction === "horizontal" ? "Horizontal" : "Vertical"
+                            }${isDragging ? " ResizeDragBar--active" : ""}`}
                             onPointerDown={() => startResize(index)}
                         />
                     )}

@@ -48,11 +48,13 @@
     white-space: nowrap;
 }
 
-.ChangesBrowserList, .ChangesBrowserText, .ChangesBrowserTextTitle {
+.ChangesBrowserList,
+.ChangesBrowserText,
+.ChangesBrowserTextTitle {
     background-color: var(--background-light);
     height: 20vh;
     min-height: 100px;
-    overflow-y: overlay; 
+    overflow-y: overlay;
     padding: var(--spacing-xx);
     line-height: var(--h1-line-height);
     white-space: pre-wrap;
