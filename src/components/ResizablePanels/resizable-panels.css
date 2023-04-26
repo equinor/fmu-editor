@@ -38,12 +38,12 @@
     position: relative;
 }
 
-.ResizeDragBar__horizontal {
+.ResizeDragBarHorizontal {
     cursor: ew-resize;
     width: 1px;
 }
 
-.ResizeDragBar__vertical {
+.ResizeDragBarVertical {
     cursor: ns-resize;
     height: 1px;
 }
@@ -53,8 +53,8 @@
     background-color: var(--primary);
 }
 
-.ResizeDragBar__vertical:hover::after, 
-.ResizeDragBar__vertical:active::after {
+.ResizeDragBarVertical:hover::after,
+.ResizeDragBarVertical:active::after {
     content: "";
     position: absolute;
     top: -1px;
@@ -64,8 +64,8 @@
     background-color: var(--primary);
 }
 
-.ResizeDragBar__horizontal:hover::after, 
-.ResizeDragBar__horizontal:active::after {
+.ResizeDragBarHorizontal:hover::after,
+.ResizeDragBarHorizontal:active::after {
     content: "";
     position: absolute;
     left: -1px;

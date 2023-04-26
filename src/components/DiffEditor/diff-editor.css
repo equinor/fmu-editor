@@ -36,7 +36,7 @@
 }
 
 .Editor__CurrentObjectDecoration {
-    background: rgb(255, 208, 54);
+    background: rgb(255 208 54);
     width: 5px !important;
     margin-left: 4px;
 }
@@ -131,10 +131,6 @@
     min-width: 50px;
 }
 
-.DiffEditorHeader > div:nth-child(2){
-    border-left: 1px var(--background-medium) solid;
-}
-
 .MergeEditorFile {
     display: flex;
     flex-direction: row;
@@ -146,11 +142,15 @@
 }
 
 .MergeEditorFile > div {
-    flex-grow: 4;
     display: flex;
+    flex-grow: 4;
     align-items: center;
     justify-content: right;
     gap: var(--spacing-s);
+}
+
+.DiffEditorHeader > div:nth-child(2){
+    border-left: 1px var(--background-medium) solid;
 }
 
 .EditorOverlay {
