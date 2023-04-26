@@ -14,7 +14,7 @@ export function createKeywordsCompletionProvider(options: DistOptions): language
             const word = model.getWordUntilPosition(position);
             const range = new Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn);
             const suggestions = Dist.keywords.map(kw => {
-                return <languages.CompletionItem>{...kw, range};
+                return {...kw, range};
             });
             return {suggestions};
         },
