@@ -1,5 +1,8 @@
 /* eslint-disable max-classes-per-file */
-import {beta, erf, erfinv, incompleteBeta} from "@utils/math";
+import beta from "@stdlib/math-base-special-beta";
+import betainc from "@stdlib/math-base-special-betainc";
+import erf from "@stdlib/math-base-special-erf";
+import erfinv from "@stdlib/math-base-special-erfinv";
 
 import {Distribution} from "@shared-types/distribution";
 
@@ -92,8 +95,8 @@ export class LogNormal extends Normal {
         if (x <= 0) {
             return NaN;
         }
-        const sltv = -0.5 * ((Math.log(x) - this._mean) / this._std) ** 2;
-        return this._stdDensity * Math.exp(sltv);
+        const sltv = (-0.5 * (Math.log(x) - this._mean) ** 2) / this._variance;
+        return (this._stdDensity / x) * Math.exp(sltv);
     };
 
     cdf = (x: number): number => {
@@ -669,7 +672,7 @@ export class PERT implements Distribution {
         if (x >= this._max) {
             return 1;
         }
-        return incompleteBeta(this._alpha, this._beta, x);
+        return betainc(this._alpha, this._beta, x);
     };
 
     inv = (p: number): number => {
