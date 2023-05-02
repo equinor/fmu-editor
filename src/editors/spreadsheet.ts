@@ -3,7 +3,7 @@ import {GlobalSettings} from "@global/global-settings";
 import {File} from "@utils/file-system/file";
 import {generateHashCode} from "@utils/hash";
 
-import {WorkBook, read, utils, write} from "xlsx";
+import {WorkBook, read, write} from "xlsx";
 
 import {IEditor, IEditorBasic} from "./editor-basic";
 

@@ -9,13 +9,13 @@ import {ipcRenderer} from "electron";
 import React from "react";
 
 import {File} from "@utils/file-system/file";
-import {Size} from "@utils/geometry";
 
 import {useAppSelector} from "@redux/hooks";
 
 import {CodeEditorViewState} from "@shared-types/files";
 import {IpcMessages} from "@shared-types/ipc";
 import {NotificationType} from "@shared-types/notifications";
+import {Size} from "@shared-types/size";
 
 import {cloneDeep} from "lodash";
 import path from "path";
@@ -490,23 +490,23 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
     );
 
     const getRowHeight = React.useCallback(
-        (index: number): number => {
+        (index: number, withPadding = false): number => {
             if (rowHeights[index]) {
-                return rowHeights[index];
+                return rowHeights[index] + withPadding * 4;
             }
 
-            return defaultCellSize.height;
+            return defaultCellSize.height + withPadding * 4;
         },
         [rowHeights]
     );
 
     const getColumnWidth = React.useCallback(
-        (index: number): number => {
+        (index: number, withPadding = false): number => {
             if (columnWidths[index]) {
-                return columnWidths[index];
+                return columnWidths[index] + withPadding * 4;
             }
 
-            return defaultCellSize.width;
+            return defaultCellSize.width + withPadding * 4;
         },
         [columnWidths]
     );
@@ -530,7 +530,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             height -= getRowHeight(index++);
             count++;
         }
-        return count - 2;
+        return count - 1;
     }, [editorSize.height, scrollCellLocation.row, getRowHeight]);
 
     React.useEffect(() => {
@@ -795,8 +795,10 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         let remainingScrollX = scrollPosition.x;
         let remainingScrollY = scrollPosition.y;
 
+        console.log(scrollPosition.y);
+
         while (remainingScrollX > 0) {
-            const width = columnWidths[startColumn] || defaultCellSize.width;
+            const width = getColumnWidth(startColumn, true) || defaultCellSizeWithBorder.width;
             remainingScrollX -= width;
             if (remainingScrollX < width) {
                 break;
@@ -805,7 +807,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         }
 
         while (remainingScrollY > 0) {
-            const height = rowHeights[startRow] || defaultCellSize.height;
+            const height = getRowHeight(startRow, true) || defaultCellSizeWithBorder.height;
             remainingScrollY -= height;
             if (remainingScrollY < height) {
                 break;
@@ -834,7 +836,8 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
     const makeColumnHeaders = (): React.ReactNode[] => {
         const headers = [];
         const startIndex = startCell.column;
-        for (let i = 0; i < calcNumColumns(); i++) {
+
+        for (let i = 0; i <= calcNumColumns() + 1; i++) {
             const absoluteIndex = startIndex + i;
             headers.push(
                 <ColumnHeader
@@ -856,9 +859,9 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
 
     const makeRowHeaders = (): React.ReactNode[] => {
         const headers = [];
-
         const startIndex = startCell.row;
-        for (let i = 0; i < calcNumRows(); i++) {
+
+        for (let i = 0; i <= calcNumRows(); i++) {
             const absoluteIndex = startIndex + i;
             headers.push(
                 <RowHeader
@@ -896,27 +899,8 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         changeCellValue(row, column, value);
     };
 
-    const calcTableWidth = () => {
-        let width = 0;
-        for (let i = 0; i <= calcNumColumns(); i++) {
-            width += getColumnWidth(i);
-        }
-        return width;
-    };
-
-    const calcTableHeight = () => {
-        let height = 0;
-        for (let i = 0; i <= calcNumRows(); i++) {
-            height += getRowHeight(i);
-        }
-        return height;
-    };
-
     const verticalHeaders = makeRowHeaders();
     const horizontalHeaders = makeColumnHeaders();
-
-    const totalWidth = editorSize.width + scrollPosition.x + endlessScrollAdditionalSize.width;
-    const totalHeight = editorSize.height + scrollPosition.y + endlessScrollAdditionalSize.height;
 
     return (
         <div ref={editorRef} className="SpreadSheetEditor" style={{display: props.visible ? "block" : "none"}}>
@@ -931,6 +915,10 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                             }}
                         />
                         <div className="SpreadSheetEditor__HorizontalHeaderWrapper" ref={horizontalHeaderWrapperRef}>
+                            <div
+                                className="SpreadSheetEditor__TableWrapper__Spacer"
+                                style={{minWidth: spacerSize.left}}
+                            />
                             <table
                                 className="SpreadSheetTable"
                                 style={{height: defaultCellSizeWithBorder.height, width: editorSize.width - 34}}
@@ -939,6 +927,10 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                                     <tr>{horizontalHeaders}</tr>
                                 </thead>
                             </table>
+                            <div
+                                className="SpreadSheetEditor__TableWrapper__Spacer"
+                                style={{minWidth: endlessScrollAdditionalSize.width}}
+                            />
                         </div>
                     </div>
                     <div className="SpreadSheetEditor__Wrapper">
@@ -947,6 +939,10 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                             ref={verticalHeaderWrapperRef}
                             style={{height: editorSize.height - 36}}
                         >
+                            <div
+                                className="SpreadSheetEditor__TableWrapper__Spacer"
+                                style={{minHeight: spacerSize.top}}
+                            />
                             <table className="SpreadSheetTable" style={{width: defaultCellSizeWithBorder.height}}>
                                 <tbody>
                                     {verticalHeaders.map((header, row) => (
@@ -955,17 +951,24 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                                     ))}
                                 </tbody>
                             </table>
+                            <div
+                                className="SpreadSheetEditor__TableWrapper__Spacer"
+                                style={{minHeight: endlessScrollAdditionalSize.height}}
+                            />
                         </div>
-
                         <div
                             className="SpreadSheetEditor__TableWrapper"
                             style={{width: editorSize.width - 34, height: editorSize.height - 36}}
                             ref={tableWrapperRef}
                         >
+                            <div
+                                className="SpreadSheetEditor__TableWrapper__Spacer"
+                                style={{minHeight: spacerSize.top}}
+                            />
                             <div className="SpreadSheetEditor__Wrapper">
                                 <div
                                     className="SpreadSheetEditor__TableWrapper__Spacer"
-                                    style={{width: spacerSize.left}}
+                                    style={{minWidth: spacerSize.left}}
                                 />
                                 <table className="SpreadSheetTable" ref={tableRef}>
                                     <tbody>
@@ -973,10 +976,8 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                                             // eslint-disable-next-line react/no-array-index-key
                                             <tr key={`row-${row}`}>
                                                 {horizontalHeaders.map((__, column) => {
-                                                    const absoluteRow =
-                                                        row + (scrollCellLocation ? scrollCellLocation.row : 0);
-                                                    const absoluteColumn =
-                                                        column + (scrollCellLocation ? scrollCellLocation.column : 0);
+                                                    const absoluteRow = row + startCell.row;
+                                                    const absoluteColumn = column + startCell.column;
                                                     return (
                                                         <td
                                                             key={makeCellKey(

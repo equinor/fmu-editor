@@ -23,10 +23,14 @@
 
 .SpreadSheetEditor__HorizontalHeaderWrapper {
     overflow: hidden;
+    display: flex;
+    flex-direction: row;
 }
 
 .SpreadSheetEditor__VerticalHeaderWrapper {
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .SpreadSheetEditor__Wrapper {
