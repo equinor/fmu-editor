@@ -4,6 +4,7 @@ import {EditorType, GlobalSettings} from "@global/global-settings";
 import {useElementSize} from "@hooks/useElementSize";
 import {useYamlSchemas} from "@hooks/useYamlSchema";
 import {setDiagnosticsOptions as setErtOptions} from "@languages/monaco-ert/src";
+import {setDistOptions} from "@languages/dist";
 import {useTheme} from "@mui/material";
 
 import React from "react";
@@ -116,6 +117,7 @@ export const MonacoEditor: React.FC<MonacoEditorProps> = props => {
 
     useYamlSchemas(yaml);
     setErtOptions();
+    setDistOptions();
 
     React.useEffect(() => {
         if (!monacoEditorRef || !monacoEditorRef.current) {

@@ -1,21 +1,19 @@
 import {createTheme} from "@mui/material";
 
-import {uncapitalize} from "@utils/string";
+import {uncapitalize, trimPx} from "@utils/string";
 
 import palette from "./theme.module.scss";
 
-const parseValue = (valueWithUnit: string) => {
-    const value = valueWithUnit.replace("px", "");
-    return Number(value);
-};
-
-export const Theme = (mode: "light" | "dark") => {
-    const themePalette = Object.fromEntries(
+export const modePalette = (mode: "light" | "dark") => {
+    return Object.fromEntries(
         Object.entries(palette)
             .filter(([key]) => key.includes(mode))
             .map(([key, value]) => [uncapitalize(key.replace(mode, "")), value])
     );
+};
 
+export const Theme = (mode: "light" | "dark") => {
+    const themePalette = modePalette(mode);
     return createTheme({
         palette: {
             mode,
@@ -49,7 +47,7 @@ export const Theme = (mode: "light" | "dark") => {
             divider: themePalette.secondary,
         },
         shape: {
-            borderRadius: parseValue(palette.borderRadius),
+            borderRadius: trimPx(palette.borderRadius),
         },
     });
 };
