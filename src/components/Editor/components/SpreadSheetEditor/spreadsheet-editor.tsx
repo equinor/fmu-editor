@@ -12,7 +12,6 @@ import {File} from "@utils/file-system/file";
 
 import {useAppSelector} from "@redux/hooks";
 
-import {CodeEditorViewState} from "@shared-types/files";
 import {IpcMessages} from "@shared-types/ipc";
 import {NotificationType} from "@shared-types/notifications";
 import {Size} from "@shared-types/size";
@@ -32,11 +31,6 @@ export type SpreadSheetEditorProps = {
 const defaultCellSize: Size = {
     width: 100,
     height: 30,
-};
-
-const endlessScrollAdditionalSize: Size = {
-    width: 300,
-    height: 300,
 };
 
 const defaultCellSizeWithBorder: Size = {
@@ -238,6 +232,8 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         }
     }, [currentSheet]);
 
+    /*
+
     const updateViewState = React.useCallback(
         (r?: number, c?: number) => {
             const row = r ?? focusedCell?.row ?? 0;
@@ -272,12 +268,21 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         },
         [focusedCell, activeFilePath]
     );
+    */
 
     React.useEffect(() => {
         const tableWrapperRefCurrent = tableWrapperRef.current;
         const handleScrollPositionChange = () => {
             if (!tableWrapperRefCurrent) {
                 return;
+            }
+
+            if (horizontalHeaderWrapperRef.current) {
+                horizontalHeaderWrapperRef.current.scrollLeft = tableWrapperRef.current.scrollLeft;
+            }
+
+            if (verticalHeaderWrapperRef.current) {
+                verticalHeaderWrapperRef.current.scrollTop = tableWrapperRef.current.scrollTop;
             }
 
             if (programaticScrolling) {
@@ -295,15 +300,24 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 y: tableWrapperRef.current.scrollTop,
             });
 
-            if (horizontalHeaderWrapperRef.current) {
-                horizontalHeaderWrapperRef.current.scrollLeft = tableWrapperRef.current.scrollLeft;
+            let newMaxColumn = maxCellRange.column;
+            if (tableWrapperRef.current.scrollLeft / tableWrapperRef.current.scrollWidth > 0.9) {
+                newMaxColumn = maxCellRange.column + 10;
             }
 
-            if (verticalHeaderWrapperRef.current) {
-                verticalHeaderWrapperRef.current.scrollTop = tableWrapperRef.current.scrollTop;
+            let newMaxRow = maxCellRange.row;
+            if (tableWrapperRef.current.scrollTop / tableWrapperRef.current.scrollHeight > 0.9) {
+                newMaxRow = maxCellRange.row + 10;
             }
 
-            updateViewState();
+            setMaxCellRange(prev => ({
+                column: Math.max(prev.column, newMaxColumn),
+                row: Math.max(prev.row, newMaxRow),
+            }));
+
+            setProgramaticScrolling(true);
+
+            // updateViewState();
         };
 
         if (tableWrapperRefCurrent) {
@@ -315,7 +329,21 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 tableWrapperRefCurrent.removeEventListener("scroll", handleScrollPositionChange);
             }
         };
-    }, [maxCellRange, updateViewState, programaticScrolling]);
+    }, [programaticScrolling, maxCellRange]);
+
+    React.useEffect(() => {
+        if (tableWrapperRef.current) {
+            tableWrapperRef.current.scrollLeft = scrollPosition.x;
+            tableWrapperRef.current.scrollTop = scrollPosition.y;
+        }
+        if (horizontalHeaderWrapperRef.current) {
+            horizontalHeaderWrapperRef.current.scrollLeft = scrollPosition.x;
+        }
+
+        if (verticalHeaderWrapperRef.current) {
+            verticalHeaderWrapperRef.current.scrollTop = scrollPosition.y;
+        }
+    }, [scrollPosition]);
 
     React.useEffect(() => {
         const currentFile = new File(path.relative(workingDirectoryPath, activeFilePath), workingDirectoryPath);
@@ -351,18 +379,11 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                     row: Math.floor(viewState.viewState.scrollTop / defaultCellSizeWithBorder.height),
                 });
 
-                editorRef.current.scrollTop = viewState.viewState.scrollTop;
-                editorRef.current.scrollLeft = viewState.viewState.scrollLeft;
+                tableRef.current.scrollTop = viewState.viewState.scrollTop;
+                tableRef.current.scrollLeft = viewState.viewState.scrollLeft;
             }, 500);
         }
     }, [activeFilePath, workingDirectoryPath]);
-
-    React.useEffect(() => {
-        if (editorRef.current && programaticScrolling) {
-            editorRef.current.scrollTop = scrollCellLocation.row * defaultCellSizeWithBorder.height;
-            editorRef.current.scrollLeft = scrollCellLocation.column * defaultCellSizeWithBorder.width;
-        }
-    }, [scrollCellLocation, programaticScrolling]);
 
     React.useEffect(() => {
         let mouseDown = false;
@@ -795,8 +816,6 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         let remainingScrollX = scrollPosition.x;
         let remainingScrollY = scrollPosition.y;
 
-        console.log(scrollPosition.y);
-
         while (remainingScrollX > 0) {
             const width = getColumnWidth(startColumn, true) || defaultCellSizeWithBorder.width;
             remainingScrollX -= width;
@@ -816,22 +835,42 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         }
 
         return {row: startRow, column: startColumn};
-    }, [columnWidths, rowHeights, scrollPosition]);
+    }, [scrollPosition, getRowHeight, getColumnWidth]);
 
     const spacerSize = React.useMemo((): {left: number; top: number} => {
         let spacerLeft = 0;
         let spacerTop = 0;
 
         for (let i = 0; i < startCell.column; i++) {
-            spacerLeft += columnWidths[i] || defaultCellSize.width;
+            spacerLeft += getColumnWidth(i, true);
         }
 
         for (let i = 0; i < startCell.row; i++) {
-            spacerTop += rowHeights[i] || defaultCellSize.height;
+            spacerTop += getRowHeight(i, true);
         }
 
         return {left: spacerLeft, top: spacerTop};
-    }, [startCell, columnWidths, rowHeights]);
+    }, [startCell, getRowHeight, getColumnWidth]);
+
+    const scrollSpacerSize = React.useMemo((): {right: number; bottom: number} => {
+        let spacerRight = 0;
+        let spacerBottom = 0;
+
+        for (let i = 0; i < maxCellRange.column; i++) {
+            spacerRight += getColumnWidth(i, true);
+        }
+
+        for (let i = 0; i < maxCellRange.row; i++) {
+            spacerBottom += getRowHeight(i, true);
+        }
+
+        if (tableWrapperRef.current) {
+            spacerRight -= scrollPosition.x + tableWrapperRef.current.clientWidth;
+            spacerBottom -= scrollPosition.y + tableWrapperRef.current.clientHeight;
+        }
+
+        return {right: spacerRight, bottom: spacerBottom};
+    }, [maxCellRange, getRowHeight, getColumnWidth, scrollPosition]);
 
     const makeColumnHeaders = (): React.ReactNode[] => {
         const headers = [];
@@ -902,182 +941,187 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
     const verticalHeaders = makeRowHeaders();
     const horizontalHeaders = makeColumnHeaders();
 
+    console.log("Scroll top", scrollPosition.y, "Spacer top", spacerSize.top, "Start cell", startCell.row);
+
     return (
-        <div ref={editorRef} className="SpreadSheetEditor" style={{display: props.visible ? "block" : "none"}}>
-            {currentSheet && currentWorkbook && (
-                <>
-                    <div className="SpreadSheetEditor__Wrapper">
+        <div
+            ref={editorRef}
+            className="SpreadSheetEditor"
+            style={{display: props.visible && currentSheet && currentWorkbook ? "block" : "none"}}
+        >
+            <div className="SpreadSheetEditor__Wrapper">
+                <div
+                    className="SpreadSheetEditor__ColRowSpacer"
+                    style={{
+                        minWidth: defaultCellSizeWithBorder.height,
+                        minHeight: defaultCellSizeWithBorder.height,
+                    }}
+                />
+                <div className="SpreadSheetEditor__HorizontalHeaderWrapper" ref={horizontalHeaderWrapperRef}>
+                    <div
+                        className="SpreadSheetEditor__TableWrapper__Spacer"
+                        style={{minWidth: spacerSize.left, maxWidth: spacerSize.left}}
+                    />
+                    <table
+                        className="SpreadSheetTable"
+                        style={{height: defaultCellSizeWithBorder.height, width: editorSize.width - 34}}
+                    >
+                        <thead>
+                            <tr>{horizontalHeaders}</tr>
+                        </thead>
+                    </table>
+                    <div
+                        className="SpreadSheetEditor__TableWrapper__Spacer"
+                        style={{
+                            minWidth: scrollSpacerSize.right,
+                            maxWidth: scrollSpacerSize.right,
+                        }}
+                    />
+                </div>
+            </div>
+            <div className="SpreadSheetEditor__Wrapper" style={{height: editorSize.height}}>
+                <div className="SpreadSheetEditor__VerticalHeaderWrapper" ref={verticalHeaderWrapperRef}>
+                    <div
+                        className="SpreadSheetEditor__TableWrapper__Spacer"
+                        style={{minHeight: spacerSize.top, maxHeight: spacerSize.top}}
+                    />
+                    <table className="SpreadSheetTable" style={{width: defaultCellSizeWithBorder.height}}>
+                        <tbody>
+                            {verticalHeaders.map((header, row) => (
+                                // eslint-disable-next-line react/no-array-index-key
+                                <tr key={`row-${row}`}>{header}</tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                <div
+                    className="SpreadSheetEditor__TableWrapper"
+                    style={{width: editorSize.width - 34, height: editorSize.height - 38}}
+                    ref={tableWrapperRef}
+                >
+                    <div className="SpreadSheetEditor__ColumnWrapper">
                         <div
-                            className="SpreadSheetEditor__ColRowSpacer"
-                            style={{
-                                minWidth: defaultCellSizeWithBorder.height,
-                                minHeight: defaultCellSizeWithBorder.height,
-                            }}
+                            className="SpreadSheetEditor__TableWrapper__Spacer"
+                            style={{minHeight: spacerSize.top, maxHeight: spacerSize.top}}
                         />
-                        <div className="SpreadSheetEditor__HorizontalHeaderWrapper" ref={horizontalHeaderWrapperRef}>
+                        <div className="SpreadSheetEditor__Wrapper">
                             <div
                                 className="SpreadSheetEditor__TableWrapper__Spacer"
-                                style={{minWidth: spacerSize.left}}
+                                style={{minWidth: spacerSize.left, maxWidth: spacerSize.left}}
                             />
-                            <table
-                                className="SpreadSheetTable"
-                                style={{height: defaultCellSizeWithBorder.height, width: editorSize.width - 34}}
-                            >
-                                <thead>
-                                    <tr>{horizontalHeaders}</tr>
-                                </thead>
-                            </table>
-                            <div
-                                className="SpreadSheetEditor__TableWrapper__Spacer"
-                                style={{minWidth: endlessScrollAdditionalSize.width}}
-                            />
-                        </div>
-                    </div>
-                    <div className="SpreadSheetEditor__Wrapper">
-                        <div
-                            className="SpreadSheetEditor__VerticalHeaderWrapper"
-                            ref={verticalHeaderWrapperRef}
-                            style={{height: editorSize.height - 36}}
-                        >
-                            <div
-                                className="SpreadSheetEditor__TableWrapper__Spacer"
-                                style={{minHeight: spacerSize.top}}
-                            />
-                            <table className="SpreadSheetTable" style={{width: defaultCellSizeWithBorder.height}}>
+                            <table className="SpreadSheetTable" ref={tableRef}>
                                 <tbody>
-                                    {verticalHeaders.map((header, row) => (
+                                    {verticalHeaders.map((_, row) => (
                                         // eslint-disable-next-line react/no-array-index-key
-                                        <tr key={`row-${row}`}>{header}</tr>
+                                        <tr key={`row-${row}`}>
+                                            {horizontalHeaders.map((__, column) => {
+                                                const absoluteRow = row + startCell.row;
+                                                const absoluteColumn = column + startCell.column;
+                                                return (
+                                                    <td
+                                                        key={makeCellKey(
+                                                            absoluteColumn,
+                                                            absoluteRow,
+                                                            getValue(absoluteRow, absoluteColumn)
+                                                        )}
+                                                        className={`SpreadSheetTable__cell${makeCellClassesBasedOnSelection(
+                                                            selection,
+                                                            absoluteRow,
+                                                            absoluteColumn
+                                                        )}${
+                                                            focusedCell &&
+                                                            focusedCell.row === absoluteRow &&
+                                                            focusedCell.column === absoluteColumn
+                                                                ? " focused-cell"
+                                                                : ""
+                                                        }`}
+                                                        data-row-index={absoluteRow}
+                                                        data-column-index={absoluteColumn}
+                                                        onDoubleClick={() =>
+                                                            handleFocusedCellChange(absoluteRow, absoluteColumn)
+                                                        }
+                                                        onClick={() => {
+                                                            if (
+                                                                focusedCell &&
+                                                                focusedCell.row === absoluteRow &&
+                                                                focusedCell.column === absoluteColumn
+                                                            ) {
+                                                                return;
+                                                            }
+                                                            setFocusedCell(null);
+                                                        }}
+                                                        style={{
+                                                            width: getColumnWidth(absoluteColumn),
+                                                            height: getRowHeight(absoluteRow),
+                                                        }}
+                                                    >
+                                                        {focusedCell &&
+                                                        focusedCell.row === absoluteRow &&
+                                                        focusedCell.column === absoluteColumn ? (
+                                                            <input
+                                                                type="text"
+                                                                // eslint-disable-next-line jsx-a11y/no-autofocus
+                                                                autoFocus
+                                                                defaultValue={getValue(absoluteRow, absoluteColumn)}
+                                                                onChange={e =>
+                                                                    handleCellChange(
+                                                                        absoluteRow,
+                                                                        absoluteColumn,
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                onKeyDown={e => {
+                                                                    if (e.key === "Enter") {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        setFocusedCell(null);
+                                                                    }
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <div className="content">
+                                                                {getValue(absoluteRow, absoluteColumn)}
+                                                            </div>
+                                                        )}
+                                                        <div
+                                                            className={makeSelectionFrameClassNames(
+                                                                absoluteRow,
+                                                                absoluteColumn,
+                                                                selection
+                                                            )}
+                                                        />
+                                                        <div
+                                                            className={makeCopyingFrameClassNames(
+                                                                absoluteRow,
+                                                                absoluteColumn,
+                                                                copyingSelection
+                                                            )}
+                                                        />
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
                                     ))}
                                 </tbody>
                             </table>
                             <div
                                 className="SpreadSheetEditor__TableWrapper__Spacer"
-                                style={{minHeight: endlessScrollAdditionalSize.height}}
+                                style={{
+                                    minWidth: scrollSpacerSize.right,
+                                    maxWidth: scrollSpacerSize.right,
+                                }}
                             />
                         </div>
                         <div
-                            className="SpreadSheetEditor__TableWrapper"
-                            style={{width: editorSize.width - 34, height: editorSize.height - 36}}
-                            ref={tableWrapperRef}
-                        >
-                            <div
-                                className="SpreadSheetEditor__TableWrapper__Spacer"
-                                style={{minHeight: spacerSize.top}}
-                            />
-                            <div className="SpreadSheetEditor__Wrapper">
-                                <div
-                                    className="SpreadSheetEditor__TableWrapper__Spacer"
-                                    style={{minWidth: spacerSize.left}}
-                                />
-                                <table className="SpreadSheetTable" ref={tableRef}>
-                                    <tbody>
-                                        {verticalHeaders.map((_, row) => (
-                                            // eslint-disable-next-line react/no-array-index-key
-                                            <tr key={`row-${row}`}>
-                                                {horizontalHeaders.map((__, column) => {
-                                                    const absoluteRow = row + startCell.row;
-                                                    const absoluteColumn = column + startCell.column;
-                                                    return (
-                                                        <td
-                                                            key={makeCellKey(
-                                                                absoluteColumn,
-                                                                absoluteRow,
-                                                                getValue(absoluteRow, absoluteColumn)
-                                                            )}
-                                                            className={`SpreadSheetTable__cell${makeCellClassesBasedOnSelection(
-                                                                selection,
-                                                                absoluteRow,
-                                                                absoluteColumn
-                                                            )}${
-                                                                focusedCell &&
-                                                                focusedCell.row === absoluteRow &&
-                                                                focusedCell.column === absoluteColumn
-                                                                    ? " focused-cell"
-                                                                    : ""
-                                                            }`}
-                                                            data-row-index={absoluteRow}
-                                                            data-column-index={absoluteColumn}
-                                                            onDoubleClick={() =>
-                                                                handleFocusedCellChange(absoluteRow, absoluteColumn)
-                                                            }
-                                                            onClick={() => {
-                                                                if (
-                                                                    focusedCell &&
-                                                                    focusedCell.row === absoluteRow &&
-                                                                    focusedCell.column === absoluteColumn
-                                                                ) {
-                                                                    return;
-                                                                }
-                                                                setFocusedCell(null);
-                                                            }}
-                                                            style={{
-                                                                width: getColumnWidth(absoluteColumn),
-                                                                height: getRowHeight(absoluteRow),
-                                                            }}
-                                                        >
-                                                            {focusedCell &&
-                                                            focusedCell.row === absoluteRow &&
-                                                            focusedCell.column === absoluteColumn ? (
-                                                                <input
-                                                                    type="text"
-                                                                    // eslint-disable-next-line jsx-a11y/no-autofocus
-                                                                    autoFocus
-                                                                    defaultValue={getValue(absoluteRow, absoluteColumn)}
-                                                                    onChange={e =>
-                                                                        handleCellChange(
-                                                                            absoluteRow,
-                                                                            absoluteColumn,
-                                                                            e.target.value
-                                                                        )
-                                                                    }
-                                                                    onKeyDown={e => {
-                                                                        if (e.key === "Enter") {
-                                                                            e.preventDefault();
-                                                                            e.stopPropagation();
-                                                                            setFocusedCell(null);
-                                                                        }
-                                                                    }}
-                                                                />
-                                                            ) : (
-                                                                <div className="content">
-                                                                    {getValue(absoluteRow, absoluteColumn)}
-                                                                </div>
-                                                            )}
-                                                            <div
-                                                                className={makeSelectionFrameClassNames(
-                                                                    absoluteRow,
-                                                                    absoluteColumn,
-                                                                    selection
-                                                                )}
-                                                            />
-                                                            <div
-                                                                className={makeCopyingFrameClassNames(
-                                                                    absoluteRow,
-                                                                    absoluteColumn,
-                                                                    copyingSelection
-                                                                )}
-                                                            />
-                                                        </td>
-                                                    );
-                                                })}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                                <div
-                                    className="SpreadSheetEditor__TableWrapper__Spacer"
-                                    style={{minWidth: endlessScrollAdditionalSize.width}}
-                                />
-                            </div>
-                            <div
-                                className="SpreadSheetEditor__TableWrapper__Spacer"
-                                style={{minHeight: endlessScrollAdditionalSize.height}}
-                            />
-                        </div>
+                            className="SpreadSheetEditor__TableWrapper__Spacer"
+                            style={{
+                                minHeight: scrollSpacerSize.bottom,
+                                maxHeight: scrollSpacerSize.bottom,
+                            }}
+                        />
                     </div>
-                </>
-            )}
+                </div>
+            </div>
         </div>
     );
 };

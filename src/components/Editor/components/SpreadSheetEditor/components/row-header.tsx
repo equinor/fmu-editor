@@ -19,11 +19,13 @@ export const RowHeader: React.FC<RowHeaderProps> = props => {
 
     React.useEffect(() => {
         props.onResize(props.absoluteIndex, height);
-    }, [height, props.onResize]);
+    }, [height, props.onResize, props.absoluteIndex]);
 
     React.useEffect(() => {
         let dragging: boolean = false;
-        const handlePointerDown = (e: PointerEvent) => {
+        const resizeHandleRefCurrent = resizeHandleRef.current;
+
+        const handlePointerDown = () => {
             dragging = true;
             document.body.style.cssText = "cursor: row-resize !important";
         };
@@ -38,7 +40,7 @@ export const RowHeader: React.FC<RowHeaderProps> = props => {
                 return;
             }
 
-            if (!ref.current) {
+            if (!resizeHandleRefCurrent) {
                 return;
             }
 
@@ -48,15 +50,15 @@ export const RowHeader: React.FC<RowHeaderProps> = props => {
             setHeight(newHeight);
         };
 
-        if (resizeHandleRef.current) {
-            resizeHandleRef.current.addEventListener("pointerdown", handlePointerDown);
+        if (resizeHandleRefCurrent) {
+            resizeHandleRefCurrent.addEventListener("pointerdown", handlePointerDown);
             document.addEventListener("pointermove", handleColumnPointerMove);
             document.addEventListener("pointerup", handlePointerUp);
         }
 
         return () => {
-            if (resizeHandleRef.current) {
-                resizeHandleRef.current.removeEventListener("pointerdown", handlePointerDown);
+            if (resizeHandleRefCurrent) {
+                resizeHandleRefCurrent.removeEventListener("pointerdown", handlePointerDown);
                 document.removeEventListener("pointermove", handleColumnPointerMove);
                 document.removeEventListener("pointerup", handlePointerUp);
             }

@@ -38,7 +38,20 @@
     flex-direction: row;
 }
 
+.SpreadSheetEditor__ColumnWrapper {
+    display: flex;
+    flex-direction: column;
+}
+
 .SpreadSheetTable .row-header-cell {
+    font-weight: var(--body-long-bold-font-weight);
+    text-align: center;
+    background-color: var(--background-light);
+    user-select: none;
+    position: relative;
+}
+
+.SpreadSheetTable .column-header-cell {
     font-weight: var(--body-long-bold-font-weight);
     text-align: center;
     background-color: var(--background-light);
@@ -350,11 +363,11 @@
 }
 
 .SpreadSheetTable th.selected-header {
-    border-bottom: 3px var(--primary) solid !important;
+    border-bottom: 1px var(--primary) solid !important;
 }
 
 .SpreadSheetTable td.selected-header {
-    border-right: 3px var(--primary) solid !important;
+    border-right: 1px var(--primary) solid !important;
 }
 
 .SpreadSheetTable .focused-cell {

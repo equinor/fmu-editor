@@ -31,6 +31,7 @@ module.exports = {
         "no-unused-vars": "off",
         "@typescript-eslint/no-unused-vars": ["warn"],
         "import/no-extraneous-dependencies": "off",
+        "prefer-template": "off",
         "prefer-destructuring": "off",
         "no-param-reassign": "off",
         "no-use-before-define": "off",
