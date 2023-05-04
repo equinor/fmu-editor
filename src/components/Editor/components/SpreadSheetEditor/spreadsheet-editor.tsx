@@ -2,6 +2,7 @@ import {editor} from "@editors/editor";
 import {EditorType, GlobalSettings} from "@global/global-settings";
 import {useElementSize} from "@hooks/useElementSize";
 import {SpreadSheetSelection} from "@root/src/shared-types/spreadsheet-selection";
+import {Point} from "@root/src/utils/geometry";
 import {notificationsService} from "@services/notifications-service";
 
 import {ipcRenderer} from "electron";
@@ -33,10 +34,43 @@ const defaultCellSize: Size = {
     height: 30,
 };
 
+enum ScrollDirection {
+    Up,
+    Down,
+    Left,
+    Right,
+    None,
+}
+
+type ScrollDirections = {
+    horizontal: ScrollDirection.Left | ScrollDirection.Right | ScrollDirection.None;
+    vertical: ScrollDirection.Up | ScrollDirection.Down | ScrollDirection.None;
+};
+
 const defaultCellSizeWithBorder: Size = {
     width: defaultCellSize.width + 4,
     height: defaultCellSize.height + 4,
 };
+
+function getScrollDirections(oldScrollPosition: Point, newScrollPosition: Point): ScrollDirections {
+    let scrollDirections: ScrollDirections = {
+        horizontal: ScrollDirection.None,
+        vertical: ScrollDirection.None,
+    };
+    if (oldScrollPosition.x < newScrollPosition.x) {
+        scrollDirections.horizontal = ScrollDirection.Right;
+    } else if (oldScrollPosition.x > newScrollPosition.x) {
+        scrollDirections.horizontal = ScrollDirection.Left;
+    }
+
+    if (oldScrollPosition.y < newScrollPosition.y) {
+        scrollDirections.vertical = ScrollDirection.Down;
+    } else if (oldScrollPosition.y > newScrollPosition.y) {
+        scrollDirections.vertical = ScrollDirection.Up;
+    }
+
+    return scrollDirections;
+}
 
 function makeColumnName(index: number): string {
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -187,18 +221,64 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
     const [rowHeights, setRowHeights] = React.useState<{[key: number]: number}>({});
     const [selection, setSelection] = React.useState<SpreadSheetSelection | null>(null);
     const [copyingSelection, setCopyingSelection] = React.useState<SpreadSheetSelection | null>(null);
-    const [scrollPosition, setScrollPosition] = React.useState<{x: number; y: number}>({x: 0, y: 0});
+    const [scrollPosition, setScrollPosition] = React.useState<Point>({x: 0, y: 0});
 
     const editorRef = React.useRef<HTMLDivElement | null>(null);
     const tableRef = React.useRef<HTMLTableElement | null>(null);
     const editorSize = useElementSize(editorRef);
 
+    const tableWrapperRef = React.useRef<HTMLDivElement | null>(null);
+    const tableWrapperSize = useElementSize(tableWrapperRef);
+
     const verticalHeaderWrapperRef = React.useRef<HTMLDivElement | null>(null);
     const horizontalHeaderWrapperRef = React.useRef<HTMLDivElement | null>(null);
-    const tableWrapperRef = React.useRef<HTMLDivElement | null>(null);
 
     const activeFilePath = useAppSelector(state => state.files.activeFilePath);
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
+
+    const getRowHeight = React.useCallback(
+        (index: number, withPadding = false): number => {
+            if (rowHeights[index]) {
+                return rowHeights[index] + withPadding * 4;
+            }
+
+            return defaultCellSize.height + withPadding * 4;
+        },
+        [rowHeights]
+    );
+
+    const getColumnWidth = React.useCallback(
+        (index: number, withPadding = false): number => {
+            if (columnWidths[index]) {
+                return columnWidths[index] + withPadding * 4;
+            }
+
+            return defaultCellSize.width + withPadding * 4;
+        },
+        [columnWidths]
+    );
+
+    const calcNumColumns = React.useCallback((): number => {
+        let width = tableWrapperSize.width;
+        let index = scrollCellLocation.column;
+        let count = 0;
+        while (width > 0) {
+            width -= getColumnWidth(index++, true);
+            count++;
+        }
+        return count - 1;
+    }, [tableWrapperSize.width, scrollCellLocation.column, getColumnWidth]);
+
+    const calcNumRows = React.useCallback((): number => {
+        let height = tableWrapperSize.height;
+        let index = scrollCellLocation.row;
+        let count = 0;
+        while (height > 0) {
+            height -= getRowHeight(index++, true);
+            count++;
+        }
+        return count - 1;
+    }, [tableWrapperSize.height, scrollCellLocation.row, getRowHeight]);
 
     React.useEffect(() => {
         if (!currentSheet) {
@@ -206,10 +286,10 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         }
 
         const range = utils.decode_range(currentSheet["!ref"]);
-        setMaxCellRange({
-            column: range.e.c,
-            row: range.e.r,
-        });
+        setMaxCellRange(prev => ({
+            column: Math.max(range.e.c, calcNumColumns() + 1, prev.column),
+            row: Math.max(range.e.r, calcNumRows() + 1, prev.row),
+        }));
 
         if (currentSheet["!cols"]) {
             const newColumnWidths: {[key: number]: number} = {};
@@ -230,7 +310,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             });
             setRowHeights(newRowHeights);
         }
-    }, [currentSheet]);
+    }, [currentSheet, calcNumColumns, calcNumRows]);
 
     /*
 
@@ -295,27 +375,39 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 row: Math.floor(tableWrapperRef.current.scrollTop / defaultCellSizeWithBorder.height),
             });
 
-            setScrollPosition({
+            const newScrollPosition = {
                 x: tableWrapperRef.current.scrollLeft,
                 y: tableWrapperRef.current.scrollTop,
-            });
+            };
+
+            const scrollDirections = getScrollDirections(scrollPosition, newScrollPosition);
+
+            setScrollPosition(newScrollPosition);
 
             let newMaxColumn = maxCellRange.column;
-            if (tableWrapperRef.current.scrollLeft / tableWrapperRef.current.scrollWidth > 0.9) {
-                newMaxColumn = maxCellRange.column + 10;
+            if (
+                tableWrapperRef.current.scrollLeft /
+                    (tableWrapperRef.current.scrollWidth - tableWrapperRef.current.clientWidth) >
+                    0.95 &&
+                scrollDirections.horizontal === ScrollDirection.Right
+            ) {
+                newMaxColumn = maxCellRange.column + 1;
             }
 
             let newMaxRow = maxCellRange.row;
-            if (tableWrapperRef.current.scrollTop / tableWrapperRef.current.scrollHeight > 0.9) {
-                newMaxRow = maxCellRange.row + 10;
+            if (
+                tableWrapperRef.current.scrollTop /
+                    (tableWrapperRef.current.scrollHeight - tableWrapperRef.current.clientHeight) >
+                    0.95 &&
+                scrollDirections.vertical === ScrollDirection.Down
+            ) {
+                newMaxRow = maxCellRange.row + 1;
             }
 
             setMaxCellRange(prev => ({
                 column: Math.max(prev.column, newMaxColumn),
                 row: Math.max(prev.row, newMaxRow),
             }));
-
-            setProgramaticScrolling(true);
 
             // updateViewState();
         };
@@ -329,7 +421,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 tableWrapperRefCurrent.removeEventListener("scroll", handleScrollPositionChange);
             }
         };
-    }, [programaticScrolling, maxCellRange]);
+    }, [programaticScrolling, maxCellRange, scrollPosition]);
 
     React.useEffect(() => {
         if (tableWrapperRef.current) {
@@ -509,50 +601,6 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         },
         [currentSheet]
     );
-
-    const getRowHeight = React.useCallback(
-        (index: number, withPadding = false): number => {
-            if (rowHeights[index]) {
-                return rowHeights[index] + withPadding * 4;
-            }
-
-            return defaultCellSize.height + withPadding * 4;
-        },
-        [rowHeights]
-    );
-
-    const getColumnWidth = React.useCallback(
-        (index: number, withPadding = false): number => {
-            if (columnWidths[index]) {
-                return columnWidths[index] + withPadding * 4;
-            }
-
-            return defaultCellSize.width + withPadding * 4;
-        },
-        [columnWidths]
-    );
-
-    const calcNumColumns = React.useCallback((): number => {
-        let width = editorSize.width;
-        let index = scrollCellLocation.column;
-        let count = 0;
-        while (width > 0) {
-            width -= getColumnWidth(index++);
-            count++;
-        }
-        return count - 1;
-    }, [editorSize.width, scrollCellLocation.column, getColumnWidth]);
-
-    const calcNumRows = React.useCallback((): number => {
-        let height = editorSize.height;
-        let index = scrollCellLocation.row;
-        let count = 0;
-        while (height > 0) {
-            height -= getRowHeight(index++);
-            count++;
-        }
-        return count - 1;
-    }, [editorSize.height, scrollCellLocation.row, getRowHeight]);
 
     React.useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -864,13 +912,19 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             spacerBottom += getRowHeight(i, true);
         }
 
-        if (tableWrapperRef.current) {
-            spacerRight -= scrollPosition.x + tableWrapperRef.current.clientWidth;
-            spacerBottom -= scrollPosition.y + tableWrapperRef.current.clientHeight;
+        for (let i = 0; i < startCell.column + calcNumColumns() + 1; i++) {
+            spacerRight -= getColumnWidth(i, true);
         }
 
+        for (let i = 0; i < startCell.row + calcNumRows() + 1; i++) {
+            spacerBottom -= getRowHeight(i, true);
+        }
+
+        spacerRight = Math.max(spacerRight, 0);
+        spacerBottom = Math.max(spacerBottom, 0);
+
         return {right: spacerRight, bottom: spacerBottom};
-    }, [maxCellRange, getRowHeight, getColumnWidth, scrollPosition]);
+    }, [maxCellRange, getRowHeight, getColumnWidth, startCell, calcNumColumns, calcNumRows]);
 
     const makeColumnHeaders = (): React.ReactNode[] => {
         const headers = [];
@@ -900,7 +954,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         const headers = [];
         const startIndex = startCell.row;
 
-        for (let i = 0; i <= calcNumRows(); i++) {
+        for (let i = 0; i <= calcNumRows() + 1; i++) {
             const absoluteIndex = startIndex + i;
             headers.push(
                 <RowHeader
@@ -941,7 +995,9 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
     const verticalHeaders = makeRowHeaders();
     const horizontalHeaders = makeColumnHeaders();
 
-    console.log("Scroll top", scrollPosition.y, "Spacer top", spacerSize.top, "Start cell", startCell.row);
+    console.log("Max cell range", maxCellRange);
+    console.log("scrollSpacerSize", scrollSpacerSize);
+    console.log("spacerSize", spacerSize);
 
     return (
         <div
@@ -979,13 +1035,17 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                     />
                 </div>
             </div>
-            <div className="SpreadSheetEditor__Wrapper" style={{height: editorSize.height}}>
-                <div className="SpreadSheetEditor__VerticalHeaderWrapper" ref={verticalHeaderWrapperRef}>
+            <div className="SpreadSheetEditor__Wrapper">
+                <div
+                    className="SpreadSheetEditor__VerticalHeaderWrapper"
+                    ref={verticalHeaderWrapperRef}
+                    style={{width: defaultCellSizeWithBorder.height, height: tableWrapperSize.height}}
+                >
                     <div
                         className="SpreadSheetEditor__TableWrapper__Spacer"
                         style={{minHeight: spacerSize.top, maxHeight: spacerSize.top}}
                     />
-                    <table className="SpreadSheetTable" style={{width: defaultCellSizeWithBorder.height}}>
+                    <table className="SpreadSheetTable">
                         <tbody>
                             {verticalHeaders.map((header, row) => (
                                 // eslint-disable-next-line react/no-array-index-key
@@ -993,10 +1053,17 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                             ))}
                         </tbody>
                     </table>
+                    <div
+                        className="SpreadSheetEditor__TableWrapper__Spacer"
+                        style={{
+                            minHeight: scrollSpacerSize.bottom,
+                            maxHeight: scrollSpacerSize.bottom,
+                        }}
+                    />
                 </div>
                 <div
                     className="SpreadSheetEditor__TableWrapper"
-                    style={{width: editorSize.width - 34, height: editorSize.height - 38}}
+                    style={{width: editorSize.width - 34, height: editorSize.height - 34}}
                     ref={tableWrapperRef}
                 >
                     <div className="SpreadSheetEditor__ColumnWrapper">

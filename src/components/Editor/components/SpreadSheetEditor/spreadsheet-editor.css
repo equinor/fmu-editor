@@ -49,6 +49,7 @@
     background-color: var(--background-light);
     user-select: none;
     position: relative;
+    cursor: pointer;
 }
 
 .SpreadSheetTable .column-header-cell {
@@ -57,6 +58,7 @@
     background-color: var(--background-light);
     user-select: none;
     position: relative;
+    cursor: pointer;
 }
 
 .SpreadSheetTable th {
@@ -334,10 +336,8 @@
     }
 }
 
-.SpreadSheetTable th,
-.SpreadSheetTable tr td:first-child {
+.SpreadSheetTable th {
     border: 1px var(--background-medium) solid;
-    cursor: pointer;
 }
 
 .SpreadSheetTable input {
