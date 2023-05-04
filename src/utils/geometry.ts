@@ -1,4 +1,4 @@
-import {Size} from '@shared-types/size';
+import {Size} from "@shared-types/size";
 
 export type Point = {
     x: number;

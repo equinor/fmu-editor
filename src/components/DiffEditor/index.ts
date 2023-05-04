@@ -1,1 +1,1 @@
-export { DiffEditor } from "./diff-editor";
+export {DiffEditor} from "./diff-editor";

@@ -56,8 +56,4 @@ export interface SectionType extends PropertySectionType {
     content: (GroupType | PageType)[];
 }
 
-export type NavigationType =
-    | SectionType[]
-    | GroupType[]
-    | PageType[]
-    | (GroupType | PageType)[];
+export type NavigationType = SectionType[] | GroupType[] | PageType[] | (GroupType | PageType)[];

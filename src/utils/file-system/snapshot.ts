@@ -1,6 +1,6 @@
-import path from "path";
+import {DIRECTORY_PATHS, SYSTEM_FILES} from "@global/constants";
 
-import { DIRECTORY_PATHS, SYSTEM_FILES } from "@global/constants";
+import path from "path";
 
 import {Directory} from "./directory";
 import {File} from "./file";
@@ -22,7 +22,10 @@ export class SyncSnapshot implements ISyncSnapshot {
     private snapshot: ISyncSnapshotTree;
 
     constructor(workingDirectory: string, user: string) {
-        this.snapshotFile = new File(path.join(DIRECTORY_PATHS.USERS, user, SYSTEM_FILES.SYNC_SNAPSHOT), workingDirectory);
+        this.snapshotFile = new File(
+            path.join(DIRECTORY_PATHS.USERS, user, SYSTEM_FILES.SYNC_SNAPSHOT),
+            workingDirectory
+        );
         this.modified = 0;
         this.snapshot = {};
         this.read();

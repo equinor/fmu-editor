@@ -22,7 +22,7 @@
 }
 
 .FileTab:last-child {
-    border-right: 0px;
+    border-right: 0;
 }
 
 .FileTab--active {
@@ -44,11 +44,11 @@
     visibility: hidden;
 }
 
-.FileTab:hover .FileTab__CloseButton * {
+.FileTab--active .FileTab__CloseButton * {
     visibility: visible;
 }
 
-.FileTab--active .FileTab__CloseButton * {
+.FileTab:hover .FileTab__CloseButton * {
     visibility: visible;
 }
 
@@ -57,8 +57,8 @@
     text-decoration: line-through;
 }
 
-.FileTab:hover .FileTab__CloseButton:hover,
-.FileTab--active .FileTab__CloseButton:hover {
+.FileTab--active .FileTab__CloseButton:hover,
+.FileTab:hover .FileTab__CloseButton:hover {
     border-radius: 4px;
     color: var(--primary);
     background-color: var(--background-light);

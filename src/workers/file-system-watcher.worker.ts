@@ -1,6 +1,12 @@
-import { FileSystemWatcherRequests, FileSystemWatcherRequestType, FileSystemWatcherResponses, FileSystemWatcherResponseType } from "@shared-types/file-system-watcher";
-import { Directory } from "@utils/file-system/directory";
+import {Directory} from "@utils/file-system/directory";
 import {WorkingDirectory} from "@utils/file-system/working-directory";
+
+import {
+    FileSystemWatcherRequestType,
+    FileSystemWatcherRequests,
+    FileSystemWatcherResponseType,
+    FileSystemWatcherResponses,
+} from "@shared-types/file-system-watcher";
 
 import {Webworker} from "./worker-utils";
 
@@ -26,7 +32,7 @@ const watchFileSystem = () => {
             webworker.postMessage(FileSystemWatcherResponseType.AVAILABLE_WORKING_DIRECTORIES_CHANGED, {});
         }
     }
-    
+
     if (!currentDirectory || !currentUsername) {
         return;
     }
@@ -47,8 +53,8 @@ const watchFileSystem = () => {
 // eslint-disable-next-line no-restricted-globals
 self.setInterval(watchFileSystem, 3000);
 
-webworker.on(FileSystemWatcherRequestType.UPDATE_VALUES, ({username, directory, fmuDirectory}) => {
-    currentDirectory = directory;
+webworker.on(FileSystemWatcherRequestType.UPDATE_VALUES, ({username, workingDirectory, fmuDirectory}) => {
+    currentDirectory = workingDirectory;
     currentUsername = username;
     currentFmuDirectory = fmuDirectory;
 });

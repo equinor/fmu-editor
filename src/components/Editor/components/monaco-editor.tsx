@@ -1,6 +1,5 @@
 import {useElementSize} from "@hooks/useElementSize";
 import {useYamlSchemas} from "@hooks/useYamlSchema";
-import {setDiagnosticsOptions as setErtOptions} from "@languages/monaco-ert/src";
 import {setDistOptions} from "@languages/dist";
 import {useTheme} from "@mui/material";
 
@@ -9,6 +8,7 @@ import ReactMonacoEditor, {EditorDidMount, EditorWillUnmount, monaco} from "reac
 
 // @ts-ignore
 import {languages} from "monaco-editor";
+import {setDiagnosticsOptions as setErtOptions} from "monaco-ert";
 
 declare global {
     interface Window {

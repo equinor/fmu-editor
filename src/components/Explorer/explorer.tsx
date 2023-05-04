@@ -173,7 +173,8 @@ export const Explorer: React.FC = () => {
                         Select FMU Model Directory
                     </LoadingButton>
                     <Typography>In order to start using the editor, please select your FMU model directory.</Typography>
-                    <Typography>Example:
+                    <Typography>
+                        Example:
                         <strong> /project/your_project/resmod/ff</strong>
                     </Typography>
                 </Stack>
@@ -285,22 +286,24 @@ export const Explorer: React.FC = () => {
         <Surface elevation="raised" className="Explorer">
             <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
                 <List className="DirectoryDrawer">
-                    {fmuDirectory !== null && fmuDirectory
-                        .getContent()
-                        .filter(el => el.isDirectory())
-                        .map(el => (
-                            <ListItem key={el.absolutePath()} disablePadding>
-                                <ListItemButton onClick={() => handleWorkingDirectoryChange(el.absolutePath())}>
-                                    <ListItemIcon>
-                                        {workingDirectory !== null &&
-                                            el.absolutePath() === workingDirectory.getMainVersion().absolutePath() && (
-                                                <VscCheck fontSize="small" color="var(--text-on-primary)" />
-                                            )}
-                                    </ListItemIcon>
-                                    <ListItemText>{el.baseName()}</ListItemText>
-                                </ListItemButton>
-                            </ListItem>
-                        ))}
+                    {fmuDirectory !== null &&
+                        fmuDirectory
+                            .getContent()
+                            .filter(el => el.isDirectory())
+                            .map(el => (
+                                <ListItem key={el.absolutePath()} disablePadding>
+                                    <ListItemButton onClick={() => handleWorkingDirectoryChange(el.absolutePath())}>
+                                        <ListItemIcon>
+                                            {workingDirectory !== null &&
+                                                el.absolutePath() ===
+                                                    workingDirectory.getMainVersion().absolutePath() && (
+                                                    <VscCheck fontSize="small" color="var(--text-on-primary)" />
+                                                )}
+                                        </ListItemIcon>
+                                        <ListItemText>{el.baseName()}</ListItemText>
+                                    </ListItemButton>
+                                </ListItem>
+                            ))}
                 </List>
             </Drawer>
             {makeContent()}

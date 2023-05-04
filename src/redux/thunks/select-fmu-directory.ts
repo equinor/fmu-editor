@@ -9,10 +9,7 @@ import {FileExplorerOptions} from "@shared-types/file-explorer-options";
 import {IpcMessages} from "@shared-types/ipc";
 import {Notification, NotificationType} from "@shared-types/notifications";
 
-export async function selectFmuDirectory(
-    fmuDirectoryPath: string,
-    dispatch: AppDispatch
-) : Promise<boolean> {
+export async function selectFmuDirectory(fmuDirectoryPath: string, dispatch: AppDispatch): Promise<boolean> {
     const opts: FileExplorerOptions = {
         isDirectoryExplorer: true,
         title: "Open FMU Model Directory",

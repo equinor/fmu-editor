@@ -1,8 +1,8 @@
-export const dedent = (strings: TemplateStringsArray): string =>{
+export const dedent = (strings: TemplateStringsArray): string => {
     return strings
         .join()
-        .replace(/^[ \t]+/gm, '')
-        .replaceAll('"""', '```');
+        .replace(/^[ \t]+/gm, "")
+        .replaceAll('"""', "```");
 };
 
 export const capitalize = (str: string) => {

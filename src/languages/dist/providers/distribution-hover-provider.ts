@@ -108,7 +108,7 @@ export const createDistributionHoverProvider = (options: DistOptions): languages
 
             return {
                 range: new Range(position.lineNumber, wordAt.startColumn, position.lineNumber, wordAt.endColumn),
-                contents: <IMarkdownString[]>[
+                contents: [
                     {
                         value: `<img src="${dataUrl}" alt="Probability density function plot" />`,
                         supportHtml: true,

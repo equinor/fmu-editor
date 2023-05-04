@@ -30,7 +30,7 @@ export const Environment: React.FC = () => {
             size="small"
             onClick={handleEnvironmentPathClick}
             title="Active environment"
-            className={environment.environmentPath ? undefined : "error"}
+            className={environment.environmentPath ? undefined : "Error"}
         >
             <VscGlobe />
             <span>{environment.environmentPath || <i>No environment detected</i>}</span>

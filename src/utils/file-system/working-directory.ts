@@ -5,7 +5,7 @@ import {Directory, IDirectory} from "./directory";
 
 export interface IWorkingDirectory extends IDirectory {
     getUsers(): string[];
-    getUserDirectory(username: string): Directory
+    getUserDirectory(username: string): Directory;
 }
 
 export class WorkingDirectory extends Directory implements IWorkingDirectory {
@@ -18,6 +18,9 @@ export class WorkingDirectory extends Directory implements IWorkingDirectory {
     }
 
     public getUserDirectory(username: string): Directory {
-        return new Directory(path.relative(this.workingDirectoryPath(), path.join(this.usersDir(), username)), this.workingDirectoryPath());
+        return new Directory(
+            path.relative(this.workingDirectoryPath(), path.join(this.usersDir(), username)),
+            this.workingDirectoryPath()
+        );
     }
 }

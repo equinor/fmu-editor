@@ -48,11 +48,13 @@
     white-space: nowrap;
 }
 
-.ChangesBrowserList, .ChangesBrowserText, .ChangesBrowserTextTitle {
+.ChangesBrowserList,
+.ChangesBrowserText,
+.ChangesBrowserTextTitle {
     background-color: var(--background-light);
     height: 20vh;
     min-height: 100px;
-    overflow-y: overlay; 
+    overflow-y: overlay;
     padding: var(--spacing-xx);
     line-height: var(--h1-line-height);
     white-space: pre-wrap;
@@ -96,13 +98,13 @@
 }
 
 .ChangesBrowserListItem > div {
-    flex-grow: 4;
     display: flex;
+    flex: 1;
+    flex-grow: 4;
     align-items: center;
     overflow: hidden;
     white-space: nowrap;
     min-width: 0;
-    flex: 1;
 }
 
 .ChangesBrowserListItem > button {
@@ -134,7 +136,6 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     display: block;
-    overflow: hidden;
     min-width: 0;
     max-width: 100%;
 }

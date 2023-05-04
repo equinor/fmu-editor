@@ -22,7 +22,7 @@ export const tokenizeLine = (model: editor.IReadOnlyModel, lineNumber: number): 
             const value = model.getWordAtPosition(position);
             const keyword = Dist.keywords.find(kw => kw.label === value?.word);
 
-            return <IDistToken>{
+            return {
                 value,
                 position,
                 token: t.type.split(".")[0],
@@ -52,7 +52,7 @@ const PLOT_MARGINS = {top: 10, right: 10, bottom: 40, left: 40};
 const createScaleX = (xVals: number[], size: Size): d3.ScaleLinear<number, number, never> => {
     return d3
         .scaleLinear()
-        .domain(<[number, number]>d3.extent(xVals))
+        .domain(d3.extent(xVals))
         .range([PLOT_MARGINS.left, size.width - PLOT_MARGINS.right])
         .nice();
 };
@@ -60,7 +60,7 @@ const createScaleX = (xVals: number[], size: Size): d3.ScaleLinear<number, numbe
 const createScaleY = (yVals: number[], size: Size): d3.ScaleLinear<number, number, never> => {
     return d3
         .scaleLinear()
-        .domain(<[number, number]>[0, d3.max(yVals)])
+        .domain([0, d3.max(yVals)])
         .range([size.height - PLOT_MARGINS.bottom, PLOT_MARGINS.top])
         .nice();
 };
@@ -109,7 +109,7 @@ const appendLine = (
 ): void => {
     svg.append("g")
         .append("path")
-        .attr("d", d3.line().curve(d3.curveLinear)(<[number, number][]>points))
+        .attr("d", d3.line().curve(d3.curveLinear)(points))
         .attr("fill", "none")
         .attr("stroke", stroke)
         .attr("stroke-width", 2);
@@ -137,15 +137,16 @@ export const plotContinuousPdf = (
     const scX = createScaleX(xVals, size);
     const scY = createScaleY(yVals, size);
 
-    // Scale x and f(x) to the screen coordinates
-    const points = <[number, number][]>xVals.map((d, i) => [scX(d), scY(yVals[i])]).filter(xy => xy[1]); // Filter undefined `y` values
-
     const xAxis = d3.axisBottom(scX);
     const yAxis = d3.axisLeft(scY);
-
-    const theme = modePalette(electronStore.get("ui.settings.theme"));
     appendXAxis(svg, xAxis, scY);
     appendYAxis(svg, yAxis, scX, min);
+
+    // Scale x and f(x) to the screen coordinates
+    const allPoints: [number, number][] = xVals.map((d, i) => [scX(d), scY(yVals[i])]);
+    const points = allPoints.filter(xy => xy[1]); // Filter invalid y-coordinates
+
+    const theme = modePalette(electronStore.get("ui.settings.theme"));
     appendLine(svg, points, theme.primary);
 
     return el;
@@ -161,23 +162,21 @@ export const plotDiscretePdf = (f: (x: number) => number, size: Size, nbins: num
     const scX = createScaleX(xVals, size);
     const scY = createScaleY(yVals, size);
 
-    // Scale x and f(x) to the screen coordinates
-    const data = xVals.map((d, i) => [scX(d), scY(yVals[i])]).filter(xy => xy[1]); // Filter undefined `y` values
-    const zeroes = xVals.map(d => [scX(d), scY(0)]);
-
-    // Create axes
     const xAxis = d3.axisBottom(scX);
     const yAxis = d3.axisLeft(scY);
-
-    // Append x-axis and y-axis
     appendXAxis(svg, xAxis, scY);
     appendYAxis(svg, yAxis, scX, min);
 
+    // Scale x and f(x) to the screen coordinates
+    const allPoints: [number, number][] = xVals.map((d, i) => [scX(d), scY(yVals[i])]);
+    const points = allPoints.filter(xy => xy[1]); // Filter invalid coordinates
+    const zeroes: [number, number][] = xVals.map(d => [scX(d), scY(0)]);
+
     const theme = modePalette(electronStore.get("ui.settings.theme"));
     // Vertical lines from y = 0 to y = 1 / nbins for each bin
-    for (let i = 0; i < data.length; i++) {
-        const points = <[number, number][]>[zeroes[i], data[i]];
-        appendLine(svg, points, theme.primary);
+    for (let i = 0; i < points.length; i++) {
+        const linePoints: [number, number][] = [zeroes[i], points[i]];
+        appendLine(svg, linePoints, theme.primary);
     }
 
     return el;

@@ -35,7 +35,7 @@ export const Input: React.FC<InputProps> = props => {
             placeholder={props.placeholder}
             inputProps={{maxLength: props.maxLength}}
             endAdornment={
-                props.maxLength && <span className="Input--character-count-adornment">{props.maxLength - length}</span>
+                props.maxLength && <span className="Input--characterCountAdornment">{props.maxLength - length}</span>
             }
             multiline={props.multiline}
             rows={props.rows}
