@@ -9,6 +9,7 @@ import {IpcService} from "@services/ipc-service";
 
 import React from "react";
 
+import {DialogProvider} from "@components/DialogProvider";
 import {GlobalSettingsProvider} from "@components/GlobalSettingsProvider";
 import {LoginDialog} from "@components/LoginDialog";
 import {MainProcessDataProvider} from "@components/MainProcessDataProvider";
@@ -63,8 +64,10 @@ const App = (): JSX.Element => {
                         <ThemeProvider theme={Theme(mode)}>
                             <NotificationsProvider>
                                 <IpcService>
-                                    <MainWindow />
-                                    <LoginDialog />
+                                    <DialogProvider>
+                                        <MainWindow />
+                                        <LoginDialog />
+                                    </DialogProvider>
                                 </IpcService>
                             </NotificationsProvider>
                         </ThemeProvider>
