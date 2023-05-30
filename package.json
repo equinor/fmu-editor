@@ -225,7 +225,7 @@
         "directories": {
             "buildResources": "assets"
         },
-        "afterPack": "./electron/setNoSandbox.js"
+        "afterPack": "./electron/set-no-sandbox.js"
     },
     "lint-staged": {
         "{src,test}/**/*.{js,jsx,ts,tsx}": [
