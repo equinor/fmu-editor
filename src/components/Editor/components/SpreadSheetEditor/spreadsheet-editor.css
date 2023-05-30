@@ -7,9 +7,20 @@
 }
 
 .SpreadSheetEditor__TableWrapper {
-    overflow: auto;
+    position: sticky;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+}
+
+.SpreadSheetEditor__ScrollLayer {
     position: relative;
     overflow: overlay;
+}
+
+.SpreadSheetEditor__ContentDummy {
+    pointer-events: none;
+    z-index: 20;
 }
 
 .SpreadSheetTable {
