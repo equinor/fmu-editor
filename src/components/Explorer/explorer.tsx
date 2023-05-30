@@ -137,19 +137,25 @@ export const Explorer: React.FC = () => {
     }, [refreshExplorer]);
 
     const handleWorkingDirectoryChange = (dir: string) => {
-        const confirmDialog = {
-            title: "Select model version",
-            content: "This will create a new user copy if one does not yet exist. Continue?",
-            confirmText: "Continue",
-            confirmFunc: () => {
-                dispatch(setWorkingDirectoryPath({path: dir}));
-                setLoading(true);
-                setDrawerOpen(false);
-            },
-            closeText: "Cancel",
-            closeFunc: () => setDrawerOpen(false),
+        const confirmFunc = () => {
+            dispatch(setWorkingDirectoryPath({path: dir}));
+            setLoading(true);
+            setDrawerOpen(false);
         };
-        setDialog(confirmDialog);
+        const dirObj = new Directory("", dir);
+        if (dirObj.getUserVersion(username).exists()) {
+            confirmFunc();
+        } else {
+            const confirmDialog = {
+                title: "Select model version",
+                content: "This will create a new user copy if one does not yet exist. Continue?",
+                confirmText: "Continue",
+                confirmFunc,
+                closeText: "Cancel",
+                closeFunc: () => setDrawerOpen(false),
+            };
+            setDialog(confirmDialog);
+        }
     };
 
     const toggleDrawer = React.useCallback(
