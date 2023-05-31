@@ -10,6 +10,7 @@ import {FileBasic} from "@utils/file-system/basic";
 import {File} from "@utils/file-system/file";
 import {monacoMainEditorInstances, monacoViewStateManager} from "@utils/monaco";
 
+import {DialogContext} from "@components/DialogProvider";
 import {FileTabs} from "@components/FileTabs";
 import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
 import {IssuesList} from "@components/IssuesList";
@@ -78,9 +79,11 @@ const handleModelChanged = (monacoEditorRef?: monaco.editor.IStandaloneCodeEdito
 type EditorProps = {};
 
 export const Editor: React.FC<EditorProps> = () => {
+    const setDialog = React.useContext(DialogContext);
     const [noModels, setNoModels] = React.useState<boolean>(false);
     const [userFilePath, setUserFilePath] = React.useState<string | null>(null);
     const [lastActiveFilePath, setLastActiveFilePath] = React.useState<string | null>(null);
+    const [binaryIsOkay, setBinaryIsOkay] = React.useState<boolean>(false);
     const [fileExists, setFileExists] = React.useState<boolean>(true);
     const [dragOver, setDragOver] = React.useState<boolean>(false);
 
@@ -92,6 +95,7 @@ export const Editor: React.FC<EditorProps> = () => {
 
     const files = useStrictAppSelector(state => state.files.files);
     const activeFilePath = useStrictAppSelector(state => state.files.activeFilePath);
+    const activeFilePathMightBeBinary = useStrictAppSelector(state => state.files.activeFilePathMightBeBinary);
     const workingDirectoryPath = useStrictAppSelector(state => state.files.workingDirectoryPath);
     const fontSize = useStrictAppSelector(state => state.ui.settings.editorFontSize);
     const view = useStrictAppSelector(state => state.ui.view);
@@ -150,6 +154,21 @@ export const Editor: React.FC<EditorProps> = () => {
         }
         setLastActiveFilePath(activeFilePath);
 
+        if (activeFilePathMightBeBinary && !binaryIsOkay) {
+            const confirmDialog = {
+                title: "Potential unreadable",
+                content: "This file appears to be a binary file, meaning it is not readable by a text editor. Open anyway?",
+                confirmText: "Continue",
+                confirmFunc: () => setBinaryIsOkay(true),
+                closeText: "Cancel",
+                closeFunc: () => {
+                    setLastActiveFilePath(null);
+                    setNoModels(true);
+                },
+            };
+            setDialog(confirmDialog);
+        }
+
         if (file) {
             const currentFile = new File(path.relative(workingDirectoryPath, file.filePath), workingDirectoryPath);
             if (!currentFile.exists()) {
@@ -175,7 +194,7 @@ export const Editor: React.FC<EditorProps> = () => {
         }
 
         setNoModels(false);
-    }, [activeFilePath, files, view, globalSettings, lastActiveFilePath, workingDirectoryPath]);
+    }, [activeFilePath, activeFilePathBinaryIsOk, activeFilePathMightBeBinary, files, view, globalSettings, lastActiveFilePath, workingDirectoryPath]);
 
     React.useEffect(() => {
         if (noModels) {

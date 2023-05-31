@@ -17,19 +17,11 @@ export function openFile(
     globalSettings: GlobalSettings,
     permanentOpen = false
 ) {
-    if (!globalSettings.supportedFileExtensions.includes(path.extname(filePath))) {
-        const notification = {
-            type: NotificationType.WARNING,
-            message: `Can only open files with the following extensions: ${globalSettings.supportedFileExtensions.join(
-                ", "
-            )}.`,
-        };
-        notificationsService.publishNotification(notification);
-        return;
-    }
     try {
         const file = new File(path.relative(workingDirectoryPath, filePath), workingDirectoryPath);
-        dispatch(addFile({filePath, fileContent: file.readString() || "", permanentOpen}));
+        const mightBeBinary = file.mightBeBinary();
+        const fileContent = file.readString() || "";
+        dispatch(addFile({filePath, fileContent, permanentOpen, mightBeBinary}));
     } catch (e) {
         const notification: Notification = {
             type: NotificationType.ERROR,

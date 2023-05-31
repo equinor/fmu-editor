@@ -54,6 +54,8 @@ const initialFilesState: FilesState = {
     workingDirectoryPath: electronStore.get("files.workingDirectoryPath") || "",
     fileTreeStates: prepareInitialFileTreeStates(),
     activeFilePath: electronStore.get("files.activeFilePath") || "",
+    activeFilePathMightBeBinary: electronStore.get("files.activeFilePathMightBeBinary") || false,
+    activeFilePathBinaryIsOk: electronStore.get("files.activeFilePathBinaryIsOk") || false,
     eventSource: EventSource.Editor,
     files:
         electronStore.get("files.files")?.map((file: any): File => {
