@@ -209,6 +209,7 @@ function makeCopyingFrameClassNames(
 
 export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
     const [currentWorkbook, setCurrentWorkbook] = React.useState<WorkBook | null>(null);
+    const [currentSheetIndex, setCurrentSheetIndex] = React.useState<number>(0);
     const [currentSheet, setCurrentSheet] = React.useState<WorkSheet | null>(null);
     const [focusedCell, setFocusedCell] = React.useState<{column: number; row: number} | null>(null);
     const [scrollCellLocation, setScrollCellLocation] = React.useState<{column: number; row: number}>({
@@ -287,8 +288,6 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             return;
         }
 
-        console.log("sheet changed");
-
         const range = utils.decode_range(currentSheet["!ref"]);
         setMaxCellRange(prev => ({
             column: Math.max(range.e.c, calcNumColumns(), prev.column),
@@ -314,6 +313,10 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             });
             setRowHeights(newRowHeights);
         }
+
+        setSelection(null);
+        setCopyingSelection(null);
+        setFocusedCell(null);
     }, [currentSheet]);
 
     const updateViewState = React.useCallback(
@@ -444,6 +447,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         }
         setCurrentWorkbook(workbook);
         setCurrentSheet(workbook.Sheets[workbook.SheetNames[0]]);
+        setCurrentSheetIndex(0);
 
         const viewState = editor.getViewState(activeFilePath);
         if (viewState) {
@@ -467,6 +471,20 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             }, 500);
         }
     }, [activeFilePath, workingDirectoryPath]);
+
+    React.useEffect(() => {
+        if (!currentWorkbook) {
+            return;
+        }
+        setCurrentSheet(currentWorkbook.Sheets[currentWorkbook.SheetNames[currentSheetIndex]]);
+        setScrollCellLocation({column: 0, row: 0});
+        setScrollPosition({x: 0, y: 0});
+
+        if (scrollLayerRef.current) {
+            scrollLayerRef.current.scrollTop = 0;
+            scrollLayerRef.current.scrollLeft = 0;
+        }
+    }, [currentSheetIndex]);
 
     React.useEffect(() => {
         let mouseDown = false;
@@ -595,28 +613,14 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
 
     React.useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (selection) {
-                setProgramaticScrolling(true);
-
-                setScrollCellLocation(prev => ({
-                    ...prev,
-                    column: Math.max(
-                        Math.min(prev.column, selection.start.column),
-                        selection.start.column - calcNumColumns() + 5
-                    ),
-                    row: Math.max(Math.min(prev.row, selection.start.row), selection.start.row - calcNumRows() + 5),
-                }));
-
-                const startRow = selection.start.row;
-                const startColumn = selection.start.column;
-                setFocusedCell({row: startRow, column: startColumn});
-            }
             if (e.key === "ArrowUp") {
                 e.preventDefault();
                 setSelection(prev => {
                     if (prev.end.row === 0) {
                         return prev;
                     }
+
+                    setFocusedCell({row: prev.start.row - 1, column: prev.start.column});
 
                     return {
                         start: {row: prev.start.row - 1, column: prev.start.column},
@@ -627,7 +631,9 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
 
             if (e.key === "ArrowDown") {
                 e.preventDefault();
+
                 setSelection(prev => {
+                    setFocusedCell({row: prev.start.row + 1, column: prev.start.column});
                     return {
                         start: {row: prev.start.row + 1, column: prev.start.column},
                         end: {row: prev.start.row + 1, column: prev.start.column},
@@ -642,6 +648,8 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                         return prev;
                     }
 
+                    setFocusedCell({row: prev.start.row, column: prev.start.column - 1});
+
                     return {
                         start: {row: prev.start.row, column: prev.start.column - 1},
                         end: {row: prev.start.row, column: prev.start.column - 1},
@@ -652,6 +660,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             if (e.key === "ArrowRight") {
                 e.preventDefault();
                 setSelection(prev => {
+                    setFocusedCell({row: prev.start.row, column: prev.start.column + 1});
                     return {
                         start: {row: prev.start.row, column: prev.start.column + 1},
                         end: {row: prev.start.row, column: prev.start.column + 1},
@@ -663,6 +672,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 setFocusedCell(null);
                 e.preventDefault();
                 setSelection(prev => {
+                    setFocusedCell({row: prev.start.row + 1, column: prev.start.column});
                     return {
                         start: {row: prev.start.row + 1, column: prev.start.column},
                         end: {row: prev.start.row + 1, column: prev.start.column},
@@ -1091,12 +1101,12 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 <div
                     className="SpreadSheetEditor__ScrollLayer"
                     ref={scrollLayerRef}
-                    style={{width: editorSize.width - 34, height: editorSize.height - 34}}
+                    style={{width: editorSize.width - 34, height: editorSize.height - 64}}
                 >
                     <div
                         className="SpreadSheetEditor__TableWrapper"
                         ref={tableWrapperRef}
-                        style={{width: editorSize.width - 34, height: editorSize.height - 34}}
+                        style={{width: editorSize.width - 34, height: editorSize.height - 64}}
                     >
                         <div
                             className="SpreadSheetEditor__ColumnWrapper"
@@ -1228,6 +1238,23 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                         style={{width: totalSize.width, height: totalSize.height}}
                     />
                 </div>
+            </div>
+            <div className="SpreadSheetEditor__Tabs">
+                {currentWorkbook &&
+                    currentWorkbook.SheetNames.map((sheetName, index) => (
+                        <div
+                            key={sheetName}
+                            className={`SpreadSheetEditor__Tab${
+                                index === currentSheetIndex ? " SpreadSheetEditor__Tab__active" : ""
+                            }`}
+                            onClick={() => {
+                                setCurrentSheetIndex(index);
+                                setFocusedCell(null);
+                            }}
+                        >
+                            <span>{sheetName}</span>
+                        </div>
+                    ))}
             </div>
         </div>
     );

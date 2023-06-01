@@ -23,6 +23,50 @@
     z-index: 20;
 }
 
+.SpreadSheetEditor__Tabs {
+    height: 30px;
+    background-color: var(--background-medium);
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: var(--spacing-m);
+}
+
+.SpreadSheetEditor__Tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border-radius: 0 0 4px 4px;
+    cursor: pointer;
+    height: 26px;
+    padding-left: var(--spacing-m);
+    padding-right: var(--spacing-m);
+    width: 100px;
+    max-width: 100px;
+}
+
+.SpreadSheetEditor__Tab span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.SpreadSheetEditor__Tab:hover {
+    font-weight: 500;
+}
+
+.SpreadSheetEditor__Tab__active {
+    background-color: var(--background-color);
+    border: 1px var(--primary) solid;
+    border-top: 0;
+}
+
+.SpreadSheetEditor__Tab__active span {
+    border-bottom: 2px var(--primary) solid;
+}
+
 .SpreadSheetTable {
     border-spacing: 1px;
     border-collapse: collapse;
