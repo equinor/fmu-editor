@@ -1,6 +1,6 @@
 import electronStore from "@utils/electron-store";
 
-import {CodeEditorViewState} from "@shared-types/files";
+import {CodeEditorViewState, SpreadSheetEditorViewState} from "@shared-types/files";
 
 export interface IEditorBasic {
     getViewState(absoluteFilePath: string): CodeEditorViewState | null;
@@ -23,7 +23,7 @@ export interface IEditor<T> {
 }
 
 export class EditorBasic implements IEditorBasic {
-    private viewStates: Record<string, CodeEditorViewState>;
+    private viewStates: Record<string, CodeEditorViewState | SpreadSheetEditorViewState>;
 
     constructor() {
         this.viewStates = {};
@@ -50,11 +50,11 @@ export class EditorBasic implements IEditorBasic {
         electronStore.set("files.files", adjustedFiles);
     }
 
-    public getViewState(filePath: string): CodeEditorViewState | null {
-        return this.viewStates[filePath] || null;
+    public getViewState<K = CodeEditorViewState | SpreadSheetEditorViewState>(filePath: string): K | null {
+        return (this.viewStates[filePath] as K) || null;
     }
 
-    public setViewState(filePath: string, viewState: CodeEditorViewState) {
+    public setViewState(filePath: string, viewState: CodeEditorViewState | SpreadSheetEditorViewState) {
         this.viewStates[filePath] = viewState;
         this.saveToStore();
     }

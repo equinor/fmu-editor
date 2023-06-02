@@ -54,6 +54,17 @@ class Editor extends EditorBasic implements IEditor<WorkBook | monaco.editor.ITe
         }
     }
 
+    public getOriginalEditor<K = monaco.editor.IStandaloneCodeEditor | WorkBook>(absoluteFilePath: string): K | null {
+        switch (GlobalSettings.editorTypeForFileExtension(path.extname(absoluteFilePath))) {
+            case EditorType.Monaco:
+                return this.monacoEditor as K | null;
+            case EditorType.SpreadSheet:
+                return this.spreadSheetEditor as K | null;
+            default:
+                return null;
+        }
+    }
+
     public closeFile(absoluteFilePath: string): void {
         switch (GlobalSettings.editorTypeForFileExtension(path.extname(absoluteFilePath))) {
             case EditorType.Monaco:

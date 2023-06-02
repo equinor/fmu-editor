@@ -25,12 +25,16 @@
 
 .SpreadSheetEditor__Tabs {
     height: 30px;
-    background-color: var(--background-medium);
+    background-color: var(--background-semi-transparent);
     display: flex;
     flex-direction: row;
     align-items: flex-start;
     justify-content: flex-start;
     gap: var(--spacing-m);
+    -webkit-box-shadow: inset 0px 3px 5px -4px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow: inset 0px 3px 5px -4px rgba(0, 0, 0, 0.75);
+    box-shadow: inset 0px 3px 5px -4px rgba(0, 0, 0, 0.75);
+    padding-left: var(--spacing-xl);
 }
 
 .SpreadSheetEditor__Tab {
@@ -59,8 +63,9 @@
 
 .SpreadSheetEditor__Tab__active {
     background-color: var(--background-color);
-    border: 1px var(--primary) solid;
-    border-top: 0;
+    -webkit-box-shadow: 0px 2px 6px -3px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow: 0px 2px 6px -3px rgba(0, 0, 0, 0.75);
+    box-shadow: 0px 2px 6px -3px rgba(0, 0, 0, 0.75);
 }
 
 .SpreadSheetEditor__Tab__active span {

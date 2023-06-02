@@ -3,8 +3,8 @@ import {monacoMainEditorInstances} from "@editors/monaco";
 import {EditorType, GlobalSettings} from "@global/global-settings";
 import {useElementSize} from "@hooks/useElementSize";
 import {useYamlSchemas} from "@hooks/useYamlSchema";
-import {setDiagnosticsOptions as setErtOptions} from "@languages/monaco-ert/src";
 import {setDistOptions} from "@languages/dist";
+import {setDiagnosticsOptions as setErtOptions} from "@languages/monaco-ert/src";
 import {useTheme} from "@mui/material";
 
 import React from "react";
@@ -90,7 +90,7 @@ const handleModelChanged = (monacoEditorRef?: monaco.editor.IStandaloneCodeEdito
     if (monacoEditorRef) {
         const model = monacoEditorRef.getModel();
         if (model) {
-            monacoEditorRef.restoreViewState(editor.getViewState(model.uri.path));
+            monacoEditorRef.restoreViewState(editor.getViewState<CodeEditorViewState>(model.uri.path));
         }
     }
 };

@@ -1,7 +1,8 @@
 import {editor} from "@editors/editor";
+import {SpreadSheetEditor as SpreadSheetEditorType} from "@editors/spreadsheet";
 import {EditorType, GlobalSettings} from "@global/global-settings";
 import {useElementSize} from "@hooks/useElementSize";
-import {CodeEditorViewState} from "@root/src/shared-types/files";
+import {SpreadSheetEditorViewState} from "@root/src/shared-types/files";
 import {SpreadSheetSelection} from "@root/src/shared-types/spreadsheet-selection";
 import {Point} from "@root/src/utils/geometry";
 import {notificationsService} from "@services/notifications-service";
@@ -211,11 +212,12 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
     const [currentWorkbook, setCurrentWorkbook] = React.useState<WorkBook | null>(null);
     const [currentSheetIndex, setCurrentSheetIndex] = React.useState<number>(0);
     const [currentSheet, setCurrentSheet] = React.useState<WorkSheet | null>(null);
-    const [focusedCell, setFocusedCell] = React.useState<{column: number; row: number} | null>(null);
+    const [editingCell, setEditingCell] = React.useState<{column: number; row: number} | null>(null);
     const [scrollCellLocation, setScrollCellLocation] = React.useState<{column: number; row: number}>({
         column: 0,
         row: 0,
     });
+    const [forcedRerender, setForcedRerender] = React.useState<number>(0);
     const [programaticScrolling, setProgramaticScrolling] = React.useState<boolean>(false);
     const [maxCellRange, setMaxCellRange] = React.useState<{column: number; row: number}>({column: 0, row: 0});
     const [columnWidths, setColumnWidths] = React.useState<{[key: number]: number}>({});
@@ -314,50 +316,70 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             setRowHeights(newRowHeights);
         }
 
-        setSelection(null);
         setCopyingSelection(null);
-        setFocusedCell(null);
+        setEditingCell(null);
     }, [currentSheet]);
 
-    const updateViewState = React.useCallback(
-        (r?: number, c?: number) => {
-            const row = r ?? focusedCell?.row ?? 0;
-            const column = c ?? focusedCell?.column ?? 0;
-            const viewState: CodeEditorViewState = {
-                cursorState: [
-                    {
-                        inSelectionMode: false,
-                        position: {
-                            lineNumber: row,
-                            column,
-                        },
-                        selectionStart: {
-                            lineNumber: row,
-                            column,
-                        },
-                    },
-                ],
-                viewState: {
-                    scrollTop: editorRef.current.scrollTop,
-                    scrollLeft: editorRef.current.scrollLeft,
-                    firstPosition: {
-                        lineNumber: row,
-                        column,
-                    },
-                    firstPositionDeltaTop: 0,
-                },
-                contributionsState: {},
+    const updateViewStateSelection = React.useCallback(
+        (newSelection?: SpreadSheetSelection) => {
+            if (!newSelection) {
+                return;
+            }
+            const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
+            const prev = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
+            if (prev) {
+                const viewState = prev.viewStates.find(el => el.workSheetName === sheetName);
+                if (viewState) {
+                    viewState.selection = newSelection;
+                    editor.setViewState(activeFilePath, prev);
+                }
+            }
+        },
+        [activeFilePath, currentSheetIndex]
+    );
+
+    const updateViewStateScroll = React.useCallback(() => {
+        if (!scrollLayerRef.current) {
+            return;
+        }
+        const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
+        const prev = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
+        if (prev) {
+            const viewState = prev.viewStates.find(el => el.workSheetName === sheetName);
+            if (viewState) {
+                viewState.scrollLeft = scrollLayerRef.current.scrollLeft;
+                viewState.scrollTop = scrollLayerRef.current.scrollTop;
+                editor.setViewState(activeFilePath, prev);
+            }
+        }
+    }, [activeFilePath, currentSheetIndex, currentWorkbook]);
+
+    const updateViewStateSheetName = React.useCallback(
+        (newSheetName: string) => {
+            const prev = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
+            const newViewStates = prev ? [...prev.viewStates] : [];
+            if (!newViewStates.some(viewState => viewState.workSheetName === newSheetName)) {
+                newViewStates.push({
+                    workSheetName: newSheetName,
+                    selection: null,
+                    scrollLeft: 0,
+                    scrollTop: 0,
+                });
+            }
+            const viewState: SpreadSheetEditorViewState = {
+                visibleWorkSheetName: newSheetName,
+                viewStates: newViewStates,
             };
 
             editor.setViewState(activeFilePath, viewState);
         },
-        [focusedCell, activeFilePath]
+        [activeFilePath]
     );
 
     React.useEffect(() => {
-        const tableWrapperRefCurrent = scrollLayerRef.current;
+        const scrollLayerRefCurrent = scrollLayerRef.current;
         const handleScrollPositionChange = () => {
-            if (!tableWrapperRefCurrent) {
+            if (!scrollLayerRefCurrent) {
                 return;
             }
 
@@ -417,19 +439,19 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 row: Math.max(prev.row, newMaxRow),
             }));
 
-            updateViewState();
+            updateViewStateScroll();
         };
 
-        if (tableWrapperRefCurrent) {
-            tableWrapperRefCurrent.addEventListener("scroll", handleScrollPositionChange);
+        if (scrollLayerRefCurrent) {
+            scrollLayerRefCurrent.addEventListener("scroll", handleScrollPositionChange);
         }
 
         return () => {
-            if (tableWrapperRefCurrent) {
-                tableWrapperRefCurrent.removeEventListener("scroll", handleScrollPositionChange);
+            if (scrollLayerRefCurrent) {
+                scrollLayerRefCurrent.removeEventListener("scroll", handleScrollPositionChange);
             }
         };
-    }, [maxCellRange]);
+    }, [maxCellRange, activeFilePath]);
 
     React.useEffect(() => {
         const currentFile = new File(path.relative(workingDirectoryPath, activeFilePath), workingDirectoryPath);
@@ -446,29 +468,40 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             return;
         }
         setCurrentWorkbook(workbook);
-        setCurrentSheet(workbook.Sheets[workbook.SheetNames[0]]);
-        setCurrentSheetIndex(0);
+        const sheetName = workbook.SheetNames[0];
+        setCurrentSheet(workbook.Sheets[sheetName]);
 
-        const viewState = editor.getViewState(activeFilePath);
-        if (viewState) {
-            setTimeout(() => {
-                setFocusedCell({
-                    column: viewState.cursorState[0].position.column,
-                    row: viewState.cursorState[0].position.lineNumber,
+        const viewStates = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
+        if (viewStates) {
+            const visibleWorkSheetName = viewStates.visibleWorkSheetName;
+            setCurrentSheetIndex(workbook.SheetNames.indexOf(visibleWorkSheetName));
+            setCurrentSheet(workbook.Sheets[visibleWorkSheetName]);
+
+            const viewState = viewStates.viewStates.find(el => el.workSheetName === visibleWorkSheetName);
+            if (viewState) {
+                setSelection(viewState.selection);
+
+                setScrollCellLocation({
+                    column: Math.floor(viewState.scrollLeft / defaultCellSizeWithBorder.width),
+                    row: Math.floor(viewState.scrollTop / defaultCellSizeWithBorder.height),
                 });
 
-                if (!editorRef.current) {
+                if (!scrollLayerRef.current) {
                     return;
                 }
 
-                setScrollCellLocation({
-                    column: Math.floor(viewState.viewState.scrollLeft / defaultCellSizeWithBorder.width),
-                    row: Math.floor(viewState.viewState.scrollTop / defaultCellSizeWithBorder.height),
-                });
+                scrollLayerRef.current.scrollTop = viewState.scrollTop;
+                scrollLayerRef.current.scrollLeft = viewState.scrollLeft;
+            }
+        } else {
+            updateViewStateSheetName(sheetName);
+            setCurrentSheetIndex(0);
 
-                tableRef.current.scrollTop = viewState.viewState.scrollTop;
-                tableRef.current.scrollLeft = viewState.viewState.scrollLeft;
-            }, 500);
+            setSelection(null);
+            setScrollCellLocation({column: 0, row: 0});
+            setScrollPosition({x: 0, y: 0});
+            scrollLayerRef.current.scrollTop = 0;
+            scrollLayerRef.current.scrollLeft = 0;
         }
     }, [activeFilePath, workingDirectoryPath]);
 
@@ -476,13 +509,43 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         if (!currentWorkbook) {
             return;
         }
-        setCurrentSheet(currentWorkbook.Sheets[currentWorkbook.SheetNames[currentSheetIndex]]);
-        setScrollCellLocation({column: 0, row: 0});
-        setScrollPosition({x: 0, y: 0});
+        const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
+        setCurrentSheet(currentWorkbook.Sheets[sheetName]);
+        updateViewStateSheetName(sheetName);
 
-        if (scrollLayerRef.current) {
-            scrollLayerRef.current.scrollTop = 0;
-            scrollLayerRef.current.scrollLeft = 0;
+        const viewStates = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
+        if (viewStates && currentWorkbook) {
+            const visibleWorkSheetName = viewStates.visibleWorkSheetName;
+
+            const viewState = viewStates.viewStates.find(el => el.workSheetName === visibleWorkSheetName);
+            if (viewState) {
+                setSelection(viewState.selection);
+
+                setScrollCellLocation({
+                    column: Math.floor(viewState.scrollLeft / defaultCellSizeWithBorder.width),
+                    row: Math.floor(viewState.scrollTop / defaultCellSizeWithBorder.height),
+                });
+
+                if (!scrollLayerRef.current) {
+                    return;
+                }
+
+                window.setTimeout(() => {
+                    scrollLayerRef.current.scrollTop = viewState.scrollTop;
+                    scrollLayerRef.current.scrollLeft = viewState.scrollLeft;
+                }, 100);
+            }
+        } else {
+            updateViewStateSheetName(sheetName);
+            setCurrentSheetIndex(0);
+
+            setSelection(null);
+            setScrollCellLocation({column: 0, row: 0});
+            setScrollPosition({x: 0, y: 0});
+            if (scrollLayerRef.current) {
+                scrollLayerRef.current.scrollTop = 0;
+                scrollLayerRef.current.scrollLeft = 0;
+            }
         }
     }, [currentSheetIndex]);
 
@@ -498,14 +561,14 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             if (cell.classList.contains("row-header-cell")) {
                 const rowIndex = parseInt(cell.dataset.rowIndex ?? "0", 10);
                 setSelection({start: {row: rowIndex, column: 0}, end: {row: rowIndex, column: Infinity}});
-                setFocusedCell({row: rowIndex, column: 0});
+                setEditingCell({row: rowIndex, column: 0});
                 return;
             }
 
             if (cell.classList.contains("column-header-cell")) {
                 const colIndex = parseInt(cell.dataset.columnIndex ?? "0", 10);
                 setSelection({start: {row: 0, column: colIndex}, end: {row: Infinity, column: colIndex}});
-                setFocusedCell({row: 0, column: colIndex});
+                setEditingCell({row: 0, column: colIndex});
                 return;
             }
 
@@ -520,7 +583,12 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             const colIndex = parseInt(cell.dataset.columnIndex ?? "0", 10);
             mouseDown = true;
 
-            setSelection({start: {row: rowIndex, column: colIndex}, end: {row: rowIndex, column: colIndex}});
+            const newSelection: SpreadSheetSelection = {
+                start: {row: rowIndex, column: colIndex},
+                end: {row: rowIndex, column: colIndex},
+            };
+            setSelection(newSelection);
+            updateViewStateSelection(newSelection);
         };
 
         const handlePointerMove = (e: PointerEvent) => {
@@ -544,10 +612,14 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             const rowIndex = parseInt(cell.dataset.rowIndex ?? "0", 10);
             const colIndex = parseInt(cell.dataset.columnIndex ?? "0", 10);
 
-            setSelection(prev => ({
-                start: prev.start,
-                end: {row: rowIndex, column: colIndex},
-            }));
+            setSelection(prev => {
+                const newSelection = {
+                    start: prev.start,
+                    end: {row: rowIndex, column: colIndex},
+                };
+                updateViewStateSelection(newSelection);
+                return newSelection;
+            });
         };
 
         const handlePointerUp = () => {
@@ -569,6 +641,8 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         (row: number, column: number, value: any) => {
             const cell = {t: "?", v: value};
             const address = utils.encode_cell({c: column, r: row});
+
+            const oldValue = currentSheet[address]?.v || "";
 
             if (typeof value === "string") cell.t = "s";
             // string
@@ -595,6 +669,17 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 column: Math.max(column, maxCellRange.column),
                 row: Math.max(row, maxCellRange.row),
             });
+
+            editor.getOriginalEditor<SpreadSheetEditorType>(activeFilePath).addAction(
+                activeFilePath,
+                currentWorkbook.SheetNames[currentSheetIndex],
+                {
+                    r: row,
+                    c: column,
+                },
+                oldValue,
+                value
+            );
         },
         [currentSheet, maxCellRange]
     );
@@ -615,69 +700,79 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "ArrowUp") {
                 e.preventDefault();
+                setEditingCell(null);
                 setSelection(prev => {
                     if (prev.end.row === 0) {
                         return prev;
                     }
 
-                    setFocusedCell({row: prev.start.row - 1, column: prev.start.column});
-
-                    return {
+                    const newSelection = {
                         start: {row: prev.start.row - 1, column: prev.start.column},
                         end: {row: prev.start.row - 1, column: prev.start.column},
                     };
+                    updateViewStateSelection(newSelection);
+                    return newSelection;
                 });
+                return;
             }
 
             if (e.key === "ArrowDown") {
                 e.preventDefault();
-
+                setEditingCell(null);
                 setSelection(prev => {
-                    setFocusedCell({row: prev.start.row + 1, column: prev.start.column});
-                    return {
+                    const newSelection = {
                         start: {row: prev.start.row + 1, column: prev.start.column},
                         end: {row: prev.start.row + 1, column: prev.start.column},
                     };
+                    updateViewStateSelection(newSelection);
+                    return newSelection;
                 });
+                return;
             }
 
             if (e.key === "ArrowLeft") {
                 e.preventDefault();
+                setEditingCell(null);
                 setSelection(prev => {
                     if (prev.end.column === 0) {
                         return prev;
                     }
 
-                    setFocusedCell({row: prev.start.row, column: prev.start.column - 1});
-
-                    return {
+                    const newSelection = {
                         start: {row: prev.start.row, column: prev.start.column - 1},
                         end: {row: prev.start.row, column: prev.start.column - 1},
                     };
+                    updateViewStateSelection(newSelection);
+                    return newSelection;
                 });
+                return;
             }
 
             if (e.key === "ArrowRight") {
                 e.preventDefault();
+                setEditingCell(null);
                 setSelection(prev => {
-                    setFocusedCell({row: prev.start.row, column: prev.start.column + 1});
-                    return {
+                    const newSelection = {
                         start: {row: prev.start.row, column: prev.start.column + 1},
                         end: {row: prev.start.row, column: prev.start.column + 1},
                     };
+                    updateViewStateSelection(newSelection);
+                    return newSelection;
                 });
             }
 
             if (e.key === "Enter") {
-                setFocusedCell(null);
+                setEditingCell(null);
                 e.preventDefault();
                 setSelection(prev => {
-                    setFocusedCell({row: prev.start.row + 1, column: prev.start.column});
-                    return {
+                    const newSelection = {
                         start: {row: prev.start.row + 1, column: prev.start.column},
                         end: {row: prev.start.row + 1, column: prev.start.column},
                     };
+                    updateViewStateSelection(newSelection);
+                    return newSelection;
                 });
+                return;
             }
 
             if (e.key === "Delete") {
@@ -692,6 +787,14 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                         changeCellValue(r, c, "");
                     }
                 }
+                return;
+            }
+
+            if (e.key === "z" && e.ctrlKey) {
+                e.preventDefault();
+                editor.getOriginalEditor<SpreadSheetEditorType>(activeFilePath).undoAction(activeFilePath);
+                setForcedRerender(prev => prev + 1);
+                return;
             }
 
             if (e.key === "c" && e.ctrlKey) {
@@ -731,6 +834,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                             message: "Failed to copy selection to clipboard",
                         });
                     });
+                return;
             }
 
             if (e.key === "v" && e.ctrlKey) {
@@ -760,6 +864,27 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                         };
                     });
                 });
+                return;
+            }
+
+            if (e.key === "a" && e.ctrlKey) {
+                e.preventDefault();
+
+                setSelection({
+                    start: {row: 0, column: 0},
+                    end: {row: maxCellRange.row, column: maxCellRange.column},
+                });
+                return;
+            }
+
+            if (e.key === "Control" || e.key === "Shift" || e.key === "Alt" || e.key === "Meta") {
+                e.preventDefault();
+                return;
+            }
+
+            if (editingCell === null) {
+                setEditingCell(selection.start);
+                changeCellValue(selection.start.row, selection.start.column, "");
             }
         };
 
@@ -768,7 +893,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
         };
-    }, [selection, changeCellValue, getValue, maxCellRange, calcNumColumns, calcNumRows]);
+    }, [selection, editingCell, changeCellValue, getValue, maxCellRange, calcNumColumns, calcNumRows]);
 
     const handleInsertColumn = (index: number) => {
         if (!currentSheet) {
@@ -943,8 +1068,8 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             spacerBottom += getRowHeight(i, true);
         }
 
-        // spacerTop = Math.min(spacerTop, documentHeight - viewPortHeight);
-        // spacerLeft = Math.min(spacerLeft, documentWidth - viewPortWidth);
+        spacerTop = Math.min(spacerTop, documentHeight - viewPortHeight);
+        spacerLeft = Math.min(spacerLeft, documentWidth - viewPortWidth);
 
         return {left: spacerLeft, top: spacerTop, right: spacerRight, bottom: spacerBottom};
     };
@@ -1012,8 +1137,8 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         return headers;
     };
 
-    const handleFocusedCellChange = (row: number, column: number) => {
-        setFocusedCell({row, column});
+    const handleEditingCellChange = (row: number, column: number) => {
+        setEditingCell({row, column});
         // updateViewState(row, column);
         setCopyingSelection(null);
     };
@@ -1023,7 +1148,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             return;
         }
 
-        if (focusedCell.row !== row || focusedCell.column !== column) {
+        if (editingCell.row !== row || editingCell.column !== column) {
             return;
         }
 
@@ -1141,35 +1266,35 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                                                                 absoluteRow,
                                                                 absoluteColumn
                                                             )}${
-                                                                focusedCell &&
-                                                                focusedCell.row === absoluteRow &&
-                                                                focusedCell.column === absoluteColumn
+                                                                editingCell &&
+                                                                editingCell.row === absoluteRow &&
+                                                                editingCell.column === absoluteColumn
                                                                     ? " focused-cell"
                                                                     : ""
                                                             }`}
                                                             data-row-index={absoluteRow}
                                                             data-column-index={absoluteColumn}
                                                             onDoubleClick={() =>
-                                                                handleFocusedCellChange(absoluteRow, absoluteColumn)
+                                                                handleEditingCellChange(absoluteRow, absoluteColumn)
                                                             }
                                                             onClick={() => {
                                                                 if (
-                                                                    focusedCell &&
-                                                                    focusedCell.row === absoluteRow &&
-                                                                    focusedCell.column === absoluteColumn
+                                                                    editingCell &&
+                                                                    editingCell.row === absoluteRow &&
+                                                                    editingCell.column === absoluteColumn
                                                                 ) {
                                                                     return;
                                                                 }
-                                                                setFocusedCell(null);
+                                                                setEditingCell(null);
                                                             }}
                                                             style={{
                                                                 width: getColumnWidth(absoluteColumn),
                                                                 height: getRowHeight(absoluteRow),
                                                             }}
                                                         >
-                                                            {focusedCell &&
-                                                            focusedCell.row === absoluteRow &&
-                                                            focusedCell.column === absoluteColumn ? (
+                                                            {editingCell &&
+                                                            editingCell.row === absoluteRow &&
+                                                            editingCell.column === absoluteColumn ? (
                                                                 <input
                                                                     type="text"
                                                                     // eslint-disable-next-line jsx-a11y/no-autofocus
@@ -1186,7 +1311,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                                                                         if (e.key === "Enter") {
                                                                             e.preventDefault();
                                                                             e.stopPropagation();
-                                                                            setFocusedCell(null);
+                                                                            setEditingCell(null);
                                                                         }
                                                                     }}
                                                                 />
@@ -1249,7 +1374,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                             }`}
                             onClick={() => {
                                 setCurrentSheetIndex(index);
-                                setFocusedCell(null);
+                                setEditingCell(null);
                             }}
                         >
                             <span>{sheetName}</span>

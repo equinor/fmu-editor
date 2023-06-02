@@ -3,14 +3,25 @@ import {GlobalSettings} from "@global/global-settings";
 import {File} from "@utils/file-system/file";
 import {generateHashCode} from "@utils/hash";
 
-import {WorkBook, read, write} from "xlsx";
+import {WorkBook, read, utils, write} from "xlsx";
 
 import {IEditor, IEditorBasic} from "./editor-basic";
+
+type UndoStack = {
+    sheetName: string;
+    cellAddress: {
+        c: number;
+        r: number;
+    };
+    oldValue: string;
+    newValue: string;
+}[];
 
 export type WorkBooks = {
     [key: string]: {
         workBook: WorkBook;
         buffer: Buffer;
+        undoStack: UndoStack;
     };
 };
 
@@ -31,18 +42,23 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
                 workBook = {
                     workBook: read(buffer),
                     buffer,
+                    undoStack: [],
                 };
             }
         }
 
         if (workBook) {
-            value = workBook.buffer.toString("utf-8");
+            value = workBook.buffer.toString("utf-8") + JSON.stringify(workBook.undoStack);
         }
 
         return generateHashCode(value);
     }
 
     public openFile(absoluteFilePath: string): void {
+        if (this.workBooks[absoluteFilePath]) {
+            return;
+        }
+
         const currentFile = new File(absoluteFilePath, "");
         if (!currentFile.exists()) {
             return;
@@ -51,7 +67,7 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
         const buffer = currentFile.readBuffer();
 
         const workBook = read(buffer);
-        this.workBooks[absoluteFilePath] = {workBook, buffer};
+        this.workBooks[absoluteFilePath] = {workBook, buffer, undoStack: []};
     }
 
     public getModel<T>(absoluteFilePath: string): T | null {
@@ -74,6 +90,9 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
             return false;
         }
         const buffer = write(workBook.workBook, {bookType, bookSST: true, type: "buffer"});
+
+        workBook.undoStack = [];
+
         return file.writeBuffer(buffer);
     }
 
@@ -89,6 +108,47 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
             return false;
         }
         const buffer = write(workBook.workBook, {bookType, bookSST: true, type: "buffer"});
+
+        workBook.undoStack = [];
+
         return file.writeBuffer(buffer);
+    }
+
+    public addAction(
+        absoluteFilePath: string,
+        sheetName: string,
+        cellAddress: {c: number; r: number},
+        oldValue: string,
+        newValue: string
+    ): void {
+        const workBook = this.workBooks[absoluteFilePath];
+        if (!workBook) {
+            return;
+        }
+
+        workBook.undoStack.push({sheetName, cellAddress, oldValue, newValue});
+    }
+
+    public undoAction(absoluteFilePath: string): void {
+        const workBook = this.workBooks[absoluteFilePath];
+        if (!workBook) {
+            return;
+        }
+
+        const undoAction = workBook.undoStack.pop();
+        if (!undoAction) {
+            return;
+        }
+
+        const {sheetName, cellAddress, oldValue} = undoAction;
+        const workSheet = workBook.workBook.Sheets[sheetName];
+        if (!workSheet) {
+            return;
+        }
+
+        const cell = {t: "?", v: oldValue};
+        const address = utils.encode_cell(cellAddress);
+
+        workSheet[address] = cell;
     }
 }
