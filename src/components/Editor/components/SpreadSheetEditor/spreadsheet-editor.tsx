@@ -211,7 +211,7 @@ function makeCopyingFrameClassNames(
 export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
     const [currentWorkbook, setCurrentWorkbook] = React.useState<WorkBook | null>(null);
     const [currentSheetIndex, setCurrentSheetIndex] = React.useState<number>(0);
-    const [currentSheet, setCurrentSheet] = React.useState<WorkSheet | null>(null);
+    const [currentSheet, setCurrentSheet] = React.useState<{sheet: WorkSheet; name: string} | null>(null);
     const [editingCell, setEditingCell] = React.useState<{column: number; row: number} | null>(null);
     const [scrollCellLocation, setScrollCellLocation] = React.useState<{column: number; row: number}>({
         column: 0,
@@ -285,44 +285,9 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         return count - 1;
     }, [tableWrapperSize.height, scrollCellLocation.row, getRowHeight]);
 
-    React.useEffect(() => {
-        if (!currentSheet) {
-            return;
-        }
-
-        const range = utils.decode_range(currentSheet["!ref"]);
-        setMaxCellRange(prev => ({
-            column: Math.max(range.e.c, calcNumColumns(), prev.column),
-            row: Math.max(range.e.r, calcNumRows(), prev.row),
-        }));
-
-        if (currentSheet["!cols"]) {
-            const newColumnWidths: {[key: number]: number} = {};
-            currentSheet["!cols"].forEach((col: ColInfo, index: number) => {
-                if (col && col.wpx) {
-                    newColumnWidths[index] = col.wpx;
-                }
-            });
-            setColumnWidths(newColumnWidths);
-        }
-
-        if (currentSheet["!rows"]) {
-            const newRowHeights: {[key: number]: number} = {};
-            currentSheet["!rows"].forEach((row: RowInfo, index: number) => {
-                if (row && row.hpx) {
-                    newRowHeights[index] = row.hpx;
-                }
-            });
-            setRowHeights(newRowHeights);
-        }
-
-        setCopyingSelection(null);
-        setEditingCell(null);
-    }, [currentSheet]);
-
     const updateViewStateSelection = React.useCallback(
         (newSelection?: SpreadSheetSelection) => {
-            if (!newSelection) {
+            if (!newSelection || !activeFilePath || !currentWorkbook || currentSheetIndex === null) {
                 return;
             }
             const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
@@ -335,11 +300,65 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 }
             }
         },
-        [activeFilePath, currentSheetIndex]
+        [activeFilePath, currentWorkbook, currentSheetIndex]
+    );
+
+    const updateViewStateColumnWidths = React.useCallback(
+        (newColumnWidths: {[key: number]: number}) => {
+            console.log("updating view state column widths");
+            if (!activeFilePath || !currentWorkbook || currentSheetIndex === null) {
+                return;
+            }
+            const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
+            if (currentWorkbook.Sheets[sheetName]["!cols"]) {
+                currentWorkbook.Sheets[sheetName]["!cols"] = Object.keys(newColumnWidths).map(key => ({
+                    wpx: newColumnWidths[key],
+                }));
+                return;
+            }
+            const prev = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
+            if (prev) {
+                const viewState = prev.viewStates.find(el => el.workSheetName === sheetName);
+                if (viewState) {
+                    viewState.columnWidths = newColumnWidths;
+                    editor.setViewState(activeFilePath, prev);
+                }
+            }
+        },
+        [activeFilePath, currentWorkbook, currentSheetIndex]
+    );
+
+    const updateViewStateRowHeights = React.useCallback(
+        (newRowHeights: {[key: number]: number}) => {
+            console.log("updating view state row heights");
+            if (!activeFilePath || !currentWorkbook || currentSheetIndex === null) {
+                return;
+            }
+            const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
+            if (currentWorkbook.Sheets[sheetName]["!rows"]) {
+                currentWorkbook.Sheets[sheetName]["!rows"] = Object.keys(newRowHeights).map(key => ({
+                    hpx: newRowHeights[key],
+                }));
+                return;
+            }
+            const prev = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
+            if (prev) {
+                const viewState = prev.viewStates.find(el => el.workSheetName === sheetName);
+                if (viewState) {
+                    viewState.rowHeights = newRowHeights;
+                    editor.setViewState(activeFilePath, prev);
+                }
+            }
+
+            currentWorkbook.Sheets[sheetName]["!rows"] = Object.keys(newRowHeights).map(key => ({
+                hpx: newRowHeights[key],
+            }));
+        },
+        [activeFilePath, currentWorkbook, currentSheetIndex]
     );
 
     const updateViewStateScroll = React.useCallback(() => {
-        if (!scrollLayerRef.current) {
+        if (!scrollLayerRef.current || !activeFilePath || !currentWorkbook || currentSheetIndex === null) {
             return;
         }
         const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
@@ -364,6 +383,8 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                     selection: null,
                     scrollLeft: 0,
                     scrollTop: 0,
+                    columnWidths: {},
+                    rowHeights: {},
                 });
             }
             const viewState: SpreadSheetEditorViewState = {
@@ -454,6 +475,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
     }, [maxCellRange, activeFilePath]);
 
     React.useEffect(() => {
+        console.log("active file path changed");
         const currentFile = new File(path.relative(workingDirectoryPath, activeFilePath), workingDirectoryPath);
         if (!currentFile.exists()) {
             return;
@@ -469,49 +491,46 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         }
         setCurrentWorkbook(workbook);
         const sheetName = workbook.SheetNames[0];
-        setCurrentSheet(workbook.Sheets[sheetName]);
-
-        const viewStates = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
-        if (viewStates) {
-            const visibleWorkSheetName = viewStates.visibleWorkSheetName;
-            setCurrentSheetIndex(workbook.SheetNames.indexOf(visibleWorkSheetName));
-            setCurrentSheet(workbook.Sheets[visibleWorkSheetName]);
-
-            const viewState = viewStates.viewStates.find(el => el.workSheetName === visibleWorkSheetName);
-            if (viewState) {
-                setSelection(viewState.selection);
-
-                setScrollCellLocation({
-                    column: Math.floor(viewState.scrollLeft / defaultCellSizeWithBorder.width),
-                    row: Math.floor(viewState.scrollTop / defaultCellSizeWithBorder.height),
-                });
-
-                if (!scrollLayerRef.current) {
-                    return;
-                }
-
-                scrollLayerRef.current.scrollTop = viewState.scrollTop;
-                scrollLayerRef.current.scrollLeft = viewState.scrollLeft;
-            }
-        } else {
-            updateViewStateSheetName(sheetName);
-            setCurrentSheetIndex(0);
-
-            setSelection(null);
-            setScrollCellLocation({column: 0, row: 0});
-            setScrollPosition({x: 0, y: 0});
-            scrollLayerRef.current.scrollTop = 0;
-            scrollLayerRef.current.scrollLeft = 0;
-        }
+        setCurrentSheet({sheet: workbook.Sheets[sheetName], name: sheetName});
     }, [activeFilePath, workingDirectoryPath]);
 
     React.useEffect(() => {
-        if (!currentWorkbook) {
+        console.log("current worksheet changed");
+        if (!currentSheet) {
             return;
         }
-        const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
-        setCurrentSheet(currentWorkbook.Sheets[sheetName]);
-        updateViewStateSheetName(sheetName);
+
+        let newColumnWidths: {[key: number]: number} | null = null;
+        let newRowHeights: {[key: number]: number} | null = null;
+
+        const range = utils.decode_range(currentSheet.sheet["!ref"]);
+        setMaxCellRange(prev => ({
+            column: Math.max(range.e.c, calcNumColumns(), prev.column),
+            row: Math.max(range.e.r, calcNumRows(), prev.row),
+        }));
+
+        if (currentSheet.sheet["!cols"]) {
+            newColumnWidths = {};
+            currentSheet.sheet["!cols"].forEach((col: ColInfo, index: number) => {
+                if (col && col.wpx) {
+                    newColumnWidths[index] = col.wpx;
+                }
+            });
+            setColumnWidths(newColumnWidths);
+        }
+
+        if (currentSheet.sheet["!rows"]) {
+            newRowHeights = {};
+            currentSheet.sheet["!rows"].forEach((row: RowInfo, index: number) => {
+                if (row && row.hpx) {
+                    newRowHeights[index] = row.hpx;
+                }
+            });
+            setRowHeights(newRowHeights);
+        }
+
+        setCopyingSelection(null);
+        setEditingCell(null);
 
         const viewStates = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
         if (viewStates && currentWorkbook) {
@@ -526,6 +545,14 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                     row: Math.floor(viewState.scrollTop / defaultCellSizeWithBorder.height),
                 });
 
+                if (viewState.columnWidths && !newColumnWidths) {
+                    setColumnWidths(viewState.columnWidths);
+                }
+
+                if (viewState.rowHeights && !newRowHeights) {
+                    setRowHeights(viewState.rowHeights);
+                }
+
                 if (!scrollLayerRef.current) {
                     return;
                 }
@@ -536,7 +563,6 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 }, 100);
             }
         } else {
-            updateViewStateSheetName(sheetName);
             setCurrentSheetIndex(0);
 
             setSelection(null);
@@ -547,6 +573,17 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 scrollLayerRef.current.scrollLeft = 0;
             }
         }
+    }, [currentSheet]);
+
+    React.useEffect(() => {
+        console.log("current sheet index changed");
+        if (!currentWorkbook) {
+            return;
+        }
+
+        const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
+        setCurrentSheet({sheet: currentWorkbook.Sheets[sheetName], name: sheetName});
+        updateViewStateSheetName(sheetName);
     }, [currentSheetIndex]);
 
     React.useEffect(() => {
@@ -642,7 +679,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             const cell = {t: "?", v: value};
             const address = utils.encode_cell({c: column, r: row});
 
-            const oldValue = currentSheet[address]?.v || "";
+            const oldValue = currentSheet.sheet[address]?.v || "";
 
             if (typeof value === "string") cell.t = "s";
             // string
@@ -653,9 +690,9 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             else if (value instanceof Date) cell.t = "d";
             else throw new Error("cannot store value");
 
-            currentSheet[address] = cell;
+            currentSheet.sheet[address] = cell;
 
-            const range = utils.decode_range(currentSheet["!ref"]);
+            const range = utils.decode_range(currentSheet.sheet["!ref"]);
             const addr = utils.decode_cell(address);
 
             if (range.s.c > addr.c) range.s.c = addr.c;
@@ -663,7 +700,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             if (range.e.c < addr.c) range.e.c = addr.c;
             if (range.e.r < addr.r) range.e.r = addr.r;
 
-            currentSheet["!ref"] = utils.encode_range(range);
+            currentSheet.sheet["!ref"] = utils.encode_range(range);
 
             setMaxCellRange({
                 column: Math.max(column, maxCellRange.column),
@@ -690,7 +727,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 return "";
             }
 
-            const cell = currentSheet[utils.encode_cell({c: column, r: row})];
+            const cell = currentSheet.sheet[utils.encode_cell({c: column, r: row})];
             return cell ? cell.v : "";
         },
         [currentSheet]
@@ -759,6 +796,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                     updateViewStateSelection(newSelection);
                     return newSelection;
                 });
+                return;
             }
 
             if (e.key === "Enter") {
@@ -971,6 +1009,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         setColumnWidths(prev => {
             const newColumnWidths = {...prev};
             newColumnWidths[index] = size;
+            updateViewStateColumnWidths(newColumnWidths);
             return newColumnWidths;
         });
     }, []);
@@ -979,6 +1018,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         setRowHeights(prev => {
             const newRowHeights = {...prev};
             newRowHeights[index] = size;
+            updateViewStateRowHeights(newRowHeights);
             return newRowHeights;
         });
     }, []);

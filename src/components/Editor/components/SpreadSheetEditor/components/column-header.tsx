@@ -16,6 +16,12 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = props => {
     const ref = React.useRef<HTMLTableCellElement | null>(null);
     const resizeHandleRef = React.useRef<HTMLDivElement | null>(null);
     const [width, setWidth] = React.useState<number>(props.width);
+    const [previousWidth, setPreviousWidth] = React.useState<number>(props.width);
+
+    if (props.width !== previousWidth) {
+        setWidth(props.width);
+        setPreviousWidth(props.width);
+    }
 
     React.useEffect(() => {
         props.onResize(props.absoluteIndex, width);
@@ -23,14 +29,19 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = props => {
 
     React.useEffect(() => {
         let dragging: boolean = false;
+        let newWidth: number = 0;
         const handlePointerDown = (e: PointerEvent) => {
             dragging = true;
             document.body.style.cssText = "cursor: col-resize !important";
         };
 
         const handlePointerUp = () => {
+            if (!dragging) {
+                return;
+            }
             dragging = false;
             document.body.style.cssText = "cursor: default";
+            props.onResize(props.absoluteIndex, newWidth);
         };
 
         const handleColumnPointerMove = (e: PointerEvent) => {
@@ -43,7 +54,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = props => {
             }
 
             const rect = ref.current.getBoundingClientRect();
-            const newWidth = e.clientX - rect.left;
+            newWidth = e.clientX - rect.left;
 
             setWidth(newWidth);
         };

@@ -100,6 +100,12 @@ const SpreadSheetEditorViewState = {
                     workSheetName: {
                         type: "string",
                     },
+                    columnWidths: {
+                        type: "object",
+                    },
+                    rowHeights: {
+                        type: "object",
+                    },
                 },
             },
         },

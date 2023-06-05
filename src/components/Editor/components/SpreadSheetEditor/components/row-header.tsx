@@ -16,13 +16,16 @@ export const RowHeader: React.FC<RowHeaderProps> = props => {
     const ref = React.useRef<HTMLTableCellElement | null>(null);
     const resizeHandleRef = React.useRef<HTMLDivElement | null>(null);
     const [height, setHeight] = React.useState<number>(props.height);
+    const [previousHeight, setPreviousHeight] = React.useState<number>(props.height);
 
-    React.useEffect(() => {
-        props.onResize(props.absoluteIndex, height);
-    }, [height, props.onResize, props.absoluteIndex]);
+    if (props.height !== previousHeight) {
+        setHeight(props.height);
+        setPreviousHeight(props.height);
+    }
 
     React.useEffect(() => {
         let dragging: boolean = false;
+        let newHeight: number = 0;
         const resizeHandleRefCurrent = resizeHandleRef.current;
 
         const handlePointerDown = () => {
@@ -31,8 +34,12 @@ export const RowHeader: React.FC<RowHeaderProps> = props => {
         };
 
         const handlePointerUp = () => {
+            if (!dragging) {
+                return;
+            }
             dragging = false;
             document.body.style.cssText = "cursor: default";
+            props.onResize(props.absoluteIndex, newHeight);
         };
 
         const handleColumnPointerMove = (e: PointerEvent) => {
@@ -45,7 +52,7 @@ export const RowHeader: React.FC<RowHeaderProps> = props => {
             }
 
             const rect = ref.current.getBoundingClientRect();
-            const newHeight = e.clientY - rect.top;
+            newHeight = e.clientY - rect.top;
 
             setHeight(newHeight);
         };

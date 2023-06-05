@@ -33,6 +33,12 @@ export type SpreadSheetEditorViewState = {
         scrollLeft: number;
         scrollTop: number;
         selection: SpreadSheetSelection;
+        columnWidths: {
+            [key: number]: number;
+        };
+        rowHeights: {
+            [key: number]: number;
+        };
         workSheetName: string;
     }[];
 };
