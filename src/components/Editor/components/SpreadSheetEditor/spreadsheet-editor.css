@@ -18,6 +18,18 @@
     overflow: overlay;
 }
 
+.SpreadSheetEditor__Error {
+    background-color: var(--danger);
+    color: var(--danger-highlight);
+    padding: var(--spacing-m);
+}
+
+.SpreadSheetEditor__Warning {
+    background-color: var(--warning);
+    color: var(--warning-highlight);
+    padding: var(--spacing-m);
+}
+
 .SpreadSheetEditor__ContentDummy {
     pointer-events: none;
     z-index: 20;

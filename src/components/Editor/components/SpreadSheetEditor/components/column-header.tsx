@@ -24,10 +24,6 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = props => {
     }
 
     React.useEffect(() => {
-        props.onResize(props.absoluteIndex, width);
-    }, [width, props.onResize]);
-
-    React.useEffect(() => {
         let dragging: boolean = false;
         let newWidth: number = 0;
         const handlePointerDown = (e: PointerEvent) => {
@@ -55,7 +51,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = props => {
 
             const rect = ref.current.getBoundingClientRect();
             newWidth = e.clientX - rect.left;
-
+            props.onResize(props.absoluteIndex, newWidth);
             setWidth(newWidth);
         };
 
@@ -72,7 +68,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = props => {
                 document.removeEventListener("pointerup", handlePointerUp);
             }
         };
-    }, []);
+    }, [props.onResize, props.absoluteIndex]);
 
     const contextMenuTemplate: ContextMenuTemplate = [
         {

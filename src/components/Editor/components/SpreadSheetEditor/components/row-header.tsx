@@ -55,6 +55,7 @@ export const RowHeader: React.FC<RowHeaderProps> = props => {
             newHeight = e.clientY - rect.top;
 
             setHeight(newHeight);
+            props.onResize(props.absoluteIndex, newHeight);
         };
 
         if (resizeHandleRefCurrent) {
@@ -70,7 +71,7 @@ export const RowHeader: React.FC<RowHeaderProps> = props => {
                 document.removeEventListener("pointerup", handlePointerUp);
             }
         };
-    }, []);
+    }, [props.onResize, props.absoluteIndex]);
 
     const contextMenuTemplate: ContextMenuTemplate = [
         {

@@ -208,16 +208,15 @@ function makeCopyingFrameClassNames(
     return `copying-frame ${classList.join("-")}`;
 }
 
-export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
+const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
     const [currentWorkbook, setCurrentWorkbook] = React.useState<WorkBook | null>(null);
-    const [currentSheetIndex, setCurrentSheetIndex] = React.useState<number>(0);
     const [currentSheet, setCurrentSheet] = React.useState<{sheet: WorkSheet; name: string} | null>(null);
     const [editingCell, setEditingCell] = React.useState<{column: number; row: number} | null>(null);
     const [scrollCellLocation, setScrollCellLocation] = React.useState<{column: number; row: number}>({
         column: 0,
         row: 0,
     });
-    const [forcedRerender, setForcedRerender] = React.useState<number>(0);
+    const [ignored, forceUpdate] = React.useReducer(x => x + 1, 0);
     const [programaticScrolling, setProgramaticScrolling] = React.useState<boolean>(false);
     const [maxCellRange, setMaxCellRange] = React.useState<{column: number; row: number}>({column: 0, row: 0});
     const [columnWidths, setColumnWidths] = React.useState<{[key: number]: number}>({});
@@ -228,18 +227,18 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
 
     const editorRef = React.useRef<HTMLDivElement | null>(null);
     const tableRef = React.useRef<HTMLTableElement | null>(null);
-    const editorSize = useElementSize(editorRef);
-
     const scrollLayerRef = React.useRef<HTMLDivElement | null>(null);
-
     const tableWrapperRef = React.useRef<HTMLDivElement | null>(null);
-    const tableWrapperSize = useElementSize(tableWrapperRef);
-
     const verticalHeaderWrapperRef = React.useRef<HTMLDivElement | null>(null);
     const horizontalHeaderWrapperRef = React.useRef<HTMLDivElement | null>(null);
 
+    const tableWrapperSize = useElementSize(tableWrapperRef);
+    const editorSize = useElementSize(editorRef);
+
     const activeFilePath = useAppSelector(state => state.files.activeFilePath);
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
+
+    /* ---------------------------------------------------------------------------------- */
 
     const getRowHeight = React.useCallback(
         (index: number, withPadding: boolean = false): number => {
@@ -263,6 +262,8 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         [columnWidths]
     );
 
+    /* ---------------------------------------------------------------------------------- */
+
     const calcNumColumns = React.useCallback((): number => {
         let width = tableWrapperSize.width;
         let index = scrollCellLocation.column;
@@ -285,93 +286,162 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         return count - 1;
     }, [tableWrapperSize.height, scrollCellLocation.row, getRowHeight]);
 
+    /* ---------------------------------------------------------------------------------- */
+
+    const getCellValue = React.useCallback(
+        (row: number, column: number): string => {
+            if (!currentSheet) {
+                return "";
+            }
+
+            const cell = currentSheet.sheet[utils.encode_cell({c: column, r: row})];
+            return cell ? cell.v : "";
+        },
+        [currentSheet]
+    );
+
+    const changeCellValue = React.useCallback(
+        (row: number, column: number, value: any) => {
+            const cell = {t: "?", v: value};
+            const address = utils.encode_cell({c: column, r: row});
+
+            const oldValue = currentSheet.sheet[address]?.v || "";
+
+            if (typeof value === "string") cell.t = "s";
+            // string
+            else if (typeof value === "number") cell.t = "n";
+            // number
+            else if (value === true || value === false) cell.t = "b";
+            // boolean
+            else if (value instanceof Date) cell.t = "d";
+            else throw new Error("cannot store value");
+
+            currentSheet.sheet[address] = cell;
+
+            const range = utils.decode_range(currentSheet.sheet["!ref"]);
+            const addr = utils.decode_cell(address);
+
+            if (range.s.c > addr.c) range.s.c = addr.c;
+            if (range.s.r > addr.r) range.s.r = addr.r;
+            if (range.e.c < addr.c) range.e.c = addr.c;
+            if (range.e.r < addr.r) range.e.r = addr.r;
+
+            currentSheet.sheet["!ref"] = utils.encode_range(range);
+
+            setMaxCellRange({
+                column: Math.max(column, maxCellRange.column),
+                row: Math.max(row, maxCellRange.row),
+            });
+
+            editor.getOriginalEditor<SpreadSheetEditorType>(activeFilePath).addAction(
+                activeFilePath,
+                currentSheet.name,
+                {
+                    r: row,
+                    c: column,
+                },
+                oldValue,
+                value
+            );
+        },
+        [currentSheet, maxCellRange]
+    );
+
+    /* ---------------------------------------------------------------------------------- */
+
     const updateViewStateSelection = React.useCallback(
         (newSelection?: SpreadSheetSelection) => {
-            if (!newSelection || !activeFilePath || !currentWorkbook || currentSheetIndex === null) {
+            if (!newSelection || !activeFilePath || !currentSheet) {
                 return;
             }
-            const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
             const prev = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
             if (prev) {
-                const viewState = prev.viewStates.find(el => el.workSheetName === sheetName);
+                const viewState = prev.viewStates.find(el => el.workSheetName === currentSheet.name);
                 if (viewState) {
                     viewState.selection = newSelection;
                     editor.setViewState(activeFilePath, prev);
                 }
             }
         },
-        [activeFilePath, currentWorkbook, currentSheetIndex]
+        [activeFilePath, currentSheet]
     );
 
     const updateViewStateColumnWidths = React.useCallback(
         (newColumnWidths: {[key: number]: number}) => {
             console.log("updating view state column widths");
-            if (!activeFilePath || !currentWorkbook || currentSheetIndex === null) {
+            if (!activeFilePath || !currentSheet) {
                 return;
             }
-            const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
-            if (currentWorkbook.Sheets[sheetName]["!cols"]) {
-                currentWorkbook.Sheets[sheetName]["!cols"] = Object.keys(newColumnWidths).map(key => ({
-                    wpx: newColumnWidths[key],
-                }));
-                return;
+
+            const range = utils.decode_range(currentSheet.sheet["!ref"]);
+
+            const colInfos: ColInfo[] = [];
+            for (let i = range.s.c; i <= range.e.c; i++) {
+                if (newColumnWidths[i]) {
+                    colInfos[i] = {wpx: newColumnWidths[i]};
+                } else {
+                    colInfos[i] = {wpx: defaultCellSize.width};
+                }
             }
+            currentSheet.sheet["!cols"] = colInfos;
+
             const prev = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
             if (prev) {
-                const viewState = prev.viewStates.find(el => el.workSheetName === sheetName);
+                const viewState = prev.viewStates.find(el => el.workSheetName === currentSheet.name);
                 if (viewState) {
                     viewState.columnWidths = newColumnWidths;
                     editor.setViewState(activeFilePath, prev);
                 }
             }
         },
-        [activeFilePath, currentWorkbook, currentSheetIndex]
+        [activeFilePath, currentSheet]
     );
 
     const updateViewStateRowHeights = React.useCallback(
         (newRowHeights: {[key: number]: number}) => {
             console.log("updating view state row heights");
-            if (!activeFilePath || !currentWorkbook || currentSheetIndex === null) {
+            if (!activeFilePath || !currentSheet) {
                 return;
             }
-            const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
-            if (currentWorkbook.Sheets[sheetName]["!rows"]) {
-                currentWorkbook.Sheets[sheetName]["!rows"] = Object.keys(newRowHeights).map(key => ({
-                    hpx: newRowHeights[key],
-                }));
-                return;
+
+            const range = utils.decode_range(currentSheet.sheet["!ref"]);
+
+            const rowInfos: RowInfo[] = [];
+            for (let i = range.s.r; i <= range.e.r; i++) {
+                if (newRowHeights[i]) {
+                    rowInfos[i] = {hpx: newRowHeights[i]};
+                } else {
+                    rowInfos[i] = {hpx: defaultCellSize.height};
+                }
             }
+            currentSheet.sheet["!rows"] = rowInfos;
+
             const prev = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
             if (prev) {
-                const viewState = prev.viewStates.find(el => el.workSheetName === sheetName);
+                const viewState = prev.viewStates.find(el => el.workSheetName === currentSheet.name);
                 if (viewState) {
                     viewState.rowHeights = newRowHeights;
                     editor.setViewState(activeFilePath, prev);
                 }
             }
-
-            currentWorkbook.Sheets[sheetName]["!rows"] = Object.keys(newRowHeights).map(key => ({
-                hpx: newRowHeights[key],
-            }));
         },
-        [activeFilePath, currentWorkbook, currentSheetIndex]
+        [activeFilePath, currentSheet]
     );
 
     const updateViewStateScroll = React.useCallback(() => {
-        if (!scrollLayerRef.current || !activeFilePath || !currentWorkbook || currentSheetIndex === null) {
+        if (!scrollLayerRef.current || !currentSheet) {
             return;
         }
-        const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
         const prev = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
         if (prev) {
-            const viewState = prev.viewStates.find(el => el.workSheetName === sheetName);
+            const viewState = prev.viewStates.find(el => el.workSheetName === currentSheet.name);
             if (viewState) {
                 viewState.scrollLeft = scrollLayerRef.current.scrollLeft;
                 viewState.scrollTop = scrollLayerRef.current.scrollTop;
                 editor.setViewState(activeFilePath, prev);
             }
         }
-    }, [activeFilePath, currentSheetIndex, currentWorkbook]);
+    }, [activeFilePath, currentSheet]);
 
     const updateViewStateSheetName = React.useCallback(
         (newSheetName: string) => {
@@ -396,6 +466,8 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         },
         [activeFilePath]
     );
+
+    /* ---------------------------------------------------------------------------------- */
 
     React.useEffect(() => {
         const scrollLayerRefCurrent = scrollLayerRef.current;
@@ -475,7 +547,6 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
     }, [maxCellRange, activeFilePath]);
 
     React.useEffect(() => {
-        console.log("active file path changed");
         const currentFile = new File(path.relative(workingDirectoryPath, activeFilePath), workingDirectoryPath);
         if (!currentFile.exists()) {
             return;
@@ -490,12 +561,21 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             return;
         }
         setCurrentWorkbook(workbook);
+
+        const viewStates = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
+        if (viewStates) {
+            const visibleWorkSheetName = viewStates.visibleWorkSheetName;
+            if (visibleWorkSheetName && workbook.SheetNames.includes(visibleWorkSheetName)) {
+                setCurrentSheet({sheet: workbook.Sheets[visibleWorkSheetName], name: visibleWorkSheetName});
+                return;
+            }
+        }
+
         const sheetName = workbook.SheetNames[0];
         setCurrentSheet({sheet: workbook.Sheets[sheetName], name: sheetName});
     }, [activeFilePath, workingDirectoryPath]);
 
     React.useEffect(() => {
-        console.log("current worksheet changed");
         if (!currentSheet) {
             return;
         }
@@ -533,7 +613,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         setEditingCell(null);
 
         const viewStates = editor.getViewState<SpreadSheetEditorViewState>(activeFilePath);
-        if (viewStates && currentWorkbook) {
+        if (viewStates) {
             const visibleWorkSheetName = viewStates.visibleWorkSheetName;
 
             const viewState = viewStates.viewStates.find(el => el.workSheetName === visibleWorkSheetName);
@@ -563,8 +643,6 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 }, 100);
             }
         } else {
-            setCurrentSheetIndex(0);
-
             setSelection(null);
             setScrollCellLocation({column: 0, row: 0});
             setScrollPosition({x: 0, y: 0});
@@ -574,17 +652,6 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             }
         }
     }, [currentSheet]);
-
-    React.useEffect(() => {
-        console.log("current sheet index changed");
-        if (!currentWorkbook) {
-            return;
-        }
-
-        const sheetName = currentWorkbook.SheetNames[currentSheetIndex];
-        setCurrentSheet({sheet: currentWorkbook.Sheets[sheetName], name: sheetName});
-        updateViewStateSheetName(sheetName);
-    }, [currentSheetIndex]);
 
     React.useEffect(() => {
         let mouseDown = false;
@@ -673,65 +740,6 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             document.removeEventListener("pointerup", handlePointerUp);
         };
     }, []);
-
-    const changeCellValue = React.useCallback(
-        (row: number, column: number, value: any) => {
-            const cell = {t: "?", v: value};
-            const address = utils.encode_cell({c: column, r: row});
-
-            const oldValue = currentSheet.sheet[address]?.v || "";
-
-            if (typeof value === "string") cell.t = "s";
-            // string
-            else if (typeof value === "number") cell.t = "n";
-            // number
-            else if (value === true || value === false) cell.t = "b";
-            // boolean
-            else if (value instanceof Date) cell.t = "d";
-            else throw new Error("cannot store value");
-
-            currentSheet.sheet[address] = cell;
-
-            const range = utils.decode_range(currentSheet.sheet["!ref"]);
-            const addr = utils.decode_cell(address);
-
-            if (range.s.c > addr.c) range.s.c = addr.c;
-            if (range.s.r > addr.r) range.s.r = addr.r;
-            if (range.e.c < addr.c) range.e.c = addr.c;
-            if (range.e.r < addr.r) range.e.r = addr.r;
-
-            currentSheet.sheet["!ref"] = utils.encode_range(range);
-
-            setMaxCellRange({
-                column: Math.max(column, maxCellRange.column),
-                row: Math.max(row, maxCellRange.row),
-            });
-
-            editor.getOriginalEditor<SpreadSheetEditorType>(activeFilePath).addAction(
-                activeFilePath,
-                currentWorkbook.SheetNames[currentSheetIndex],
-                {
-                    r: row,
-                    c: column,
-                },
-                oldValue,
-                value
-            );
-        },
-        [currentSheet, maxCellRange]
-    );
-
-    const getValue = React.useCallback(
-        (row: number, column: number): string => {
-            if (!currentSheet) {
-                return "";
-            }
-
-            const cell = currentSheet.sheet[utils.encode_cell({c: column, r: row})];
-            return cell ? cell.v : "";
-        },
-        [currentSheet]
-    );
 
     React.useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -831,7 +839,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             if (e.key === "z" && e.ctrlKey) {
                 e.preventDefault();
                 editor.getOriginalEditor<SpreadSheetEditorType>(activeFilePath).undoAction(activeFilePath);
-                setForcedRerender(prev => prev + 1);
+                forceUpdate();
                 return;
             }
 
@@ -847,7 +855,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 for (let r = startRow; r <= endRow; r++) {
                     const columns: string[] = [];
                     for (let c = startColumn; c <= endColumn; c++) {
-                        columns.push(getValue(r, c));
+                        columns.push(getCellValue(r, c));
                     }
                     rows.push(columns.join("\t"));
                 }
@@ -920,7 +928,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                 return;
             }
 
-            if (editingCell === null) {
+            if (editingCell === null && selection) {
                 setEditingCell(selection.start);
                 changeCellValue(selection.start.row, selection.start.column, "");
             }
@@ -931,7 +939,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
         };
-    }, [selection, editingCell, changeCellValue, getValue, maxCellRange, calcNumColumns, calcNumRows]);
+    }, [selection, editingCell, changeCellValue, getCellValue, maxCellRange, calcNumColumns, calcNumRows]);
 
     const handleInsertColumn = (index: number) => {
         if (!currentSheet) {
@@ -941,7 +949,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         for (let r = 0; r <= maxCellRange.row; r++) {
             for (let c = maxCellRange.column + 1; c >= index; c--) {
                 if (c > index) {
-                    const prevValue = getValue(r, c - 1);
+                    const prevValue = getCellValue(r, c - 1);
                     changeCellValue(r, c, prevValue);
                 } else {
                     changeCellValue(r, c, "");
@@ -960,7 +968,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
 
         for (let r = 0; r <= maxCellRange.row; r++) {
             for (let c = index; c <= maxCellRange.column; c++) {
-                const nextValue = getValue(r, c + 1);
+                const nextValue = getCellValue(r, c + 1);
                 changeCellValue(r, c, nextValue);
             }
         }
@@ -977,7 +985,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         for (let r = maxCellRange.row; r >= index; r--) {
             for (let c = 0; c <= maxCellRange.column; c++) {
                 if (r > index) {
-                    const prevValue = getValue(r - 1, c);
+                    const prevValue = getCellValue(r - 1, c);
                     changeCellValue(r, c, prevValue);
                 } else {
                     changeCellValue(r, c, "");
@@ -996,7 +1004,7 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
 
         for (let r = index; r <= maxCellRange.row; r++) {
             for (let c = 0; c <= maxCellRange.column; c++) {
-                const nextValue = getValue(r + 1, c);
+                const nextValue = getCellValue(r + 1, c);
                 changeCellValue(r, c, nextValue);
             }
         }
@@ -1005,23 +1013,29 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         });
     };
 
-    const handleColumnResize = React.useCallback((index: number, size: number) => {
-        setColumnWidths(prev => {
-            const newColumnWidths = {...prev};
-            newColumnWidths[index] = size;
-            updateViewStateColumnWidths(newColumnWidths);
-            return newColumnWidths;
-        });
-    }, []);
+    const handleColumnResize = React.useCallback(
+        (index: number, size: number) => {
+            setColumnWidths(prev => {
+                const newColumnWidths = {...prev};
+                newColumnWidths[index] = size;
+                updateViewStateColumnWidths(newColumnWidths);
+                return newColumnWidths;
+            });
+        },
+        [updateViewStateColumnWidths]
+    );
 
-    const handleRowResize = React.useCallback((index: number, size: number) => {
-        setRowHeights(prev => {
-            const newRowHeights = {...prev};
-            newRowHeights[index] = size;
-            updateViewStateRowHeights(newRowHeights);
-            return newRowHeights;
-        });
-    }, []);
+    const handleRowResize = React.useCallback(
+        (index: number, size: number) => {
+            setRowHeights(prev => {
+                const newRowHeights = {...prev};
+                newRowHeights[index] = size;
+                updateViewStateRowHeights(newRowHeights);
+                return newRowHeights;
+            });
+        },
+        [updateViewStateRowHeights]
+    );
 
     const calcStartCell = (): {row: number; column: number} => {
         let startColumn = 0;
@@ -1179,7 +1193,6 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
 
     const handleEditingCellChange = (row: number, column: number) => {
         setEditingCell({row, column});
-        // updateViewState(row, column);
         setCopyingSelection(null);
     };
 
@@ -1273,130 +1286,137 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
                         ref={tableWrapperRef}
                         style={{width: editorSize.width - 34, height: editorSize.height - 64}}
                     >
-                        <div
-                            className="SpreadSheetEditor__ColumnWrapper"
-                            style={{width: totalSize.width, height: totalSize.height}}
-                        >
+                        {currentSheet && currentSheet.sheet && currentSheet.sheet["!type"] === "chart" ? (
+                            <div className="SpreadSheetEditor__Warning">Charts cannot be edited yet.</div>
+                        ) : (
                             <div
-                                className="SpreadSheetEditor__TableWrapper__Spacer"
-                                style={{minHeight: spacerSizes.top, maxHeight: spacerSizes.top}}
-                            />
-                            <div className="SpreadSheetEditor__Wrapper">
+                                className="SpreadSheetEditor__ColumnWrapper"
+                                style={{width: totalSize.width, height: totalSize.height}}
+                            >
                                 <div
                                     className="SpreadSheetEditor__TableWrapper__Spacer"
-                                    style={{minWidth: spacerSizes.left, maxWidth: spacerSizes.left}}
+                                    style={{minHeight: spacerSizes.top, maxHeight: spacerSizes.top}}
                                 />
-                                <table className="SpreadSheetTable" ref={tableRef}>
-                                    <tbody>
-                                        {verticalHeaders.map((_, row) => (
-                                            // eslint-disable-next-line react/no-array-index-key
-                                            <tr key={`row-${row}`}>
-                                                {horizontalHeaders.map((__, column) => {
-                                                    const absoluteRow = row + startCell.row;
-                                                    const absoluteColumn = column + startCell.column;
-                                                    return (
-                                                        <td
-                                                            key={makeCellKey(
-                                                                absoluteColumn,
-                                                                absoluteRow,
-                                                                getValue(absoluteRow, absoluteColumn)
-                                                            )}
-                                                            className={`SpreadSheetTable__cell${makeCellClassesBasedOnSelection(
-                                                                selection,
-                                                                absoluteRow,
-                                                                absoluteColumn
-                                                            )}${
-                                                                editingCell &&
-                                                                editingCell.row === absoluteRow &&
-                                                                editingCell.column === absoluteColumn
-                                                                    ? " focused-cell"
-                                                                    : ""
-                                                            }`}
-                                                            data-row-index={absoluteRow}
-                                                            data-column-index={absoluteColumn}
-                                                            onDoubleClick={() =>
-                                                                handleEditingCellChange(absoluteRow, absoluteColumn)
-                                                            }
-                                                            onClick={() => {
-                                                                if (
+                                <div className="SpreadSheetEditor__Wrapper">
+                                    <div
+                                        className="SpreadSheetEditor__TableWrapper__Spacer"
+                                        style={{minWidth: spacerSizes.left, maxWidth: spacerSizes.left}}
+                                    />
+                                    <table className="SpreadSheetTable" ref={tableRef}>
+                                        <tbody>
+                                            {verticalHeaders.map((_, row) => (
+                                                // eslint-disable-next-line react/no-array-index-key
+                                                <tr key={`row-${row}`}>
+                                                    {horizontalHeaders.map((__, column) => {
+                                                        const absoluteRow = row + startCell.row;
+                                                        const absoluteColumn = column + startCell.column;
+                                                        return (
+                                                            <td
+                                                                key={makeCellKey(
+                                                                    absoluteColumn,
+                                                                    absoluteRow,
+                                                                    getCellValue(absoluteRow, absoluteColumn)
+                                                                )}
+                                                                className={`SpreadSheetTable__cell${makeCellClassesBasedOnSelection(
+                                                                    selection,
+                                                                    absoluteRow,
+                                                                    absoluteColumn
+                                                                )}${
                                                                     editingCell &&
                                                                     editingCell.row === absoluteRow &&
                                                                     editingCell.column === absoluteColumn
-                                                                ) {
-                                                                    return;
+                                                                        ? " focused-cell"
+                                                                        : ""
+                                                                }`}
+                                                                data-row-index={absoluteRow}
+                                                                data-column-index={absoluteColumn}
+                                                                onDoubleClick={() =>
+                                                                    handleEditingCellChange(absoluteRow, absoluteColumn)
                                                                 }
-                                                                setEditingCell(null);
-                                                            }}
-                                                            style={{
-                                                                width: getColumnWidth(absoluteColumn),
-                                                                height: getRowHeight(absoluteRow),
-                                                            }}
-                                                        >
-                                                            {editingCell &&
-                                                            editingCell.row === absoluteRow &&
-                                                            editingCell.column === absoluteColumn ? (
-                                                                <input
-                                                                    type="text"
-                                                                    // eslint-disable-next-line jsx-a11y/no-autofocus
-                                                                    autoFocus
-                                                                    defaultValue={getValue(absoluteRow, absoluteColumn)}
-                                                                    onChange={e =>
-                                                                        handleCellChange(
-                                                                            absoluteRow,
-                                                                            absoluteColumn,
-                                                                            e.target.value
-                                                                        )
+                                                                onClick={() => {
+                                                                    if (
+                                                                        editingCell &&
+                                                                        editingCell.row === absoluteRow &&
+                                                                        editingCell.column === absoluteColumn
+                                                                    ) {
+                                                                        return;
                                                                     }
-                                                                    onKeyDown={e => {
-                                                                        if (e.key === "Enter") {
-                                                                            e.preventDefault();
-                                                                            e.stopPropagation();
-                                                                            setEditingCell(null);
+                                                                    setEditingCell(null);
+                                                                }}
+                                                                style={{
+                                                                    width: getColumnWidth(absoluteColumn),
+                                                                    height: getRowHeight(absoluteRow),
+                                                                }}
+                                                            >
+                                                                {editingCell &&
+                                                                editingCell.row === absoluteRow &&
+                                                                editingCell.column === absoluteColumn ? (
+                                                                    <input
+                                                                        type="text"
+                                                                        // eslint-disable-next-line jsx-a11y/no-autofocus
+                                                                        autoFocus
+                                                                        defaultValue={getCellValue(
+                                                                            absoluteRow,
+                                                                            absoluteColumn
+                                                                        )}
+                                                                        onChange={e =>
+                                                                            handleCellChange(
+                                                                                absoluteRow,
+                                                                                absoluteColumn,
+                                                                                e.target.value
+                                                                            )
                                                                         }
-                                                                    }}
+                                                                        onKeyDown={e => {
+                                                                            if (e.key === "Enter") {
+                                                                                e.preventDefault();
+                                                                                e.stopPropagation();
+                                                                                setEditingCell(null);
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                ) : (
+                                                                    <div className="content">
+                                                                        {getCellValue(absoluteRow, absoluteColumn)}
+                                                                    </div>
+                                                                )}
+                                                                <div
+                                                                    className={makeSelectionFrameClassNames(
+                                                                        absoluteRow,
+                                                                        absoluteColumn,
+                                                                        selection
+                                                                    )}
                                                                 />
-                                                            ) : (
-                                                                <div className="content">
-                                                                    {getValue(absoluteRow, absoluteColumn)}
-                                                                </div>
-                                                            )}
-                                                            <div
-                                                                className={makeSelectionFrameClassNames(
-                                                                    absoluteRow,
-                                                                    absoluteColumn,
-                                                                    selection
-                                                                )}
-                                                            />
-                                                            <div
-                                                                className={makeCopyingFrameClassNames(
-                                                                    absoluteRow,
-                                                                    absoluteColumn,
-                                                                    copyingSelection
-                                                                )}
-                                                            />
-                                                        </td>
-                                                    );
-                                                })}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                                <div
+                                                                    className={makeCopyingFrameClassNames(
+                                                                        absoluteRow,
+                                                                        absoluteColumn,
+                                                                        copyingSelection
+                                                                    )}
+                                                                />
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                    <div
+                                        className="SpreadSheetEditor__TableWrapper__Spacer"
+                                        style={{
+                                            minWidth: spacerSizes.right,
+                                            maxWidth: spacerSizes.right,
+                                        }}
+                                    />
+                                </div>
                                 <div
                                     className="SpreadSheetEditor__TableWrapper__Spacer"
                                     style={{
-                                        minWidth: spacerSizes.right,
-                                        maxWidth: spacerSizes.right,
+                                        minHeight: spacerSizes.bottom,
+                                        maxHeight: spacerSizes.bottom,
                                     }}
                                 />
                             </div>
-                            <div
-                                className="SpreadSheetEditor__TableWrapper__Spacer"
-                                style={{
-                                    minHeight: spacerSizes.bottom,
-                                    maxHeight: spacerSizes.bottom,
-                                }}
-                            />
-                        </div>
+                        )}
                     </div>
                     <div
                         className="SpreadSheetEditor__ContentDummy"
@@ -1406,15 +1426,20 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
             </div>
             <div className="SpreadSheetEditor__Tabs">
                 {currentWorkbook &&
-                    currentWorkbook.SheetNames.map((sheetName, index) => (
+                    currentSheet &&
+                    currentWorkbook.SheetNames.map(sheetName => (
                         <div
                             key={sheetName}
                             className={`SpreadSheetEditor__Tab${
-                                index === currentSheetIndex ? " SpreadSheetEditor__Tab__active" : ""
+                                sheetName === currentSheet.name ? " SpreadSheetEditor__Tab__active" : ""
                             }`}
                             onClick={() => {
-                                setCurrentSheetIndex(index);
+                                setCurrentSheet({
+                                    name: sheetName,
+                                    sheet: currentWorkbook.Sheets[sheetName],
+                                });
                                 setEditingCell(null);
+                                updateViewStateSheetName(sheetName);
                             }}
                         >
                             <span>{sheetName}</span>
@@ -1424,3 +1449,44 @@ export const SpreadSheetEditor: React.VFC<SpreadSheetEditorProps> = props => {
         </div>
     );
 };
+
+interface Props {
+    children?: React.ReactNode;
+}
+
+interface State {
+    hasError: boolean;
+}
+
+class ErrorBoundary extends React.Component<Props, State> {
+    // eslint-disable-next-line react/state-in-constructor
+    state: State = {hasError: false};
+
+    public static getDerivedStateFromError(_: Error): State {
+        // Update state so the next render will show the fallback UI.
+        return {hasError: true};
+    }
+
+    public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+        console.error("Uncaught error:", error, errorInfo);
+    }
+
+    public render() {
+        if (this.state.hasError) {
+            return (
+                <div className="SpreadSheetEditor__Error">
+                    Something went wrong in the spreadsheet editor. By reporting this issue you can help us improve the
+                    editor and prevent such errors from happening in the future.
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
+export const SpreadSheetEditor: React.FC<SpreadSheetEditorProps> = props => (
+    <ErrorBoundary>
+        <SpreadSheetEditorComponent {...props} />
+    </ErrorBoundary>
+);

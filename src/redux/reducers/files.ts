@@ -70,8 +70,8 @@ export const filesSlice = createSlice({
                 filePath: string;
             }>
         ) => {
-            state.activeFilePath = action.payload.filePath;
             editor.openFile(action.payload.filePath);
+            state.activeFilePath = action.payload.filePath;
             electronStore.set("files.activeFilePath", action.payload.filePath);
         },
         setUnsavedChanges: (state: Draft<FilesState>) => {
@@ -129,6 +129,7 @@ export const filesSlice = createSlice({
         addFile: (state: Draft<FilesState>, action: PayloadAction<{filePath: string; permanentOpen: boolean}>) => {
             // Do not open file when already opened, but make it active
             const openedFile = state.files.find(el => el.filePath === action.payload.filePath);
+            editor.openFile(action.payload.filePath);
             state.activeFilePath = action.payload.filePath;
             electronStore.set("files.activeFilePath", action.payload.filePath);
 
