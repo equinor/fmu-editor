@@ -1,4 +1,3 @@
-import {useIsSignedIn} from "@hooks/useIsMicrosoftUserSignedIn";
 import {getUserWithPhoto} from "@microsoft/mgt-components/src/graph/graph.userWithPhoto";
 import {IDynamicPerson, ProviderState, Providers} from "@microsoft/mgt-react";
 import {Logout, Person} from "@mui/icons-material";
@@ -16,19 +15,23 @@ export const Login: React.VFC = () => {
     const open = Boolean(anchorEl);
 
     const [userDetails, setUserDetails] = React.useState<IDynamicPerson | null>(null);
-    const signedIn = useIsSignedIn();
+    const signedIn = false;
 
     const handleSigninClick = async () => {
-        const provider = Providers.globalProvider;
-        if (provider && provider.login) {
-            await provider.login();
+        notificationsService.publishNotification({
+            type: NotificationType.INFORMATION,
+            message: `Logging in is currently not supported.`,
+        });
+        // const provider = Providers.globalProvider;
+        // if (provider && provider.login) {
+        //     await provider.login();
 
-            if (provider.state === ProviderState.SignedIn) {
-                fetchUserDetails();
-            } else {
-                handleLoginFailed();
-            }
-        }
+        //     if (provider.state === ProviderState.SignedIn) {
+        //         fetchUserDetails();
+        //     } else {
+        //         handleLoginFailed();
+        //     }
+        // }
     };
 
     const fetchUserDetails = React.useCallback(() => {
@@ -58,12 +61,12 @@ export const Login: React.VFC = () => {
         }
     };
 
-    const handleLoginFailed = () => {
-        notificationsService.publishNotification({
-            type: NotificationType.ERROR,
-            message: `Login failed.`,
-        });
-    };
+    // const handleLoginFailed = () => {
+    //     notificationsService.publishNotification({
+    //         type: NotificationType.ERROR,
+    //         message: `Login failed.`,
+    //     });
+    // };
 
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);

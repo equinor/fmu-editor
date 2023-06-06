@@ -1,4 +1,3 @@
-import {useIsSignedIn} from "@hooks/useIsMicrosoftUserSignedIn";
 import {findPeople} from "@microsoft/mgt-components/dist/es6/graph/graph.people";
 import {getPersonImage} from "@microsoft/mgt-components/src/graph/graph.photos";
 import {findUsers} from "@microsoft/mgt-components/src/graph/graph.user";
@@ -23,7 +22,7 @@ export const Avatar: React.FC<AvatarProps> = props => {
 
     const [personDetails, setPersonDetails] = React.useState<IDynamicPerson>({});
     const [personImage, setPersonImage] = React.useState<string | null>(null);
-    const signedIn = useIsSignedIn();
+    const signedIn = false;
 
     React.useEffect(() => {
         setPersonDetails({
