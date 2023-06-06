@@ -108,3 +108,7 @@ test
 
 # Build folder
 build
+
+# tmp files
+*~
+*.swp
