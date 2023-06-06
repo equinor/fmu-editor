@@ -39,7 +39,7 @@
         "css-loader": "^6.5.1",
         "css-minimizer-webpack-plugin": "^3.2.0",
         "electron": "16.2.6",
-        "electron-builder": "22.11.11",
+        "electron-builder": "23.6.0",
         "electron-notarize": "1.1.1",
         "electron-reload": "2.0.0-alpha.1",
         "eslint": "^8.3.0",
@@ -136,7 +136,8 @@
         "start": "NODE_ENV=development BABEL_ENV=development webpack serve --config webpack.config.renderer.js --no-open --port 3000 --static ./dist --no-client-overlay --hot",
         "build:main": "tsc -p electron",
         "build:renderer": "NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=production BABEL_ENV=production webpack build --config webpack.config.renderer.js",
-        "postinstall": "electron-builder install-app-deps && git submodule update --init --recursive --jobs 8",
+        "preinstall": "git submodule update --init --recursive --jobs 8 && (cd src/languages/monaco-ert && npm install && npm run prepack && cd -)",
+        "postinstall": "electron-builder install-app-deps",
         "electron:dev": "concurrently \"cross-env BROWSER=none npm run start\" \"wait-on http://localhost:3000 && npm run build:main && cross-env NODE_ENV=development electron .\"",
         "electron:dev:msal": "concurrently \"cross-env BROWSER=none npm run start\" \"wait-on http://localhost:3000 && npm run build:main && cross-env NODE_ENV=development electron --msal-persistence .\"",
         "electron:dev:no-msal": "concurrently \"cross-env BROWSER=none npm run start\" \"wait-on http://localhost:3000 && npm run build:main && cross-env NODE_ENV=development electron --deactivate-msal .\"",
@@ -144,9 +145,9 @@
         "electron:build": "npm run build:renderer && electron-builder --publish \"never\"",
         "format:all": "prettier --write \"{src,test}/**/*.{js,jsx,ts,tsx,css,json,scss}\"",
         "lint": "npm run lint:config && npm run lint:src",
-        "lint:config": "eslint .",
-        "lint:src": "eslint \"{src,test}/**/*.{js,jsx,ts,tsx}\"",
-        "lintfix": "eslint --fix \"{src,test}/**/*.{js,jsx,ts,tsx}\"",
+        "lint:config": "eslint . --resolve-plugins-relative-to .",
+        "lint:src": "eslint \"{src,test}/**/*.{js,jsx,ts,tsx}\" --resolve-plugins-relative-to .",
+        "lintfix": "eslint --fix \"{src,test}/**/*.{js,jsx,ts,tsx}\" --resolve-plugins-relative-to .",
         "prepush": "npm run lint:config && npm run lint:src && npm run prettier-check && npm run stylelint && npm run typecheck",
         "prettier-check": "prettier --check src",
         "stylelint": "stylelint 'src/**/*.css'",
@@ -178,7 +179,8 @@
             "description": "An editor and source control manager for the FMU directory in Equinor."
         },
         "appImage": {
-            "artifactName": "${productName}-${os}-${version}-${arch}.${ext}"
+            "artifactName": "${productName}-${os}-${version}-${arch}.${ext}",
+            "executableArgs": ["--deactivate-msal"]
         },
         "asar": true,
         "extends": null,
@@ -226,7 +228,8 @@
         ],
         "directories": {
             "buildResources": "assets"
-        }
+        },
+        "afterPack": "./electron/set-no-sandbox.js"
     },
     "lint-staged": {
         "{src,test}/**/*.{js,jsx,ts,tsx}": [
