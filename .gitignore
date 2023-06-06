@@ -103,9 +103,6 @@ dist
 # TernJS port file
 .tern-port
 
-# Test folder
-test
-
 # Build folder
 build
 
