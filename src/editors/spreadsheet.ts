@@ -32,18 +32,23 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
         this.workBooks = {};
     }
 
-    public getHashCode(absoluteFilePath: string): string {
+    public getHashCode(absoluteFilePath: string): string | false {
         let workBook = this.workBooks[absoluteFilePath];
         let value = "";
         if (!workBook) {
             const file = new File(absoluteFilePath, "");
             if (file.exists()) {
-                const buffer = file.readBuffer();
-                workBook = {
-                    workBook: read(buffer),
-                    buffer,
-                    undoStack: [],
-                };
+                try {
+                    const buffer = file.readBuffer();
+                    workBook = {
+                        workBook: read(buffer),
+                        buffer,
+                        undoStack: [],
+                    };
+                } catch (e) {
+                    console.error(e);
+                    return false;
+                }
             }
         }
 
@@ -90,7 +95,7 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
             return false;
         }
 
-        const buffer = write(workBook.workBook, {bookType, bookSST: true, type: "binary"});
+        const buffer = write(workBook.workBook, {bookType, bookSST: true, type: "buffer"});
 
         workBook.undoStack = [];
 

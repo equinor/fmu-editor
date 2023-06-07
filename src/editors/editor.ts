@@ -19,7 +19,7 @@ class Editor extends EditorBasic implements IEditor<WorkBook | monaco.editor.ITe
         this.spreadSheetEditor = new SpreadSheetEditor();
     }
 
-    public getHashCode(absoluteFilePath: string): string {
+    public getHashCode(absoluteFilePath: string): string | false {
         switch (GlobalSettings.editorTypeForFileExtension(path.extname(absoluteFilePath))) {
             case EditorType.Monaco:
                 return this.monacoEditor.getHashCode(absoluteFilePath);

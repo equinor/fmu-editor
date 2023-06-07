@@ -12,19 +12,24 @@ import {IEditor, IEditorBasic} from "./editor-basic";
 
 export class MonacoEditor implements Omit<IEditor<monaco.editor.ITextModel>, keyof IEditorBasic> {
     // eslint-disable-next-line class-methods-use-this
-    public getHashCode(absoluteFilePath: string): string {
+    public getHashCode(absoluteFilePath: string): string | false {
         let value = "";
-        const uri = monaco.Uri.file(absoluteFilePath);
-        const model = monaco.editor.getModel(uri);
-        if (model) {
-            value = model.getValue();
-        } else {
-            const file = new File(absoluteFilePath, "");
-            if (file.exists()) {
-                value = file.readString();
+        try {
+            const uri = monaco.Uri.file(absoluteFilePath);
+            const model = monaco.editor.getModel(uri);
+            if (model) {
+                value = model.getValue();
+            } else {
+                const file = new File(absoluteFilePath, "");
+                if (file.exists()) {
+                    value = file.readString();
+                }
             }
+            return generateHashCode(value);
+        } catch (e) {
+            console.error(e);
+            return false;
         }
-        return generateHashCode(value);
     }
 
     // eslint-disable-next-line class-methods-use-this

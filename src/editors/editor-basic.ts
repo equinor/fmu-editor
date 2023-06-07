@@ -14,7 +14,7 @@ export interface IEditor<T> {
     setViewState(absoluteFilePath: string, viewState: CodeEditorViewState): void;
     clear(): void;
     clearForFile(absoluteFilePath: string): void;
-    getHashCode(absoluteFilePath: string): string;
+    getHashCode(absoluteFilePath: string): string | false;
     openFile(absoluteFilePath: string): void;
     getModel<K extends T>(absoluteFilePath: string): K | null;
     closeFile(absoluteFilePath: string): void;
