@@ -149,6 +149,7 @@
         "prepush": "npm run lint:config && npm run lint:src && npm run prettier-check && npm run stylelint && npm run typecheck",
         "prettier-check": "prettier --check src",
         "stylelint": "stylelint 'src/**/*.css'",
+        "stylelintfix": "stylelint --fix 'src/**/*.css'",
         "typecheck": "tsc --noEmit",
         "release:major": "standard-version --release-as major",
         "release:minor": "standard-version --release-as minor",
@@ -178,7 +179,9 @@
         },
         "appImage": {
             "artifactName": "${productName}-${os}-${version}-${arch}.${ext}",
-            "executableArgs": ["--deactivate-msal"]
+            "executableArgs": [
+                "--deactivate-msal"
+            ]
         },
         "asar": true,
         "extends": null,

@@ -98,11 +98,11 @@ function makeHeaderCellClassName(selection: SpreadSheetSelection | null, column:
     const classList: string[] = [];
 
     if (column === -1) {
-        classList.push("row-header-cell");
+        classList.push("RowHeaderCell");
     }
 
     if (row === -1) {
-        classList.push("column-header-cell");
+        classList.push("ColumnHeaderCell");
     }
 
     if (selection) {
@@ -111,7 +111,7 @@ function makeHeaderCellClassName(selection: SpreadSheetSelection | null, column:
         const startColumn = Math.min(selection.start.column, selection.end.column);
         const endColumn = Math.max(selection.start.column, selection.end.column);
         if ((row >= startRow && row <= endRow) || (column >= startColumn && column <= endColumn)) {
-            classList.push("selected-header");
+            classList.push("SelectedHeader");
         }
     }
 
@@ -125,9 +125,9 @@ function makeCellClassesBasedOnSelection(selection: SpreadSheetSelection | null,
 
     if (isCellContainedInSelection(selection, column, row)) {
         if (selection.start.row === row && selection.start.column === column) {
-            return " first-selected-cell";
+            return " FirstSelectedCell";
         }
-        return " selected-cell";
+        return " SelectedCell";
     }
     return "";
 }
@@ -145,26 +145,26 @@ function makeSelectionFrameClassNames(
         return "";
     }
 
-    const classList: string[] = ["selection-frame"];
+    const classList: string[] = ["SelectionFrame"];
     const startRow = Math.min(selection.start.row, selection.end.row);
     const endRow = Math.max(selection.start.row, selection.end.row);
     const startColumn = Math.min(selection.start.column, selection.end.column);
     const endColumn = Math.max(selection.start.column, selection.end.column);
 
     if (startRow === absoluteRow) {
-        classList.push("selection-frame-top");
+        classList.push("SelectionFrameTop");
     }
 
     if (endRow === absoluteRow) {
-        classList.push("selection-frame-bottom");
+        classList.push("SelectionFrameBottom");
     }
 
     if (startColumn === absoluteColumn) {
-        classList.push("selection-frame-left");
+        classList.push("SelectionFrameLeft");
     }
 
     if (endColumn === absoluteColumn) {
-        classList.push("selection-frame-right");
+        classList.push("SelectionFrameRight");
     }
 
     return classList.join(" ");
@@ -183,29 +183,29 @@ function makeCopyingFrameClassNames(
         return "";
     }
 
-    const classList: string[] = ["copying-frame"];
+    const classList: string[] = ["CopyingFrame"];
     const startRow = Math.min(selection.start.row, selection.end.row);
     const endRow = Math.max(selection.start.row, selection.end.row);
     const startColumn = Math.min(selection.start.column, selection.end.column);
     const endColumn = Math.max(selection.start.column, selection.end.column);
 
     if (startRow === absoluteRow) {
-        classList.push("top");
+        classList.push("Top");
     }
 
     if (endRow === absoluteRow) {
-        classList.push("bottom");
+        classList.push("Bottom");
     }
 
     if (startColumn === absoluteColumn) {
-        classList.push("left");
+        classList.push("Left");
     }
 
     if (endColumn === absoluteColumn) {
-        classList.push("right");
+        classList.push("Right");
     }
 
-    return `copying-frame ${classList.join("-")}`;
+    return `CopyingFrame ${classList.join("")}`;
 }
 
 const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
@@ -238,7 +238,7 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
     const activeFilePath = useAppSelector(state => state.files.activeFilePath);
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
 
-    /* ---------------------------------------------------------------------------------- */
+    /* ----------------- Row/column sizes ----------------- */
 
     const getRowHeight = React.useCallback(
         (index: number, withPadding: boolean = false): number => {
@@ -262,7 +262,7 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
         [columnWidths]
     );
 
-    /* ---------------------------------------------------------------------------------- */
+    /* ----------------- Calculation functions ----------------- */
 
     const calcNumColumns = React.useCallback((): number => {
         let width = tableWrapperSize.width;
@@ -285,8 +285,6 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
         }
         return count - 1;
     }, [tableWrapperSize.height, scrollCellLocation.row, getRowHeight]);
-
-    /* ----------------- Calculation functions ----------------- */
 
     const calcStartCell = (): {row: number; column: number} => {
         let startColumn = 0;
@@ -772,14 +770,14 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
 
             let cell = e.target;
 
-            if (cell.classList.contains("row-header-cell")) {
+            if (cell.classList.contains("RowHeaderCell")) {
                 const rowIndex = parseInt(cell.dataset.rowIndex ?? "0", 10);
                 setSelection({start: {row: rowIndex, column: 0}, end: {row: rowIndex, column: Infinity}});
                 setEditingCell({row: rowIndex, column: 0});
                 return;
             }
 
-            if (cell.classList.contains("column-header-cell")) {
+            if (cell.classList.contains("ColumnHeaderCell")) {
                 const colIndex = parseInt(cell.dataset.columnIndex ?? "0", 10);
                 setSelection({start: {row: 0, column: colIndex}, end: {row: Infinity, column: colIndex}});
                 setEditingCell({row: 0, column: colIndex});
@@ -1356,7 +1354,7 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                                                                     editingCell &&
                                                                     editingCell.row === absoluteRow &&
                                                                     editingCell.column === absoluteColumn
-                                                                        ? " focused-cell"
+                                                                        ? " FocusedCell"
                                                                         : ""
                                                                 }`}
                                                                 data-row-index={absoluteRow}
@@ -1406,7 +1404,7 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                                                                         }}
                                                                     />
                                                                 ) : (
-                                                                    <div className="content">
+                                                                    <div className="Content">
                                                                         {getCellValue(absoluteRow, absoluteColumn)}
                                                                     </div>
                                                                 )}
@@ -1462,7 +1460,7 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                         <div
                             key={sheetName}
                             className={`SpreadSheetEditor__Tab${
-                                sheetName === currentSheet.name ? " SpreadSheetEditor__Tab__active" : ""
+                                sheetName === currentSheet.name ? " SpreadSheetEditor__TabActive" : ""
                             }`}
                             onClick={() => {
                                 setCurrentSheet({

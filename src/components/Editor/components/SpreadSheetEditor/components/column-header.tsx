@@ -99,7 +99,7 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = props => {
         >
             <ContextMenu parent={ref.current} template={contextMenuTemplate} />
             {props.children}
-            <div className="SpreadSheetEditor__column-resize-handle" ref={resizeHandleRef} />
+            <div className="SpreadSheetEditor__ColumnResizeHandle" ref={resizeHandleRef} />
         </th>
     );
 };

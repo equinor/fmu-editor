@@ -18,6 +18,7 @@ import {CodeEditorViewState} from "@shared-types/files";
 // @ts-ignore
 import {languages} from "monaco-editor";
 import {setDiagnosticsOptions as setErtOptions} from "monaco-ert";
+import path from "path";
 
 declare global {
     interface Window {

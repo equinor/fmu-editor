@@ -102,7 +102,7 @@ export const RowHeader: React.FC<RowHeaderProps> = props => {
         >
             <ContextMenu parent={ref.current} template={contextMenuTemplate} />
             {props.children}
-            <div className="SpreadSheetEditor__row-resize-handle" ref={resizeHandleRef} />
+            <div className="SpreadSheetEditor__RowResizeHandle" ref={resizeHandleRef} />
         </td>
     );
 };
