@@ -76,6 +76,7 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
     }
 
     public getModel<T>(absoluteFilePath: string): T | null {
+        // @ts-ignore
         return (this.workBooks[absoluteFilePath]?.workBook as T) ?? null;
     }
 

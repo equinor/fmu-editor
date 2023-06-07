@@ -62,10 +62,11 @@ const initialFilesState: FilesState = {
                 path.relative(workingDirectoryPath, file.filePath),
                 workingDirectoryPath
             ).getUserVersion(environmentService.getUsername());
+            const hash = editor.getHashCode(file.filePath);
             return {
                 filePath: file.filePath,
                 associatedWithFile: userFile.exists(),
-                hash: editor.getHashCode(file.filePath),
+                hash: hash || "",
                 title: "",
                 permanentOpen: file.permanentOpen,
             };

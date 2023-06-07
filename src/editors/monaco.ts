@@ -48,6 +48,7 @@ export class MonacoEditor implements Omit<IEditor<monaco.editor.ITextModel>, key
     // eslint-disable-next-line class-methods-use-this
     public getModel<T>(absoluteFilePath: string): T | null {
         const uri = monaco.Uri.file(absoluteFilePath);
+        // @ts-ignore
         return (monaco.editor.getModel(uri) as T) || null;
     }
 

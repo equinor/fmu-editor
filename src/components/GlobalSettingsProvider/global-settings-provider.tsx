@@ -1,8 +1,8 @@
+import {GlobalSettings} from "@global/global-settings";
+
 import React from "react";
 
 import {createGenericContext} from "@utils/generic-context";
-
-import {GlobalSettings} from "@shared-types/global-settings";
 
 const [useDataProvider, DataProvider] = createGenericContext<GlobalSettings>();
 

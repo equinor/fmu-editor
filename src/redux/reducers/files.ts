@@ -146,9 +146,11 @@ export const filesSlice = createSlice({
 
             disposeUnusedDefaultModel(state.files);
 
+            const hash = editor.getHashCode(action.payload.filePath);
+
             state.files.push({
                 associatedWithFile: true,
-                hash: editor.getHashCode(action.payload.filePath),
+                hash: hash || "",
                 filePath: action.payload.filePath,
                 title: "",
                 permanentOpen: action.payload.permanentOpen,
@@ -214,7 +216,7 @@ export const filesSlice = createSlice({
                 f.filePath === action.payload
                     ? {
                           ...f,
-                          hash: hashCode,
+                          hash: hashCode || "",
                           associatedWithFile: true,
                           permanentOpen: true,
                       }

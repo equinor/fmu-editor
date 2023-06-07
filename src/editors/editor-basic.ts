@@ -51,6 +51,7 @@ export class EditorBasic implements IEditorBasic {
     }
 
     public getViewState<K = CodeEditorViewState | SpreadSheetEditorViewState>(filePath: string): K | null {
+        // @ts-ignore
         return (this.viewStates[filePath] as K) || null;
     }
 
