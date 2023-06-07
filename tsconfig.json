@@ -23,5 +23,6 @@
         "noImplicitThis": false
     },
     "include": ["src", "test"],
-    "extends": "./paths.json"
+    "extends": "./paths.json",
+    "exclude": ["src/languages/monaco-ert"]
 }
