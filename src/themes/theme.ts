@@ -1,6 +1,6 @@
 import {createTheme} from "@mui/material";
 
-import {uncapitalize, trimPx} from "@utils/string";
+import {trimPx, uncapitalize} from "@utils/string";
 
 import palette from "./theme.module.scss";
 

@@ -5,7 +5,8 @@
     padding-bottom: var(--spacing-m);
 }
 
-.CommitSnapshotBundle:hover, .CommitSnapshotBundle--selected {
+.CommitSnapshotBundle:hover,
+.CommitSnapshotBundle--selected {
     border-left: 2px solid var(--primary);
 }
 
@@ -49,10 +50,12 @@
     cursor: pointer;
 }
 
-.CommitItem--selected, .CommitItem--selected:hover, .CommitItem__Time--selected {
-     background-color: var(--primary);
-     color: var(--text-on-primary);
-     border-left: 2px solid var(--primary);
+.CommitItem--selected,
+.CommitItem--selected:hover,
+.CommitItem__Time--selected {
+    background-color: var(--primary);
+    color: var(--text-on-primary);
+    border-left: 2px solid var(--primary);
 }
 
 .CommitItem__Text {

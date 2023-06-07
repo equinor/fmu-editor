@@ -43,11 +43,11 @@
     background-color: var(--primary-hover);
 }
 
-.Toolbar button.error {
+.Toolbar button.Error {
     background-color: var(--warning);
     color: var(--text-on-light);
 }
 
-.Toolbar button.error:hover {
+.Toolbar button.Error:hover {
     background-color: var(--warning-hover);
 }

@@ -4,7 +4,6 @@ import {EditorType, GlobalSettings} from "@global/global-settings";
 import {useElementSize} from "@hooks/useElementSize";
 import {useYamlSchemas} from "@hooks/useYamlSchema";
 import {setDistOptions} from "@languages/dist";
-import {setDiagnosticsOptions as setErtOptions} from "@languages/monaco-ert/src";
 import {useTheme} from "@mui/material";
 
 import React from "react";
@@ -18,7 +17,7 @@ import {CodeEditorViewState} from "@shared-types/files";
 
 // @ts-ignore
 import {languages} from "monaco-editor";
-import path from "path";
+import {setDiagnosticsOptions as setErtOptions} from "monaco-ert";
 
 declare global {
     interface Window {

@@ -1,1 +1,1 @@
-export { ChangesBrowser } from "./changes-browser";
+export {ChangesBrowser} from "./changes-browser";

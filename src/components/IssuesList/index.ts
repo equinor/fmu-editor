@@ -1,1 +1,1 @@
-export { IssuesList} from "./issues-list";
+export {IssuesList} from "./issues-list";

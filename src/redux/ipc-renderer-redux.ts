@@ -3,6 +3,7 @@ import {ipcRenderer} from "electron";
 import {debounce} from "lodash";
 import log from "loglevel";
 import {AnyAction} from "redux";
+
 import store from "./store";
 
 const storeSubscribers: number[] = [];

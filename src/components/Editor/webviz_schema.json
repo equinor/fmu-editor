@@ -71,10 +71,7 @@
                                 }
                             }
                         },
-                        "required": [
-                            "section",
-                            "content"
-                        ],
+                        "required": ["section", "content"],
                         "additionalProperties": false
                     },
                     {
@@ -104,10 +101,7 @@
                                 }
                             }
                         },
-                        "required": [
-                            "group",
-                            "content"
-                        ],
+                        "required": ["group", "content"],
                         "additionalProperties": false
                     },
                     {
@@ -162,24 +156,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "image"
-                                                    ],
+                                                    "required": ["image"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "BannerImage"
-                                            ],
+                                            "required": ["BannerImage"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -213,24 +200,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "csv_file"
-                                                    ],
+                                                    "required": ["csv_file"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "DataTable"
-                                            ],
+                                            "required": ["DataTable"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -261,24 +241,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "pdf_file"
-                                                    ],
+                                                    "required": ["pdf_file"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "EmbedPdf"
-                                            ],
+                                            "required": ["EmbedPdf"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -303,24 +276,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "markdown_file"
-                                                    ],
+                                                    "required": ["markdown_file"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "Markdown"
-                                            ],
+                                            "required": ["Markdown"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -348,24 +314,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "csv_file"
-                                                    ],
+                                                    "required": ["csv_file"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "PivotTable"
-                                            ],
+                                            "required": ["PivotTable"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -393,24 +352,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "filename"
-                                                    ],
+                                                    "required": ["filename"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "SyntaxHighlighter"
-                                            ],
+                                            "required": ["SyntaxHighlighter"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -451,24 +403,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "csv_file"
-                                                    ],
+                                                    "required": ["csv_file"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "TablePlotter"
-                                            ],
+                                            "required": ["TablePlotter"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -496,24 +441,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "input_dir"
-                                                    ],
+                                                    "required": ["input_dir"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "AssistedHistoryMatchingAnalysis"
-                                            ],
+                                            "required": ["AssistedHistoryMatchingAnalysis"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -540,24 +478,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "ensembles"
-                                                    ],
+                                                    "required": ["ensembles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "BhpQc"
-                                            ],
+                                            "required": ["BhpQc"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -583,24 +514,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "scratch_dir"
-                                                    ],
+                                                    "required": ["scratch_dir"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "DiskUsage"
-                                            ],
+                                            "required": ["DiskUsage"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -632,24 +556,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "ensembles"
-                                                    ],
+                                                    "required": ["ensembles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "GroupTree"
-                                            ],
+                                            "required": ["GroupTree"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -675,25 +592,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "ensembles",
-                                                        "observation_file"
-                                                    ],
+                                                    "required": ["ensembles", "observation_file"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "HistoryMatch"
-                                            ],
+                                            "required": ["HistoryMatch"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -721,24 +630,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "basedir"
-                                                    ],
+                                                    "required": ["basedir"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "HorizonUncertaintyViewer"
-                                            ],
+                                            "required": ["HorizonUncertaintyViewer"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -776,10 +678,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -789,9 +688,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "InplaceVolumes"
-                                            ],
+                                            "required": ["InplaceVolumes"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -832,10 +729,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -845,9 +739,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "InplaceVolumesOneByOne"
-                                            ],
+                                            "required": ["InplaceVolumesOneByOne"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -893,10 +785,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -906,9 +795,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "LinePlotterFMU"
-                                            ],
+                                            "required": ["LinePlotterFMU"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -933,24 +820,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "csv_file"
-                                                    ],
+                                                    "required": ["csv_file"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "MorrisPlot"
-                                            ],
+                                            "required": ["MorrisPlot"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -986,10 +866,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -999,9 +876,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "ParameterAnalysis"
-                                            ],
+                                            "required": ["ParameterAnalysis"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1030,24 +905,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "ensembles"
-                                                    ],
+                                                    "required": ["ensembles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "ParameterCorrelation"
-                                            ],
+                                            "required": ["ParameterCorrelation"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1076,10 +944,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -1089,9 +954,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "ParameterDistribution"
-                                            ],
+                                            "required": ["ParameterDistribution"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1152,10 +1015,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -1165,9 +1025,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "ParameterParallelCoordinates"
-                                            ],
+                                            "required": ["ParameterParallelCoordinates"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1226,10 +1084,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -1239,9 +1094,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "ParameterResponseCorrelation"
-                                            ],
+                                            "required": ["ParameterResponseCorrelation"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1278,10 +1131,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -1291,9 +1141,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "PropertyStatistics"
-                                            ],
+                                            "required": ["PropertyStatistics"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1325,24 +1173,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "ensembles"
-                                                    ],
+                                                    "required": ["ensembles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "PvtPlot"
-                                            ],
+                                            "required": ["PvtPlot"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1375,24 +1216,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "ensembles"
-                                                    ],
+                                                    "required": ["ensembles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "RelativePermeability"
-                                            ],
+                                            "required": ["RelativePermeability"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1440,10 +1274,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -1453,9 +1284,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "ReservoirSimulationTimeSeries"
-                                            ],
+                                            "required": ["ReservoirSimulationTimeSeries"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1500,10 +1329,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -1513,9 +1339,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "ReservoirSimulationTimeSeriesOneByOne"
-                                            ],
+                                            "required": ["ReservoirSimulationTimeSeriesOneByOne"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1554,24 +1378,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "ensembles"
-                                                    ],
+                                                    "required": ["ensembles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "ReservoirSimulationTimeSeriesRegional"
-                                            ],
+                                            "required": ["ReservoirSimulationTimeSeriesRegional"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1609,10 +1426,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -1622,9 +1436,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "RftPlotter"
-                                            ],
+                                            "required": ["RftPlotter"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1655,24 +1467,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "ensembles"
-                                                    ],
+                                                    "required": ["ensembles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "RunningTimeAnalysisFMU"
-                                            ],
+                                            "required": ["RunningTimeAnalysisFMU"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1702,24 +1507,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "segyfiles"
-                                                    ],
+                                                    "required": ["segyfiles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "SegyViewer"
-                                            ],
+                                            "required": ["SegyViewer"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1771,25 +1569,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "ensembles",
-                                                        "surface_attributes"
-                                                    ],
+                                                    "required": ["ensembles", "surface_attributes"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "StructuralUncertainty"
-                                            ],
+                                            "required": ["StructuralUncertainty"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1826,10 +1616,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -1839,9 +1626,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "SubsurfaceMap"
-                                            ],
+                                            "required": ["SubsurfaceMap"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1883,24 +1668,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "ensembles"
-                                                    ],
+                                                    "required": ["ensembles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "SurfaceViewerFMU"
-                                            ],
+                                            "required": ["SurfaceViewerFMU"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1940,26 +1718,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "gridfile",
-                                                        "gridparameterfiles",
-                                                        "surfacefiles"
-                                                    ],
+                                                    "required": ["gridfile", "gridparameterfiles", "surfacefiles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "SurfaceWithGridCrossSection"
-                                            ],
+                                            "required": ["SurfaceWithGridCrossSection"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -1996,25 +1765,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "segyfiles",
-                                                        "surfacefiles"
-                                                    ],
+                                                    "required": ["segyfiles", "surfacefiles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "SurfaceWithSeismicCrossSection"
-                                            ],
+                                            "required": ["SurfaceWithSeismicCrossSection"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -2053,10 +1814,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -2066,9 +1824,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "TornadoPlotterFMU"
-                                            ],
+                                            "required": ["TornadoPlotterFMU"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -2110,10 +1866,7 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
@@ -2123,9 +1876,7 @@
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "VolumetricAnalysis"
-                                            ],
+                                            "required": ["VolumetricAnalysis"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -2172,24 +1923,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "ensembles"
-                                                    ],
+                                                    "required": ["ensembles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "WellCompletions"
-                                            ],
+                                            "required": ["WellCompletions"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -2239,25 +1983,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "surfacefiles",
-                                                        "wellfiles"
-                                                    ],
+                                                    "required": ["surfacefiles", "wellfiles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "WellCrossSection"
-                                            ],
+                                            "required": ["WellCrossSection"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -2331,25 +2067,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "ensembles",
-                                                        "surfacefiles"
-                                                    ],
+                                                    "required": ["ensembles", "surfacefiles"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "WellCrossSectionFMU"
-                                            ],
+                                            "required": ["WellCrossSectionFMU"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -2387,25 +2115,17 @@
                                                                     "type": "string"
                                                                 },
                                                                 "phone": {
-                                                                    "type": [
-                                                                        "integer",
-                                                                        "string"
-                                                                    ]
+                                                                    "type": ["integer", "string"]
                                                                 }
                                                             },
                                                             "additionalProperties": false
                                                         }
                                                     },
-                                                    "required": [
-                                                        "wellfolder",
-                                                        "logtemplates"
-                                                    ],
+                                                    "required": ["wellfolder", "logtemplates"],
                                                     "additionalProperties": false
                                                 }
                                             },
-                                            "required": [
-                                                "WellLogViewer"
-                                            ],
+                                            "required": ["WellLogViewer"],
                                             "additionalProperties": false,
                                             "minProperties": 1,
                                             "maxProperties": 1
@@ -2414,19 +2134,13 @@
                                 }
                             }
                         },
-                        "required": [
-                            "page",
-                            "content"
-                        ],
+                        "required": ["page", "content"],
                         "additionalProperties": false
                     }
                 ]
             }
         }
     },
-    "required": [
-        "title",
-        "layout"
-    ],
+    "required": ["title", "layout"],
     "additionalProperties": false
 }

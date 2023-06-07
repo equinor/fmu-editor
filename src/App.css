@@ -4,13 +4,14 @@ body {
     overflow: hidden;
     font-size: 11pt;
     line-height: 14pt;
-    font-family: "Equinor";
+    font-family: Equinor, sans-serif;
 }
 
 *:focus {
     outline-color: var(--primary);
 }
 
+/* stylelint-disable */
 #root {
     height: 100vh;
     width: 100vw;

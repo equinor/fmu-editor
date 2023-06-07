@@ -1,7 +1,7 @@
+import {DIRECTORY_PATHS} from "@global/constants";
+
 import fs from "fs-extra";
 import path from "path";
-
-import { DIRECTORY_PATHS } from "@global/constants";
 
 export interface IFileBasic {
     exists(): boolean;
@@ -84,21 +84,23 @@ export class FileBasic implements IFileBasic {
         if (this.isUserFile()) {
             return this;
         }
+        const {constructor} = Object.getPrototypeOf(this);
         if (this.isSnapshotFile()) {
-            return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
+            return new constructor(
                 path.join(DIRECTORY_PATHS.USERS, user, this.getMainVersion().relativePath()),
                 this.workingDirectoryPath()
             );
         }
-        return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
+        return new constructor(
             path.join(DIRECTORY_PATHS.USERS, user, this.relativePath()),
             this.workingDirectoryPath()
         );
     }
 
     public getSnapshotVersion(snapshot: string): this {
+        const {constructor} = Object.getPrototypeOf(this);
         if (this.isUserFile()) {
-            return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
+            return new constructor(
                 path.join(DIRECTORY_PATHS.SNAPSHOTS, snapshot, this.getMainVersion().relativePath()),
                 this.workingDirectoryPath()
             );
@@ -106,7 +108,7 @@ export class FileBasic implements IFileBasic {
         if (this.isSnapshotFile()) {
             return this;
         }
-        return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
+        return new constructor(
             path.join(DIRECTORY_PATHS.SNAPSHOTS, snapshot, this.relativePath()),
             this.workingDirectoryPath()
         );
@@ -114,7 +116,8 @@ export class FileBasic implements IFileBasic {
 
     public getMainVersion(): this {
         if (this.isUserFile() || this.isSnapshotFile()) {
-            return new (this.constructor as new (relativeFilePath: string, workingDirectoryPath: string) => typeof this)(
+            const {constructor} = Object.getPrototypeOf(this);
+            return new constructor(
                 this.relativePath().split(path.sep).slice(2).join(path.sep),
                 this.workingDirectoryPath()
             );
@@ -224,7 +227,9 @@ export class FileBasic implements IFileBasic {
                 this.workingDirectoryPath() === other.workingDirectoryPath()
             );
         }
-        return this.relativePath() === other.relativePath() && this.workingDirectoryPath() === other.workingDirectoryPath();
+        return (
+            this.relativePath() === other.relativePath() && this.workingDirectoryPath() === other.workingDirectoryPath()
+        );
     }
 
     public isWritable(): boolean {

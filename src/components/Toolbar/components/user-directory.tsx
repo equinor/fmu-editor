@@ -144,7 +144,7 @@ export const UserDirectory: React.FC = () => {
                             ? "var(--warning)"
                             : "var(--success)",
                 }}
-                className={fileChanges?.length === 0 ? undefined : "error"}
+                className={fileChanges?.length === 0 ? undefined : "Error"}
             >
                 {makeContent()}
             </Button>

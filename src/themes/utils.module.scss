@@ -5,7 +5,9 @@
     $index: str-index($name, "-");
 
     @while $index {
-        $name: str-slice($name, 0, $index - 1) + to-upper-case(str-slice($name, $index + 1, $index + 1)) + str-slice($name, $index + 2, str-length($name));
+        $name: str-slice($name, 0, $index - 1) +
+            to-upper-case(str-slice($name, $index + 1, $index + 1)) +
+            str-slice($name, $index + 2, str-length($name));
         $index: str-index($name, "-");
     }
 
@@ -21,7 +23,12 @@
         $map: ();
 
         @each $key, $value in $value {
-            $map: map.merge($map, (format-variable-name($key): format-variable-value($value)));
+            $map: map.merge(
+                $map,
+                (
+                    format-variable-name($key): format-variable-value($value),
+                )
+            );
         }
 
         @return $map;
@@ -43,7 +50,12 @@
 @function format-theme-for-export($theme) {
     $map: ();
     @each $key, $value in $theme {
-        $map: map.merge($map, (format-variable-name($key): format-variable-value($value)));
+        $map: map.merge(
+            $map,
+            (
+                format-variable-name($key): format-variable-value($value),
+            )
+        );
     }
     @return $map;
 }

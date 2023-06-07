@@ -174,7 +174,8 @@ export const Explorer: React.FC = () => {
                         Select FMU Model Directory
                     </LoadingButton>
                     <Typography>In order to start using the editor, please select your FMU model directory.</Typography>
-                    <Typography>Example:
+                    <Typography>
+                        Example:
                         <strong> /project/your_project/resmod/ff</strong>
                     </Typography>
                 </Stack>
