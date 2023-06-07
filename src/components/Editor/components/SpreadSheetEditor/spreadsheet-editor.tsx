@@ -573,7 +573,8 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
 
         const sheetName = workbook.SheetNames[0];
         setCurrentSheet({sheet: workbook.Sheets[sheetName], name: sheetName});
-    }, [activeFilePath, workingDirectoryPath]);
+        updateViewStateSheetName(sheetName);
+    }, [activeFilePath, workingDirectoryPath, updateViewStateSheetName]);
 
     React.useEffect(() => {
         if (!currentSheet) {
@@ -584,10 +585,10 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
         let newRowHeights: {[key: number]: number} | null = null;
 
         const range = utils.decode_range(currentSheet.sheet["!ref"]);
-        setMaxCellRange(prev => ({
-            column: Math.max(range.e.c, calcNumColumns(), prev.column),
-            row: Math.max(range.e.r, calcNumRows(), prev.row),
-        }));
+        setMaxCellRange({
+            column: Math.max(range.e.c, calcNumColumns()),
+            row: Math.max(range.e.r, calcNumRows()),
+        });
 
         if (currentSheet.sheet["!cols"]) {
             newColumnWidths = {};
@@ -640,7 +641,7 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                 window.setTimeout(() => {
                     scrollLayerRef.current.scrollTop = viewState.scrollTop;
                     scrollLayerRef.current.scrollLeft = viewState.scrollLeft;
-                }, 100);
+                }, 50);
             }
         } else {
             setSelection(null);
@@ -655,6 +656,7 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
 
     React.useEffect(() => {
         let mouseDown = false;
+        let newSelection: SpreadSheetSelection | null = null;
         const handlePointerDown = (e: PointerEvent) => {
             if (!(e.target instanceof HTMLElement)) {
                 return;
@@ -687,12 +689,11 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             const colIndex = parseInt(cell.dataset.columnIndex ?? "0", 10);
             mouseDown = true;
 
-            const newSelection: SpreadSheetSelection = {
+            newSelection = {
                 start: {row: rowIndex, column: colIndex},
                 end: {row: rowIndex, column: colIndex},
             };
             setSelection(newSelection);
-            updateViewStateSelection(newSelection);
         };
 
         const handlePointerMove = (e: PointerEvent) => {
@@ -717,16 +718,19 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             const colIndex = parseInt(cell.dataset.columnIndex ?? "0", 10);
 
             setSelection(prev => {
-                const newSelection = {
+                newSelection = {
                     start: prev.start,
                     end: {row: rowIndex, column: colIndex},
                 };
-                updateViewStateSelection(newSelection);
                 return newSelection;
             });
         };
 
         const handlePointerUp = () => {
+            if (newSelection) {
+                updateViewStateSelection(newSelection);
+                newSelection = null;
+            }
             mouseDown = false;
         };
 
@@ -739,7 +743,7 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             document.removeEventListener("pointermove", handlePointerMove);
             document.removeEventListener("pointerup", handlePointerUp);
         };
-    }, []);
+    }, [updateViewStateSelection]);
 
     React.useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -901,13 +905,15 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                     }
 
                     setSelection(prev => {
-                        return {
+                        const newSelection = {
                             start: prev.start,
                             end: {
                                 row: prev.start.row + lines.length - 1,
                                 column: prev.start.column + maxColumn - 1,
                             },
                         };
+                        updateViewStateSelection(newSelection);
+                        return newSelection;
                     });
                 });
                 return;
@@ -915,15 +921,21 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
 
             if (e.key === "a" && e.ctrlKey) {
                 e.preventDefault();
-
-                setSelection({
+                const newSelection = {
                     start: {row: 0, column: 0},
                     end: {row: maxCellRange.row, column: maxCellRange.column},
-                });
+                };
+                updateViewStateSelection(newSelection);
+                setSelection(newSelection);
                 return;
             }
 
             if (e.key === "Control" || e.key === "Shift" || e.key === "Alt" || e.key === "Meta") {
+                e.preventDefault();
+                return;
+            }
+
+            if (e.ctrlKey) {
                 e.preventDefault();
                 return;
             }
@@ -939,7 +951,16 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
         };
-    }, [selection, editingCell, changeCellValue, getCellValue, maxCellRange, calcNumColumns, calcNumRows]);
+    }, [
+        selection,
+        editingCell,
+        changeCellValue,
+        getCellValue,
+        maxCellRange,
+        calcNumColumns,
+        calcNumRows,
+        updateViewStateSelection,
+    ]);
 
     const handleInsertColumn = (index: number) => {
         if (!currentSheet) {

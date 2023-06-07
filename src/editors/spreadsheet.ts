@@ -89,7 +89,8 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
         if (!bookType) {
             return false;
         }
-        const buffer = write(workBook.workBook, {bookType, bookSST: true, type: "buffer"});
+
+        const buffer = write(workBook.workBook, {bookType, bookSST: true, type: "binary"});
 
         workBook.undoStack = [];
 
