@@ -202,7 +202,7 @@ export const WelcomeDialog: React.FC = () => {
                 {
                     selector: "#current-changes",
                     content: "You can select which changes you want to commit by staging files. If you then write a commit message and click on the 'Push Changes' button, your changes will be committed to the main model directory.",
-                    action: (domNode: any) => {
+                    action: () => {
                         dispatch(setChangesBrowserView(ChangesBrowserView.CurrentChanges));
                         dispatch(setCurrentCommit(undefined));
                     },
@@ -210,7 +210,7 @@ export const WelcomeDialog: React.FC = () => {
                 {
                     selector: "#commit-browser",
                     content: "Your commit will appear in the commit list. You can click on it to see its details.",
-                    action: (domNode: any) => {
+                    action: () => {
                         dispatch(setChangesBrowserView(ChangesBrowserView.LoggedChanges));
                         dispatch(setCurrentCommit(undefined));
                     },
@@ -225,7 +225,7 @@ export const WelcomeDialog: React.FC = () => {
             );
         }
         return tourSteps;
-    }, [tourOpen, dispatch, fmuDirectoryPath, workingDirectoryPath, activeFilePath, files, fileChanges, username, uncommitted]);
+    }, [tourOpen, dispatch, fmuDirectoryPath, workingDirectoryPath, activeFilePath, files, uncommitted]);
 
     const handleCancel = () => { 
         dispatch(setFirstTimeUser(false));

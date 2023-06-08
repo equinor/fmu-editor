@@ -5,7 +5,8 @@ import React from "react";
 import {useMainProcessDataProvider} from "@components/MainProcessDataProvider/main-process-data-provider";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {saveFile} from "@redux/thunks";
+import { saveFile } from "@redux/thunks";
+import { setFirstTimeUser } from "@redux/reducers/ui";
 
 import {NotificationType} from "@shared-types/notifications";
 
@@ -13,7 +14,6 @@ import {notificationsService} from "./notifications-service";
 
 import electronStore from "../utils/electron-store";
 import {getEditorValue} from "../utils/monaco";
-import { setFirstTimeUser } from "@redux/reducers/ui";
 
 export const IpcService: React.FC = props => {
     const dispatch = useAppDispatch();

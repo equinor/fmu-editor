@@ -20,12 +20,13 @@ import {setTheme} from "@redux/reducers/ui";
 
 import {Themes} from "@shared-types/ui";
 
-import {SnackbarProvider} from "notistack";
+import { SnackbarProvider } from "notistack";
+import { WelcomeDialog } from "@components/WelcomeDialog";
+
+import { Theme } from "./themes/theme";
 
 import "./App.css";
-import {Theme} from "./themes/theme";
 import "./themes/theme.scss";
-import { WelcomeDialog } from "@components/WelcomeDialog";
 
 export const ColorModeContext = React.createContext({
     toggleColorMode: () => {},

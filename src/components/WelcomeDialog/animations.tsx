@@ -83,4 +83,3 @@ export function animateMouseClick(options: { target: HTMLElement, flyIn: boolean
         });
     });
 }
-
