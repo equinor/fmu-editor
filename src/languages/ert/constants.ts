@@ -1,7 +1,7 @@
 /* eslint-disable no-template-curly-in-string */
 import {IMarkdownString, IRange, languages} from "monaco-editor";
 
-import {dedent} from "./utils";
+import {dedent} from "@utils/string";
 
 export const languageId = "ert";
 
