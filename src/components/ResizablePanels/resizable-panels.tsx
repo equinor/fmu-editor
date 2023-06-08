@@ -128,6 +128,7 @@ export const ResizablePanels: React.FC<ResizablePanelsProps> = props => {
 
     return (
         <div
+            id={props.id}
             className={`ResizablePanelsWrapper${props.direction === "horizontal" ? "Horizontal" : "Vertical"}`}
             ref={resizablePanelsRef}
         >

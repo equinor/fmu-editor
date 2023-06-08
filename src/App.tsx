@@ -25,6 +25,7 @@ import {SnackbarProvider} from "notistack";
 import "./App.css";
 import {Theme} from "./themes/theme";
 import "./themes/theme.scss";
+import { WelcomeDialog } from "@components/WelcomeDialog";
 
 export const ColorModeContext = React.createContext({
     toggleColorMode: () => {},
@@ -63,6 +64,7 @@ const App = (): JSX.Element => {
                         <ThemeProvider theme={Theme(mode)}>
                             <NotificationsProvider>
                                 <IpcService>
+                                    <WelcomeDialog />
                                     <MainWindow />
                                     <LoginDialog />
                                 </IpcService>

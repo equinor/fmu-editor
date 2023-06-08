@@ -13,6 +13,7 @@ import {notificationsService} from "./notifications-service";
 
 import electronStore from "../utils/electron-store";
 import {getEditorValue} from "../utils/monaco";
+import { setFirstTimeUser } from "@redux/reducers/ui";
 
 export const IpcService: React.FC = props => {
     const dispatch = useAppDispatch();
@@ -32,6 +33,10 @@ export const IpcService: React.FC = props => {
 
         addListener("save-file", () => {
             saveFile(activeFilePath, getEditorValue(activeFilePath) || "", workingDirectoryPath, dispatch);
+        });
+
+        addListener("start-tour", () => {
+            dispatch(setFirstTimeUser(true));
         });
 
         addListener("error", (_, errorMessage) => {

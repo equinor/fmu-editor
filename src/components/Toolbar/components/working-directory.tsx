@@ -30,7 +30,7 @@ export const WorkingDirectory: React.FC = () => {
         }
     };
     return (
-        <Button size="small" onClick={handleOpenDirectoryClick} title="Current working directory.">
+        <Button id="status-bar-working-directory" size="small" onClick={handleOpenDirectoryClick} title="Current working directory.">
             <VscFolder />
             <span>
                 {workingDirectoryPath === "" || !workingDirectory.exists() ? (

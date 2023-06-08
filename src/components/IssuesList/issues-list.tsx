@@ -84,7 +84,7 @@ export const IssuesList: React.VFC<IssuesListProps> = props => {
     );
 
     return (
-        <div className="Issues">
+        <div className="Issues" id="issues">
             <Surface elevation="raised" className="IssuesTitle">
                 <Grid container columnSpacing={2} spacing={5} direction="row" alignItems="center">
                     <Grid item>

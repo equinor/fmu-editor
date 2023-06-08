@@ -38,6 +38,7 @@ const initialUiState: UiState = {
         createFolder: false,
         createFile: false,
     },
+    firstTimeUser: electronStore.get("ui.firstTimeUser") || true,
 };
 
 const prepareInitialFileTreeStates = () => {

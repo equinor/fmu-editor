@@ -229,7 +229,7 @@ export const Editor: React.FC<EditorProps> = () => {
     );
 
     return (
-        <div className="EditorWrapper" onDragOver={handleDragOver}>
+        <div id="editor-wrapper" className="EditorWrapper" onDragOver={handleDragOver}>
             <div className="EditorContainer">
                 <div
                     className="Editor__NoModels"
@@ -252,12 +252,13 @@ export const Editor: React.FC<EditorProps> = () => {
                 </div>
                 <div className="EditorContainer" style={{display: !noModels ? "flex" : "none"}}>
                     <ResizablePanels direction="vertical" id="editor-issues" minSizes={[0, 80]}>
-                        <div className="Editor">
+                        <div className="Editor" id="editor">
                             <FileTabs
                                 onFileChange={handleFileChange}
                                 actions={
                                     <>
                                         <IconButton
+                                            id="close-all-editors-button"
                                             color="inherit"
                                             onClick={() => handleCloseAllEditors()}
                                             title="Close all open editors"
@@ -265,6 +266,7 @@ export const Editor: React.FC<EditorProps> = () => {
                                             <VscCloseAll />
                                         </IconButton>
                                         <IconButton
+                                            id="open-preview-button"
                                             color={previewVisible ? "primary" : "inherit"}
                                             onClick={() => handleTogglePreview()}
                                             title="Open preview for current file"
@@ -272,6 +274,7 @@ export const Editor: React.FC<EditorProps> = () => {
                                             <VscPreview />
                                         </IconButton>
                                         <IconButton
+                                            id="open-file-source-control-button"
                                             color="inherit"
                                             onClick={() => handleFileSourceControlClick()}
                                             title="Open source control for current file"

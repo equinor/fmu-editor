@@ -166,7 +166,7 @@ export const CurrentChanges: React.VFC = () => {
     }
 
     return (
-        <>
+        <div id="current-changes">
             <Surface elevation="raised" className="ChangesBrowserHeader">
                 <div>
                     {userFileChanges.length} file change{userFileChanges.length > 1 && "s"} to commit
@@ -245,6 +245,6 @@ export const CurrentChanges: React.VFC = () => {
                     {pushState === PushState.PUSHING ? "Pushing changes" : "Push changes"}
                 </LoadingButton>
             </Stack>
-        </>
+        </div>
     );
 };

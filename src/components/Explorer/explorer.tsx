@@ -169,7 +169,7 @@ export const Explorer: React.FC = () => {
         if (fmuDirectory === null || fmuDirectoryPath === "" || !fmuDirectory.exists()) {
             return (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
-                    <LoadingButton variant="contained" onClick={handleOpenDirectoryClick} loading={loading}>
+                    <LoadingButton variant="contained" onClick={handleOpenDirectoryClick} loading={loading} id="select-fmu-directory-button">
                         Select FMU Model Directory
                     </LoadingButton>
                     <Typography>In order to start using the editor, please select your FMU model directory.</Typography>
@@ -183,7 +183,7 @@ export const Explorer: React.FC = () => {
         if (workingDirectory === null || workingDirectoryPath === "" || !workingDirectory.exists()) {
             return (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
-                    <LoadingButton variant="contained" onClick={toggleDrawer(true)} loading={loading}>
+                    <LoadingButton variant="contained" onClick={toggleDrawer(true)} loading={loading} id="select-model-version-button">
                         Select Model Version
                     </LoadingButton>
                     <Typography>In order to start using the editor, please select your model version.</Typography>
@@ -230,6 +230,7 @@ export const Explorer: React.FC = () => {
                             </IconButton>
                         </div>
                         <IconButton
+                            id="create-new-file-button"
                             size="small"
                             title="Create new file..."
                             onClick={() => dispatch(setCreateFile(true))}
@@ -237,16 +238,17 @@ export const Explorer: React.FC = () => {
                             <VscNewFile />
                         </IconButton>
                         <IconButton
+                            id="create-new-folder-button"
                             size="small"
                             title="Create new folder..."
                             onClick={() => dispatch(setCreateFolder(true))}
                         >
                             <VscNewFolder />
                         </IconButton>
-                        <IconButton size="small" title="Refresh" onClick={() => refreshExplorer()}>
+                        <IconButton id="refresh-explorer-button" size="small" title="Refresh" onClick={() => refreshExplorer()}>
                             <VscRefresh />
                         </IconButton>
-                        <IconButton size="small" title="Collapse all" onClick={() => handleCollapseAll()}>
+                        <IconButton id="collapse-explorer-button" size="small" title="Collapse all" onClick={() => handleCollapseAll()}>
                             <VscCollapseAll />
                         </IconButton>
                     </Stack>
@@ -283,7 +285,7 @@ export const Explorer: React.FC = () => {
     ]);
 
     return (
-        <Surface elevation="raised" className="Explorer">
+        <Surface elevation="raised" className="Explorer" id="explorer">
             <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
                 <List className="DirectoryDrawer">
                     {fmuDirectory !== null &&

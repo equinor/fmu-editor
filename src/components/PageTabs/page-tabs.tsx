@@ -77,7 +77,7 @@ export const PageTabs: React.VFC = () => {
 
     return (
         <Surface className="TabMenu" elevation="raised">
-            <Tabs orientation="vertical" value={viewRelatedTab[view]} color="inherit" onChange={handlePageChange}>
+            <Tabs orientation="vertical" value={viewRelatedTab[view]} color="inherit" onChange={handlePageChange} id="page-selector">
                 <Tab
                     icon={<VscEdit color="inherit" size={24} title="Editor" />}
                     value={View.Editor}

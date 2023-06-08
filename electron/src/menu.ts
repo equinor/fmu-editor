@@ -1,4 +1,4 @@
-import {BrowserWindow, Menu, MenuItemConstructorOptions} from "electron";
+import { BrowserWindow, Menu, MenuItemConstructorOptions, shell } from "electron";
 
 import {IS_DEV} from "./env";
 
@@ -53,17 +53,6 @@ export const createMenu = (
                         }
                     },
                 },
-                {
-                    label: "Save as...",
-                    accelerator: "CmdOrCtrl+Shift+S",
-                    enabled: !args.disabledSaveActions && !args.allActionsDisabled,
-                    click() {
-                        const window = BrowserWindow.getFocusedWindow();
-                        if (window) {
-                            window.webContents.send("save-file-as");
-                        }
-                    },
-                },
                 isMac
                     ? {role: "close", enabled: !args.allActionsDisabled}
                     : {role: "quit", enabled: !args.allActionsDisabled},
@@ -102,8 +91,6 @@ export const createMenu = (
                 {
                     label: "Learn More",
                     click: async () => {
-                        /* eslint-disable global-require */
-                        const {shell} = require("electron");
                         await shell.openExternal("https://equinor.github.io/fmu-editor");
                     },
                     enabled: !args.allActionsDisabled,
@@ -111,9 +98,17 @@ export const createMenu = (
                 {
                     label: "Report a bug",
                     click: async () => {
-                        /* eslint-disable global-require */
-                        const {shell} = require("electron");
                         await shell.openExternal("https://github.com/equinor/fmu-editor/issues");
+                    },
+                    enabled: !args.allActionsDisabled,
+                },
+                {
+                    label: "Start a tour",
+                    click: async () => {
+                        const window = BrowserWindow.getFocusedWindow();
+                        if (window) {
+                            window.webContents.send("start-tour");
+                        }
                     },
                     enabled: !args.allActionsDisabled,
                 },
