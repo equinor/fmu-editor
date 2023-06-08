@@ -1,31 +1,31 @@
 import {LanguageOptions, LanguageServiceDefaults} from "@shared-types/language-options";
-import {Size} from "@shared-types/size";
 
 import {Emitter, languages} from "monaco-editor";
 
 import {languageId} from "./constants";
-import {setupMode} from "./distMode";
+import {setupMode} from "./ertMode";
 import {monarchConfiguration, monarchLanguage} from "./language";
 
-export interface DistOptions extends LanguageOptions {
+export interface ErtOptions extends LanguageOptions {
     /**
-     * The size of the distribution plot on hover.
+     * The ERT version to use for parsing.
      *
-     * @default { width: 235, height: 235 }
+     * @default '5.0'
      */
-    readonly plotSize?: Size;
+    readonly ertVersion?: "5.0";
 }
 
-const diagnosticDefault: DistOptions = {
+const diagnosticDefault: ErtOptions = {
     completion: true,
+    snippets: true,
     hover: true,
     validate: false,
-    plotSize: {width: 235, height: 235},
+    ertVersion: "5.0",
 };
 
-const createLanguageServiceDefaults = (initialDiagnosticsOptions: DistOptions): LanguageServiceDefaults => {
+export function createLanguageServiceDefaults(initialErtOptions: ErtOptions): LanguageServiceDefaults {
     const onDidChange = new Emitter<LanguageServiceDefaults>();
-    let diagnosticsOptions = initialDiagnosticsOptions;
+    let diagnosticsOptions = initialErtOptions;
 
     const languageServiceDefaults: LanguageServiceDefaults = {
         get onDidChange() {
@@ -36,26 +36,27 @@ const createLanguageServiceDefaults = (initialDiagnosticsOptions: DistOptions): 
             return diagnosticsOptions;
         },
 
-        setDiagnosticsOptions(options: DistOptions) {
+        setDiagnosticsOptions(options: ErtOptions) {
             diagnosticsOptions = {...diagnosticsOptions, ...options};
             onDidChange.fire(languageServiceDefaults);
         },
     };
-    return languageServiceDefaults;
-};
 
-const distDefaults = createLanguageServiceDefaults(diagnosticDefault);
+    return languageServiceDefaults;
+}
+
+export const ertDefaults = createLanguageServiceDefaults(diagnosticDefault);
 
 languages.register({
     id: languageId,
     extensions: [`.${languageId}`],
-    aliases: ["DIST"],
-    mimetypes: ["application/x-dist"],
+    aliases: ["ERT", "ert"],
+    mimetypes: ["application/x-ert"],
 });
 languages.setMonarchTokensProvider(languageId, monarchLanguage);
 languages.setLanguageConfiguration(languageId, monarchConfiguration);
-languages.onLanguage(languageId, () => setupMode(distDefaults));
+languages.onLanguage(languageId, () => setupMode(ertDefaults));
 
-export const setDistOptions = (options: DistOptions = {}): void => {
-    distDefaults.setDiagnosticsOptions(options);
-};
+export function setErtOptions(options: ErtOptions = {}): void {
+    ertDefaults.setDiagnosticsOptions(options);
+}

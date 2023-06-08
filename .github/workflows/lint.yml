@@ -16,8 +16,6 @@ jobs:
     steps:
       - name: 📖 Checkout commit
         uses: actions/checkout@v3
-        with:
-          submodules: recursive
 
       - name: 🗃️ Set up Node
         uses: actions/setup-node@v3
