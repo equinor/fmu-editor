@@ -1,5 +1,9 @@
 /* eslint-disable max-classes-per-file */
-import {beta, erf, erfinv, incompleteBeta} from "@utils/math";
+import beta from "@stdlib/math-base-special-beta";
+import betainc from "@stdlib/math-base-special-betainc";
+import betaincinv from "@stdlib/math-base-special-betaincinv";
+import erf from "@stdlib/math-base-special-erf";
+import erfinv from "@stdlib/math-base-special-erfinv";
 
 import {Distribution} from "@shared-types/distribution";
 
@@ -92,8 +96,8 @@ export class LogNormal extends Normal {
         if (x <= 0) {
             return NaN;
         }
-        const sltv = -0.5 * ((Math.log(x) - this._mean) / this._std) ** 2;
-        return this._stdDensity * Math.exp(sltv);
+        const sltv = (-0.5 * (Math.log(x) - this._mean) ** 2) / this._variance;
+        return (this._stdDensity / x) * Math.exp(sltv);
     };
 
     cdf = (x: number): number => {
@@ -155,7 +159,7 @@ export class TruncatedNormal extends Normal {
     }
 
     get mean(): number {
-        return this._mean - ((this.pdfA - this.pdfB) / this.Z) * this._std;
+        return this._mean + ((this.pdfA - this.pdfB) / this.Z) * this._std;
     }
 
     get mode(): number {
@@ -217,7 +221,7 @@ export class Uniform implements Distribution {
         this._median = 0.5 * (min + max);
         this._mean = this._median;
         this._mode = this._median;
-        this._variance = 0.08333333333 * (max - min) ** 2; // 1/12
+        this._variance = 0.08333333333333333 * (max - min) ** 2; // 1/12
         this._std = Math.sqrt(this._variance);
     }
 
@@ -427,7 +431,7 @@ export class DiscreteUniform extends Uniform {
     }
 
     get variance(): number {
-        return 0.08333333333 * (this._nbins * this._nbins - 1); // 1/12
+        return 0.08333333333333333 * (this._nbins * this._nbins - 1); // 1/12
     }
 
     // This is technically the pmf...
@@ -458,7 +462,7 @@ export class DiscreteUniform extends Uniform {
         if ((p * this._nbins) % 1 !== 0) {
             return NaN;
         }
-        return this._min * (1 - p) + (this._max + 1) * (p - 1);
+        return this._min * (1 - p) + (this._max + 1) * p - 1;
     };
 }
 
@@ -545,9 +549,9 @@ export class Triangular implements Distribution {
         this._min = min;
         this._mode = mode;
         this._max = max;
-        this._median = NaN;
-        this._mean = (min + max + mode) * 0.33333333333;
-        this._variance = 0.05555555555 * (min ** 2 + max ** 2 + mode ** 2 - min * max - min * mode - max * mode);
+        this._median = mode;
+        this._mean = (min + max + mode) * 0.33333333333333;
+        this._variance = 0.05555555555555 * (min ** 2 + max ** 2 + mode ** 2 - min * max - min * mode - max * mode);
         this._std = Math.sqrt(this._variance);
     }
 
@@ -602,37 +606,39 @@ export class Triangular implements Distribution {
             return NaN;
         }
         const modeCdf = this.cdf(this._mode);
-        if (p >= 0 && p <= modeCdf) {
+        if (p <= modeCdf) {
             return this._min + Math.sqrt((this._max - this._min) * (this._mode - this._min) * p);
         }
-        return this._max + Math.sqrt((this._max - this._min) * (this._max - this._mode) * (1 - p));
+        return this._max - Math.sqrt((this._max - this._min) * (this._max - this._mode) * (1 - p));
     };
 }
 
 export class PERT implements Distribution {
+    protected readonly _alpha: number;
+    protected readonly _beta: number;
     protected readonly _max: number;
     protected readonly _median: number;
     protected readonly _mean: number;
     protected readonly _min: number;
     protected readonly _mode: number;
+    protected readonly _range: number;
     protected readonly _std: number;
     protected readonly _variance: number;
-    protected readonly _alpha: number;
-    protected readonly _beta: number;
 
     constructor(min: number, mode: number, max: number) {
         if (min >= max) {
             throw new Error("Maximum must be greater than minimum");
         }
-        this._min = min;
-        this._mode = mode;
-        this._max = max;
-        this._median = (min + 6 * mode + max) * 0.125; // 1/8
-        this._mean = (min + 4 * mode + max) * 0.1666666666;
-        this._variance = 0.14285714285 * ((this._mean - min) * (max - this._mean));
-        this._std = Math.sqrt(this._variance);
         this._alpha = 1 + 4 * ((mode - min) / (max - min));
         this._beta = 1 + 4 * ((max - mode) / (max - min));
+        this._max = max;
+        this._min = min;
+        this._mode = mode;
+        this._median = (min + 6 * mode + max) * 0.125; // 1/8
+        this._mean = (min + 4 * mode + max) * 0.166666666666666;
+        this._range = max - min;
+        this._variance = 0.14285714285714285 * ((this._mean - min) * (max - this._mean));
+        this._std = Math.sqrt(this._variance);
     }
 
     get median(): number {
@@ -658,7 +664,7 @@ export class PERT implements Distribution {
     pdf = (x: number): number => {
         return (
             ((x - this._min) ** (this._alpha - 1) * (this._max - x) ** (this._beta - 1)) /
-            (beta(this._alpha, this._beta) * (this._max - this._min) ** (this._alpha + this._beta - 1))
+            (beta(this._alpha, this._beta) * this._range ** (this._alpha + this._beta - 1))
         );
     };
 
@@ -666,16 +672,11 @@ export class PERT implements Distribution {
         if (x <= this._min) {
             return 0;
         }
-        if (x >= this._max) {
-            return 1;
-        }
-        return incompleteBeta(this._alpha, this._beta, x);
+        const z = (x - this._min) / this._range;
+        return betainc(z, this._alpha, this._beta);
     };
 
     inv = (p: number): number => {
-        if (this._min && p) {
-            throw new Error("Not implemented!");
-        }
-        return NaN;
+        return betaincinv(p, this._alpha, this._beta) * this._range + this._min;
     };
 }

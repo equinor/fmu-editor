@@ -1,0 +1,469 @@
+.SpreadSheetEditor {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.SpreadSheetEditor__TableWrapper {
+    position: sticky;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+}
+
+.SpreadSheetEditor__ScrollLayer {
+    position: relative;
+    overflow: overlay;
+}
+
+.SpreadSheetEditor__Error {
+    background-color: var(--danger);
+    color: var(--danger-highlight);
+    padding: var(--spacing-m);
+}
+
+.SpreadSheetEditor__Warning {
+    background-color: var(--warning);
+    color: var(--warning-highlight);
+    padding: var(--spacing-m);
+}
+
+.SpreadSheetEditor__ContentDummy {
+    pointer-events: none;
+    z-index: 20;
+}
+
+.SpreadSheetEditor__Tabs {
+    height: 30px;
+    background-color: var(--background-semi-transparent);
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: var(--spacing-m);
+    box-shadow: inset 0 3px 5px -4px rgb(0 0 0 / 75%);
+    padding-left: var(--spacing-xl);
+}
+
+.SpreadSheetEditor__Tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border-radius: 0 0 4px 4px;
+    cursor: pointer;
+    height: 26px;
+    padding-left: var(--spacing-m);
+    padding-right: var(--spacing-m);
+    width: 100px;
+    max-width: 100px;
+}
+
+.SpreadSheetEditor__Tab span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.SpreadSheetEditor__Tab:hover {
+    font-weight: 500;
+}
+
+.SpreadSheetEditor__TabActive {
+    background-color: var(--background-color);
+    box-shadow: 0 2px 6px -3px rgb(0 0 0 / 75%);
+}
+
+.SpreadSheetEditor__TabActive span {
+    border-bottom: 2px var(--primary) solid;
+}
+
+.SpreadSheetTable {
+    border-spacing: 1px;
+    border-collapse: collapse;
+    cursor: crosshair;
+    table-layout: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+.SpreadSheetEditor__HorizontalHeaderWrapper {
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+}
+
+.SpreadSheetEditor__VerticalHeaderWrapper {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.SpreadSheetEditor__Wrapper {
+    display: flex;
+    flex-direction: row;
+}
+
+.SpreadSheetEditor__ColumnWrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.SpreadSheetTable .RowHeaderCell {
+    font-weight: var(--body-long-bold-font-weight);
+    text-align: center;
+    background-color: var(--background-light);
+    user-select: none;
+    position: relative;
+    cursor: pointer;
+}
+
+.SpreadSheetTable .ColumnHeaderCell {
+    font-weight: var(--body-long-bold-font-weight);
+    text-align: center;
+    background-color: var(--background-light);
+    user-select: none;
+    position: relative;
+    cursor: pointer;
+}
+
+.SpreadSheetTable th {
+    background-color: var(--background-light);
+    user-select: none;
+    position: relative;
+    border: 1px var(--background-medium) solid;
+}
+
+.SpreadSheetTable td {
+    border: 1px var(--background-medium) solid;
+    user-select: none;
+    position: relative;
+}
+
+.SpreadSheetTable td .Content {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.SpreadSheetTable .SelectionFrame {
+    pointer-events: none;
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    width: calc(100% + 1px);
+    height: calc(100% + 1px);
+    z-index: 10;
+    background-color: transparent;
+    border: 0;
+}
+
+.SpreadSheetTable .SelectionFrameTop {
+    border-top: 2px var(--primary) solid;
+}
+
+.SpreadSheetTable .SelectionFrameBottom {
+    border-bottom: 2px var(--primary) solid;
+}
+
+.SpreadSheetTable .SelectionFrameLeft {
+    border-left: 2px var(--primary) solid;
+}
+
+.SpreadSheetTable .SelectionFrameRight {
+    border-right: 2px var(--primary) solid;
+}
+
+.SpreadSheetTable .CopyingFrame {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    border: 0;
+}
+
+.SpreadSheetTable .CopyingFrameTopBottomLeftRight {
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background-size: 4px 2px, 4px 2px, 2px 4px, 2px 4px;
+    background-position: 0 0, 0 100%, 0 0, 100% 0;
+    animation: linear-gradient-move 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move {
+    100% {
+        background-position: 4px 0, -4px 100%, 0 -4px, 100% 4px;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameTop {
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x;
+    background-size: 4px 2px;
+    background-position: 0 0;
+    animation: linear-gradient-move-top 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-top {
+    100% {
+        background-position: 4px 0, -4px 100%, 0 -4px, 100% 4px;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameTopLeft {
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background-size: 4px 2px, 2px 4px;
+    background-position: 0 0, 0 0;
+    animation: linear-gradient-move-top-left 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-top-left {
+    100% {
+        background-position: 4px 0, 0 -4px;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameTopBottom {
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x;
+    background-size: 4px 2px, 4px 2px;
+    background-position: 0 0, 0 100%;
+    animation: linear-gradient-move-bottom 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-bottom {
+    100% {
+        background-position: 4px 0, -4px 100%;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameTopBottomLeft {
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background-size: 4px 2px, 4px 2px, 2px 4px;
+    background-position: 0 0, 0 100%, 0 0;
+    animation: linear-gradient-move-top-bottom-left 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-top-bottom-left {
+    100% {
+        background-position: 4px 0, -4px 100%, 0 -4px;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameTopBottomRight {
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background-size: 4px 2px, 4px 2px, 2px 4px;
+    background-position: 0 0, 0 100%, 100% 0;
+    animation: linear-gradient-move-top-bottom-right 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-top-bottom-right {
+    100% {
+        background-position: 4px 0, -4px 100%, 100% 4px;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameTopRight {
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background-size: 4px 2px, 2px 4px;
+    background-position: 0 0, 100% 0;
+    animation: linear-gradient-move-top-right 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-top-right {
+    100% {
+        background-position: 4px 0, 100% 4px;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameTopLeftRight {
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background-size: 4px 2px, 2px 4px, 2px 4px;
+    background-position: 0 0, 0 0, 100% 0;
+    animation: linear-gradient-move-top-left-right 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-top-left-right {
+    100% {
+        background-position: 4px 0, 0 -4px, 100% 4px;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameBottomLeft {
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background-size: 4px 2px, 2px 4px;
+    background-position: 0 100%, 0 0;
+    animation: linear-gradient-move-bottom-left 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-bottom-left {
+    100% {
+        background-position: -4px 100%, 0 -4px;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameBottomRight {
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background-size: 4px 2px, 2px 4px;
+    background-position: 0 100%, 100% 0;
+    animation: linear-gradient-move-bottom-right 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-bottom-right {
+    100% {
+        background-position: -4px 100%, 100% 4px;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameBottomLeftRight {
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background-size: 4px 2px, 2px 4px, 2px 4px;
+    background-position: 0 100%, 0 0, 100% 0;
+    animation: linear-gradient-move-bottom-left-right 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-bottom-left-right {
+    100% {
+        background-position: -4px 100%, 0 -4px, 100% 4px;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameLeftRight {
+    background: linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y,
+        linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background-size: 2px 4px, 2px 4px;
+    background-position: 0 0, 100% 0;
+    animation: linear-gradient-move-left-right 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-left-right {
+    100% {
+        background-position: 0 -4px, 100% 4px;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameBottom {
+    background: linear-gradient(90deg, var(--primary) 50%, transparent 0) repeat-x;
+    background-size: 4px 2px;
+    background-position: 0 100%;
+    animation: linear-gradient-move-bottom 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-bottom {
+    100% {
+        background-position: -4px 100%;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameLeft {
+    background: linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background-size: 2px 4px;
+    background-position: 0 0;
+    animation: linear-gradient-move-left 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-left {
+    100% {
+        background-position: 0 -4px;
+    }
+}
+
+.SpreadSheetTable .CopyingFrameRight {
+    background: linear-gradient(0deg, var(--primary) 50%, transparent 0) repeat-y;
+    background-size: 2px 4px;
+    background-position: 100% 0;
+    animation: linear-gradient-move-right 0.3s infinite linear;
+}
+
+@keyframes linear-gradient-move-right {
+    100% {
+        background-position: 100% 4px;
+    }
+}
+
+.SpreadSheetTable input {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    color: var(--text-primary);
+    margin: 0;
+    outline: 0;
+    border: 0;
+}
+
+.SpreadSheetTable .SelectedHeader {
+    background-color: var(--primary-hover-alt) !important;
+    color: var(--primary);
+    font-weight: var(--body-long-bold-font-weight);
+}
+
+.SpreadSheetTable th.SelectedHeader {
+    border-bottom: 1px var(--primary) solid !important;
+}
+
+.SpreadSheetTable td.SelectedHeader {
+    border-right: 1px var(--primary) solid !important;
+}
+
+.SpreadSheetTable .FocusedCell {
+    background-color: transparent !important;
+}
+
+.SpreadSheetTable .SelectedCell {
+    background-color: var(--secondary-highlight);
+}
+
+.SpreadSheetTable .FirstSelectedCell {
+    background-color: transparent;
+}
+
+.SpreadSheetEditor__ColumnResizeHandle {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-left: -3px;
+    width: 6px;
+    height: 100%;
+    z-index: 100;
+    cursor: col-resize;
+    background-color: var(--background-medium);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.SpreadSheetEditor__RowResizeHandle {
+    position: absolute;
+    top: 100%;
+    margin-top: -3px;
+    left: 0;
+    height: 6px;
+    width: 100%;
+    z-index: 100;
+    cursor: row-resize;
+    background-color: var(--background-medium);
+    opacity: 0;
+    transition: opacity 0.2s;
+}

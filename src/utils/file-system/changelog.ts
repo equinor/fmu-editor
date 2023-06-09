@@ -124,6 +124,11 @@ export class Changelog {
         }
 
         const snapshotDirectory = new Directory(DIRECTORY_PATHS.SNAPSHOTS, this.workingDirectoryPath);
+
+        if (!snapshotDirectory.exists()) {
+            return {snapshotCommits: [], lastModified: 0};
+        }
+
         const snapshotFolders = snapshotDirectory
             .getContent()
             .filter(item => item.isDirectory())
