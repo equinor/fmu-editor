@@ -1381,10 +1381,10 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                                     />
                                     <table className="SpreadSheetTable" ref={tableRef}>
                                         <tbody>
-                                            {verticalHeaders.map((_, row) => (
+                                            {verticalHeaders.map((__, row) => (
                                                 // eslint-disable-next-line react/no-array-index-key
                                                 <tr key={`row-${row}`}>
-                                                    {horizontalHeaders.map((__, column) => {
+                                                    {horizontalHeaders.map((___, column) => {
                                                         const absoluteRow = row + startCell.row;
                                                         const absoluteColumn = column + startCell.column;
                                                         return (
