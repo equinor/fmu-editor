@@ -62,8 +62,10 @@ const App = (): JSX.Element => {
                     <ThemeProvider theme={Theme(mode)}>
                         <NotificationsProvider>
                             <IpcService>
-                                <MainWindow />
-                                <LoginDialog />
+                                <DialogProvider>
+                                    <MainWindow />
+                                    <LoginDialog />
+                                </DialogProvider>
                             </IpcService>
                         </NotificationsProvider>
                     </ThemeProvider>
