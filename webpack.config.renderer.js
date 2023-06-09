@@ -338,7 +338,7 @@ module.exports = () => {
         },
         resolve: {
             plugins: [new TsconfigPathsPlugin()],
-            extensions: [".tsx", ".ts", ".js", ".mjs"],
+            extensions: [".tsx", ".ts", ".js"],
             alias: {
                 "react/jsx-dev-runtime.js": "react/jsx-dev-runtime",
                 "react/jsx-runtime.js": "react/jsx-runtime",
