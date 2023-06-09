@@ -1,4 +1,4 @@
-import { Point } from "@utils/geometry";
+import {Point} from "@utils/geometry";
 
 import "./animation.css";
 
@@ -14,18 +14,21 @@ function createCursor(): Node {
     svg.setAttribute("xml:space", "preserve");
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("style", "fill: #010202; stroke: #FFFFFF; stroke-miterlimit: 10; stroke-width: 2;");
-    path.setAttribute("d", "M8.6,23.8C6.7,23.7,2.6,1.1,3.7,0.3S23.5,13,23,14.3c-0.5,1.3-6.9,0.7-8.9,2S10,23.6,8.6,23.8z");
+    path.setAttribute(
+        "d",
+        "M8.6,23.8C6.7,23.7,2.6,1.1,3.7,0.3S23.5,13,23,14.3c-0.5,1.3-6.9,0.7-8.9,2S10,23.6,8.6,23.8z"
+    );
     svg.appendChild(path);
     return svg;
 }
 
-export function animateMouseClick(options: { target: HTMLElement, flyIn: boolean, onFinished?: () => void }): void {
+export function animateMouseClick(options: {target: HTMLElement; flyIn: boolean; onFinished?: () => void}): void {
     const cursor = document.createElement("div");
     cursor.classList.add("MouseCursor");
     const targetRect = options.target.getBoundingClientRect();
     let startPosition: Point = {
         x: targetRect.left,
-        y: targetRect.top
+        y: targetRect.top,
     };
     if (options.flyIn) {
         if (targetRect.left < window.innerWidth / 2) {
@@ -42,12 +45,12 @@ export function animateMouseClick(options: { target: HTMLElement, flyIn: boolean
 
     const targetPosition: Point = {
         x: targetRect.left + targetRect.width / 2,
-        y: targetRect.top + targetRect.height / 2 + 24
+        y: targetRect.top + targetRect.height / 2 + 24,
     };
 
     cursor.style.left = `${startPosition.x}px`;
     cursor.style.top = `${startPosition.y}px`;
-    
+
     const cursorIcon = createCursor();
     cursor.appendChild(cursorIcon);
     const clickEffect = document.createElement("div");
@@ -55,20 +58,23 @@ export function animateMouseClick(options: { target: HTMLElement, flyIn: boolean
     document.body.appendChild(cursor);
 
     window.setTimeout(() => {
-        const animation = cursor.animate([
+        const animation = cursor.animate(
+            [
+                {
+                    left: `${startPosition.x}px`,
+                    top: `${startPosition.y}px`,
+                },
+                {
+                    left: `${targetPosition.x}px`,
+                    top: `${targetPosition.y}px`,
+                },
+            ],
             {
-                left: `${startPosition.x}px`,
-                top: `${startPosition.y}px`
-            },
-            {
-                left: `${targetPosition.x}px`,
-                top: `${targetPosition.y}px`
+                duration: 500,
+                easing: "ease-in-out",
+                fill: "forwards",
             }
-        ], {
-            duration: 500,
-            easing: "ease-in-out",
-            fill: "forwards"
-        });
+        );
         animation.addEventListener("finish", () => {
             clickEffect.style.left = `${targetPosition.x}px`;
             clickEffect.style.top = `${targetPosition.y}px`;

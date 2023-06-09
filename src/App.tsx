@@ -14,18 +14,17 @@ import {LoginDialog} from "@components/LoginDialog";
 import {MainProcessDataProvider} from "@components/MainProcessDataProvider";
 import {MainWindow} from "@components/MainWindow";
 import {NotificationsProvider} from "@components/Notifications";
+import {WelcomeDialog} from "@components/WelcomeDialog";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setTheme} from "@redux/reducers/ui";
 
 import {Themes} from "@shared-types/ui";
 
-import { SnackbarProvider } from "notistack";
-import { WelcomeDialog } from "@components/WelcomeDialog";
-
-import { Theme } from "./themes/theme";
+import {SnackbarProvider} from "notistack";
 
 import "./App.css";
+import {Theme} from "./themes/theme";
 import "./themes/theme.scss";
 
 export const ColorModeContext = React.createContext({

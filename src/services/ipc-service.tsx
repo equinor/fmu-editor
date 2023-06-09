@@ -5,8 +5,8 @@ import React from "react";
 import {useMainProcessDataProvider} from "@components/MainProcessDataProvider/main-process-data-provider";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import { saveFile } from "@redux/thunks";
-import { setFirstTimeUser } from "@redux/reducers/ui";
+import {setFirstTimeUser} from "@redux/reducers/ui";
+import {saveFile} from "@redux/thunks";
 
 import {NotificationType} from "@shared-types/notifications";
 

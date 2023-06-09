@@ -10,7 +10,10 @@ export type SurfaceProps = {
 
 export const Surface: React.FC<SurfaceProps> = props => {
     return (
-        <div id={props.id} className={`${props.className ? `${props.className} ` : ``}Surface elevation-${props.elevation}`}>
+        <div
+            id={props.id}
+            className={`${props.className ? `${props.className} ` : ``}Surface elevation-${props.elevation}`}
+        >
             {props.children}
         </div>
     );

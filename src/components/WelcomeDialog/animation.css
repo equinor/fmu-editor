@@ -17,18 +17,20 @@
     animation: click-effect 0.4s ease-out;
 }
 
-@keyframes click-effect{
+@keyframes click-effect {
     0% {
-        opacity:1;
-        width:0.5em; height:0.5em;
-        margin:-0.25em;
-        border-width:0.5em;
+        opacity: 1;
+        width: 0.5em;
+        height: 0.5em;
+        margin: -0.25em;
+        border-width: 0.5em;
     }
 
     100% {
-        opacity:0.2;
-        width:15em; height:15em;
-        margin:-7.5em;
-        border-width:0.03em;
+        opacity: 0.2;
+        width: 15em;
+        height: 15em;
+        margin: -7.5em;
+        border-width: 0.03em;
     }
 }

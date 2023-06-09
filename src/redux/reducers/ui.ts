@@ -94,7 +94,7 @@ export const uiSlice = createSlice({
         setFirstTimeUser: (state: Draft<UiState>, action: PayloadAction<boolean>) => {
             state.firstTimeUser = action.payload;
             electronStore.set("ui.firstTimeUser", action.payload);
-        }
+        },
     },
 });
 

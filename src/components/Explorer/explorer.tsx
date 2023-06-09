@@ -169,7 +169,12 @@ export const Explorer: React.FC = () => {
         if (fmuDirectory === null || fmuDirectoryPath === "" || !fmuDirectory.exists()) {
             return (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
-                    <LoadingButton variant="contained" onClick={handleOpenDirectoryClick} loading={loading} id="select-fmu-directory-button">
+                    <LoadingButton
+                        variant="contained"
+                        onClick={handleOpenDirectoryClick}
+                        loading={loading}
+                        id="select-fmu-directory-button"
+                    >
                         Select FMU Model Directory
                     </LoadingButton>
                     <Typography>In order to start using the editor, please select your FMU model directory.</Typography>
@@ -183,7 +188,12 @@ export const Explorer: React.FC = () => {
         if (workingDirectory === null || workingDirectoryPath === "" || !workingDirectory.exists()) {
             return (
                 <Stack className="ExplorerNoDirectory" spacing={2}>
-                    <LoadingButton variant="contained" onClick={toggleDrawer(true)} loading={loading} id="select-model-version-button">
+                    <LoadingButton
+                        variant="contained"
+                        onClick={toggleDrawer(true)}
+                        loading={loading}
+                        id="select-model-version-button"
+                    >
                         Select Model Version
                     </LoadingButton>
                     <Typography>In order to start using the editor, please select your model version.</Typography>
@@ -245,10 +255,20 @@ export const Explorer: React.FC = () => {
                         >
                             <VscNewFolder />
                         </IconButton>
-                        <IconButton id="refresh-explorer-button" size="small" title="Refresh" onClick={() => refreshExplorer()}>
+                        <IconButton
+                            id="refresh-explorer-button"
+                            size="small"
+                            title="Refresh"
+                            onClick={() => refreshExplorer()}
+                        >
                             <VscRefresh />
                         </IconButton>
-                        <IconButton id="collapse-explorer-button" size="small" title="Collapse all" onClick={() => handleCollapseAll()}>
+                        <IconButton
+                            id="collapse-explorer-button"
+                            size="small"
+                            title="Collapse all"
+                            onClick={() => handleCollapseAll()}
+                        >
                             <VscCollapseAll />
                         </IconButton>
                     </Stack>

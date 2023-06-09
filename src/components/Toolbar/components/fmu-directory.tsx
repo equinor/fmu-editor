@@ -17,7 +17,12 @@ export const FmuDirectory: React.FC = () => {
         selectFmuDirectory(fmuDirectoryPath, dispatch);
     };
     return (
-        <Button id="status-bar-fmu-directory" size="small" onClick={handleOpenDirectoryClick} title="Current FMU directory. Click to change.">
+        <Button
+            id="status-bar-fmu-directory"
+            size="small"
+            onClick={handleOpenDirectoryClick}
+            title="Current FMU directory. Click to change."
+        >
             <VscFolderActive />
             <span>
                 {fmuDirectoryPath === "" || !fmuDirectory.exists() ? (

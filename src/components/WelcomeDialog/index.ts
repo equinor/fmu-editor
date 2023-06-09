@@ -1,1 +1,1 @@
-export { WelcomeDialog } from "./welcome-dialog";
+export {WelcomeDialog} from "./welcome-dialog";
