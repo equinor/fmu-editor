@@ -1,6 +1,8 @@
+import {LanguageServiceDefaults} from "@shared-types/language-options";
+
 import {languages} from "monaco-editor";
 
-import {LanguageServiceDefaults, languageId} from "./constants";
+import {languageId} from "./constants";
 import {
     createDistributionHoverProvider,
     createKeywordsCompletionProvider,

@@ -9,7 +9,7 @@ import {IpcService} from "@services/ipc-service";
 
 import React from "react";
 
-import {GlobalSettingsProvider} from "@components/GlobalSettingsProvider";
+import {DialogProvider} from "@components/DialogProvider";
 import {LoginDialog} from "@components/LoginDialog";
 import {MainProcessDataProvider} from "@components/MainProcessDataProvider";
 import {MainWindow} from "@components/MainWindow";
@@ -58,21 +58,21 @@ const App = (): JSX.Element => {
             maxSnack={3}
             anchorOrigin={{vertical: "bottom", horizontal: "right"}}
         >
-            <GlobalSettingsProvider>
-                <MainProcessDataProvider>
-                    <ColorModeContext.Provider value={colorMode}>
-                        <ThemeProvider theme={Theme(mode)}>
-                            <NotificationsProvider>
-                                <IpcService>
+            <MainProcessDataProvider>
+                <ColorModeContext.Provider value={colorMode}>
+                    <ThemeProvider theme={Theme(mode)}>
+                        <NotificationsProvider>
+                            <IpcService>
+                                <DialogProvider>
                                     <WelcomeDialog />
                                     <MainWindow />
                                     <LoginDialog />
-                                </IpcService>
-                            </NotificationsProvider>
-                        </ThemeProvider>
-                    </ColorModeContext.Provider>
-                </MainProcessDataProvider>
-            </GlobalSettingsProvider>
+                                </DialogProvider>
+                            </IpcService>
+                        </NotificationsProvider>
+                    </ThemeProvider>
+                </ColorModeContext.Provider>
+            </MainProcessDataProvider>
         </SnackbarProvider>
     );
 };

@@ -24,6 +24,7 @@ import {AppMessageBus} from "@src/framework/app-message-bus";
 
 import {Directory} from "@utils/file-system/directory";
 
+import {DialogContext} from "@components/DialogProvider";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
@@ -58,6 +59,8 @@ export const Explorer: React.FC = () => {
     const dispatch = useAppDispatch();
     const theme = useTheme();
     const activeItemPath = useAppSelector(state => state.ui.explorer.activeItemPath);
+
+    const setDialog = React.useContext(DialogContext);
 
     React.useEffect(() => {
         const handleCopyUserDirectoryProgress = (
@@ -134,9 +137,25 @@ export const Explorer: React.FC = () => {
     }, [refreshExplorer]);
 
     const handleWorkingDirectoryChange = (dir: string) => {
-        dispatch(setWorkingDirectoryPath({path: dir}));
-        setLoading(true);
-        setDrawerOpen(false);
+        const confirmFunc = () => {
+            dispatch(setWorkingDirectoryPath({path: dir}));
+            setLoading(true);
+            setDrawerOpen(false);
+        };
+        const dirObj = new Directory("", dir);
+        if (dirObj.getUserVersion(username).exists()) {
+            confirmFunc();
+        } else {
+            const confirmDialog = {
+                title: "Select model version",
+                content: "This will create a new user copy if one does not yet exist. Continue?",
+                confirmText: "Continue",
+                confirmFunc,
+                closeText: "Cancel",
+                closeFunc: () => setDrawerOpen(false),
+            };
+            setDialog(confirmDialog);
+        }
     };
 
     const toggleDrawer = React.useCallback(
@@ -153,15 +172,15 @@ export const Explorer: React.FC = () => {
         []
     );
 
-    const makeContent = React.useCallback(() => {
-        const handleOpenDirectoryClick = async () => {
-            setLoading(true);
-            const success = await selectFmuDirectory(fmuDirectoryPath, dispatch);
-            if (!success) {
-                setLoading(false);
-            }
-        };
+    const handleOpenDirectoryClick = async () => {
+        setLoading(true);
+        const success = await selectFmuDirectory(fmuDirectoryPath, dispatch);
+        if (!success) {
+            setLoading(false);
+        }
+    };
 
+    const makeContent = React.useCallback(() => {
         const handleCollapseAll = () => {
             dispatch(setFileTreeStates([]));
         };
@@ -304,28 +323,43 @@ export const Explorer: React.FC = () => {
         copyUserDirectoryState,
     ]);
 
+    const workingDirectoryCandidates =
+        fmuDirectory !== null ? fmuDirectory.getContent().filter(el => el.isDirectory()) : [];
+
     return (
         <Surface elevation="raised" className="Explorer" id="explorer">
             <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
                 <List className="DirectoryDrawer">
-                    {fmuDirectory !== null &&
-                        fmuDirectory
-                            .getContent()
-                            .filter(el => el.isDirectory())
-                            .map(el => (
-                                <ListItem key={el.absolutePath()} disablePadding>
-                                    <ListItemButton onClick={() => handleWorkingDirectoryChange(el.absolutePath())}>
-                                        <ListItemIcon>
-                                            {workingDirectory !== null &&
-                                                el.absolutePath() ===
-                                                    workingDirectory.getMainVersion().absolutePath() && (
-                                                    <VscCheck fontSize="small" color="var(--text-on-primary)" />
-                                                )}
-                                        </ListItemIcon>
-                                        <ListItemText>{el.baseName()}</ListItemText>
-                                    </ListItemButton>
-                                </ListItem>
-                            ))}
+                    {workingDirectoryCandidates.map(el => (
+                        <ListItem key={el.absolutePath()} disablePadding>
+                            <ListItemButton onClick={() => handleWorkingDirectoryChange(el.absolutePath())}>
+                                <ListItemIcon>
+                                    {workingDirectory !== null &&
+                                        el.absolutePath() === workingDirectory.getMainVersion().absolutePath() && (
+                                            <VscCheck fontSize="small" color="var(--text-on-primary)" />
+                                        )}
+                                </ListItemIcon>
+                                <ListItemText>{el.baseName()}</ListItemText>
+                            </ListItemButton>
+                        </ListItem>
+                    ))}
+                    {workingDirectoryCandidates.length === 0 && (
+                        <div style={{padding: "var(--spacing-x)", width: 300}}>
+                            The selected FMU directory does not contain any possible working directories.
+                            <LoadingButton
+                                variant="contained"
+                                color="secondary"
+                                style={{marginTop: "var(--spacing-m)"}}
+                                onClick={() => {
+                                    handleOpenDirectoryClick();
+                                    setDrawerOpen(false);
+                                }}
+                                loading={loading}
+                            >
+                                Change FMU Model Directory
+                            </LoadingButton>
+                        </div>
+                    )}
                 </List>
             </Drawer>
             {makeContent()}
