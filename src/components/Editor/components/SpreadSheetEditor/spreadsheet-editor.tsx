@@ -757,6 +757,10 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
 
     React.useEffect(() => {
         let mouseDown = false;
+        if (!props.visible) {
+            return;
+        }
+
         let newSelection: SpreadSheetSelection | null = null;
         const handlePointerDown = (e: PointerEvent) => {
             if (!(e.target instanceof HTMLElement)) {
@@ -844,14 +848,22 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             document.removeEventListener("pointermove", handlePointerMove);
             document.removeEventListener("pointerup", handlePointerUp);
         };
-    }, [updateViewStateSelection]);
+    }, [updateViewStateSelection, props.visible]);
 
     React.useEffect(() => {
+        if (!props.visible) {
+            return;
+        }
+
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "ArrowUp") {
                 e.preventDefault();
                 setEditingCell(null);
                 setSelection(prev => {
+                    if (prev === null) {
+                        return prev;
+                    }
+
                     if (prev.end.row === 0) {
                         return prev;
                     }
@@ -870,6 +882,10 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                 e.preventDefault();
                 setEditingCell(null);
                 setSelection(prev => {
+                    if (prev === null) {
+                        return prev;
+                    }
+
                     const newSelection = {
                         start: {row: prev.start.row + 1, column: prev.start.column},
                         end: {row: prev.start.row + 1, column: prev.start.column},
@@ -884,6 +900,10 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                 e.preventDefault();
                 setEditingCell(null);
                 setSelection(prev => {
+                    if (prev === null) {
+                        return prev;
+                    }
+
                     if (prev.end.column === 0) {
                         return prev;
                     }
@@ -902,6 +922,9 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                 e.preventDefault();
                 setEditingCell(null);
                 setSelection(prev => {
+                    if (prev === null) {
+                        return prev;
+                    }
                     const newSelection = {
                         start: {row: prev.start.row, column: prev.start.column + 1},
                         end: {row: prev.start.row, column: prev.start.column + 1},
@@ -913,9 +936,12 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             }
 
             if (e.key === "Enter") {
-                setEditingCell(null);
                 e.preventDefault();
+                setEditingCell(null);
                 setSelection(prev => {
+                    if (prev === null) {
+                        return prev;
+                    }
                     const newSelection = {
                         start: {row: prev.start.row + 1, column: prev.start.column},
                         end: {row: prev.start.row + 1, column: prev.start.column},
@@ -1086,6 +1112,7 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
         calcNumColumns,
         calcNumRows,
         updateViewStateSelection,
+        props.visible,
     ]);
 
     /* ----------------- Event Handlers ----------------- */
