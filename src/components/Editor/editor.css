@@ -30,6 +30,12 @@
     flex-grow: 4;
 }
 
+.EditorContent {
+    flex-grow: 4;
+    min-height: 0;
+    height: 0;
+}
+
 .EditorInput {
     flex-grow: 4;
 }
