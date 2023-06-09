@@ -12,7 +12,6 @@ import {NotificationType} from "@shared-types/notifications";
 import {notificationsService} from "./notifications-service";
 
 import electronStore from "../utils/electron-store";
-import {getEditorValue} from "../utils/monaco";
 
 export const IpcService: React.FC = props => {
     const dispatch = useAppDispatch();
@@ -31,7 +30,7 @@ export const IpcService: React.FC = props => {
         };
 
         addListener("save-file", () => {
-            saveFile(activeFilePath, getEditorValue(activeFilePath) || "", workingDirectoryPath, dispatch);
+            saveFile(activeFilePath, workingDirectoryPath, dispatch);
         });
 
         addListener("error", (_, errorMessage) => {

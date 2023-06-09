@@ -1,4 +1,5 @@
 import {AppMessageBus} from "@framework/app-message-bus";
+import {GlobalSettings} from "@global/global-settings";
 import {useYamlSchemas} from "@hooks/useYamlSchema";
 import {Close} from "@mui/icons-material";
 import {Button, IconButton, useTheme} from "@mui/material";
@@ -13,7 +14,6 @@ import {DiffEditorDidMount, MonacoDiffEditor, monaco} from "react-monaco-editor"
 import {File} from "@utils/file-system/file";
 import {SyncSnapshot} from "@utils/file-system/snapshot";
 
-import {useGlobalSettings} from "@components/GlobalSettingsProvider/global-settings-provider";
 import {Surface} from "@components/Surface";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
@@ -89,7 +89,6 @@ export const DiffEditor: React.VFC<DiffEditorProps> = props => {
 
     const dispatch = useAppDispatch();
     const theme = useTheme();
-    const globalSettings = useGlobalSettings();
     const [diffEditorTotalWidth, diffEditorTotalHeight] = useSize(diffEditorRef);
 
     useYamlSchemas(yaml);
@@ -159,7 +158,7 @@ export const DiffEditor: React.VFC<DiffEditorProps> = props => {
         if (
             !diff.originalRelativeFilePath ||
             !diff.modifiedRelativeFilePath ||
-            !globalSettings.supportedFileExtensions.includes(path.extname(diff.originalRelativeFilePath))
+            !GlobalSettings.supportedFileExtensions().includes(path.extname(diff.originalRelativeFilePath))
         ) {
             monacoDiffEditorRef.current?.setModel({
                 original: monaco.editor.createModel("", "yaml"),
@@ -169,11 +168,11 @@ export const DiffEditor: React.VFC<DiffEditorProps> = props => {
             if (
                 diff.originalRelativeFilePath &&
                 diff.modifiedRelativeFilePath &&
-                !globalSettings.supportedFileExtensions.includes(path.extname(diff.originalRelativeFilePath))
+                !GlobalSettings.supportedFileExtensions().includes(path.extname(diff.originalRelativeFilePath))
             ) {
                 notificationsService.publishNotification({
                     type: NotificationType.INFORMATION,
-                    message: `You can only use the diff editor for files with the following extensions: ${globalSettings.supportedFileExtensions.join(
+                    message: `You can only use the diff editor for files with the following extensions: ${GlobalSettings.supportedFileExtensions().join(
                         ", "
                     )}`,
                 });
@@ -189,7 +188,7 @@ export const DiffEditor: React.VFC<DiffEditorProps> = props => {
             if (!userModel) {
                 userModel = monaco.editor.createModel(
                     mergeUserFile.readString(),
-                    globalSettings.languageForFileExtension(path.extname(diff.modifiedRelativeFilePath)),
+                    GlobalSettings.languageForFileExtension(path.extname(diff.modifiedRelativeFilePath)),
                     monaco.Uri.file(diff.modifiedRelativeFilePath)
                 );
             } else {
@@ -201,7 +200,7 @@ export const DiffEditor: React.VFC<DiffEditorProps> = props => {
             if (!mainModel) {
                 mainModel = monaco.editor.createModel(
                     mergeMainFile.readString(),
-                    globalSettings.languageForFileExtension(path.extname(diff.modifiedRelativeFilePath)),
+                    GlobalSettings.languageForFileExtension(path.extname(diff.modifiedRelativeFilePath)),
                     monaco.Uri.file(diff.originalRelativeFilePath)
                 );
             } else {
@@ -218,14 +217,7 @@ export const DiffEditor: React.VFC<DiffEditorProps> = props => {
                 }
             }
         }
-    }, [
-        workingDirectoryPath,
-        dispatch,
-        globalSettings.supportedFileExtensions,
-        diff.originalRelativeFilePath,
-        diff.modifiedRelativeFilePath,
-        globalSettings,
-    ]);
+    }, [workingDirectoryPath, dispatch, diff.originalRelativeFilePath, diff.modifiedRelativeFilePath]);
 
     const handleClose = () => {
         props.onClose && props.onClose();

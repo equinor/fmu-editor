@@ -1,4 +1,5 @@
 import React from "react";
+import ReactDOM from "react-dom";
 
 import {v4} from "uuid";
 
@@ -95,7 +96,7 @@ export const ContextMenu: React.VFC<ContextMenuProps> = props => {
         return style;
     };
 
-    return (
+    return ReactDOM.createPortal(
         <div className="ContextMenuOverlay" ref={overlayRef}>
             <div className="ContextMenu" style={makeStyle()}>
                 {props.template.map(item =>
@@ -108,6 +109,7 @@ export const ContextMenu: React.VFC<ContextMenuProps> = props => {
                     )
                 )}
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
