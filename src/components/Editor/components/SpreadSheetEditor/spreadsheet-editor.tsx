@@ -216,7 +216,8 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
         column: 0,
         row: 0,
     });
-    const [ignored, forceUpdate] = React.useReducer(x => x + 1, 0);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, forceUpdate] = React.useReducer(x => x + 1, 0);
     const [programaticScrolling, setProgramaticScrolling] = React.useState<boolean>(false);
     const [maxCellRange, setMaxCellRange] = React.useState<{column: number; row: number}>({column: 0, row: 0});
     const [columnWidths, setColumnWidths] = React.useState<{[key: number]: number}>({});

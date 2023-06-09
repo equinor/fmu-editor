@@ -71,6 +71,7 @@ export const RowHeader: React.FC<RowHeaderProps> = props => {
                 document.removeEventListener("pointerup", handlePointerUp);
             }
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.onResize, props.absoluteIndex]);
 
     const contextMenuTemplate: ContextMenuTemplate = [

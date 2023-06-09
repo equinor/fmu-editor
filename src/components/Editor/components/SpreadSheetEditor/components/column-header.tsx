@@ -26,7 +26,9 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = props => {
     React.useEffect(() => {
         let dragging: boolean = false;
         let newWidth: number = 0;
-        const handlePointerDown = (e: PointerEvent) => {
+        const resizeHandleRefCurrent = resizeHandleRef.current;
+
+        const handlePointerDown = () => {
             dragging = true;
             document.body.style.cssText = "cursor: col-resize !important";
         };
@@ -55,19 +57,20 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = props => {
             setWidth(newWidth);
         };
 
-        if (resizeHandleRef.current) {
-            resizeHandleRef.current.addEventListener("pointerdown", handlePointerDown);
+        if (resizeHandleRefCurrent) {
+            resizeHandleRefCurrent.addEventListener("pointerdown", handlePointerDown);
             document.addEventListener("pointermove", handleColumnPointerMove);
             document.addEventListener("pointerup", handlePointerUp);
         }
 
         return () => {
-            if (resizeHandleRef.current) {
-                resizeHandleRef.current.removeEventListener("pointerdown", handlePointerDown);
+            if (resizeHandleRefCurrent) {
+                resizeHandleRefCurrent.removeEventListener("pointerdown", handlePointerDown);
                 document.removeEventListener("pointermove", handleColumnPointerMove);
                 document.removeEventListener("pointerup", handlePointerUp);
             }
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.onResize, props.absoluteIndex]);
 
     const contextMenuTemplate: ContextMenuTemplate = [
