@@ -14,6 +14,7 @@ import {LoginDialog} from "@components/LoginDialog";
 import {MainProcessDataProvider} from "@components/MainProcessDataProvider";
 import {MainWindow} from "@components/MainWindow";
 import {NotificationsProvider} from "@components/Notifications";
+import {WelcomeDialog} from "@components/WelcomeDialog";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {setTheme} from "@redux/reducers/ui";
@@ -63,6 +64,7 @@ const App = (): JSX.Element => {
                         <NotificationsProvider>
                             <IpcService>
                                 <DialogProvider>
+                                    <WelcomeDialog />
                                     <MainWindow />
                                     <LoginDialog />
                                 </DialogProvider>

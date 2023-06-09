@@ -63,7 +63,7 @@ export const MainWindow: React.FC = () => {
         <div className="MainWindow" ref={mainWindowRef} style={{backgroundColor: theme.palette.background.default}}>
             <div className="ContentWrapper">
                 <PageTabs />
-                <div className="InnerContentWrapper">
+                <div className="InnerContentWrapper" id="inner-content-wrapper">
                     <Pages activePage={view}>
                         <Page name={View.Editor} persistent>
                             <ResizablePanels direction="horizontal" id="file-explorer" minSizes={[250, 0]}>

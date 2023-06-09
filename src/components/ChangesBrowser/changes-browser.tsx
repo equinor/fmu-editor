@@ -41,6 +41,7 @@ export const ChangesBrowser: React.VFC = () => {
                 <>
                     {userFileChanges.length > 0 && (
                         <Button
+                            id="current-changes-button"
                             onClick={() => handleViewChange(ChangesBrowserView.CurrentChanges)}
                             sx={{width: "100%", borderRadius: 0}}
                             variant="contained"

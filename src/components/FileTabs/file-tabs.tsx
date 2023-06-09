@@ -62,7 +62,9 @@ export const FileTabs: React.FC<FileTabsProps> = props => {
                 ))}
             </div>
             <div className="Divider Divider--vertical" />
-            <div className="FileTabsActions">{props.actions}</div>
+            <div className="FileTabsActions" id="file-tabs-actions">
+                {props.actions}
+            </div>
         </Surface>
     );
 };

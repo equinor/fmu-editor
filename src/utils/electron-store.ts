@@ -138,6 +138,9 @@ const schema = {
                     },
                 },
             },
+            firstTimeUser: {
+                type: "boolean",
+            },
         },
     },
     files: {
