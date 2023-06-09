@@ -81,8 +81,8 @@ function makeColumnName(index: number): string {
     return `${firstLetter ?? ""}${secondLetter}`;
 }
 
-function makeCellKey(column: number, row: number, value: string): string {
-    return `${makeColumnName(column)}-${row}-${value}`;
+function makeCellKey(column: number, row: number): string {
+    return `${makeColumnName(column)}-${row}`;
 }
 
 function isCellContainedInSelection(selection: SpreadSheetSelection, column: number, row: number): boolean {
@@ -412,11 +412,8 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             const oldValue = currentSheet.sheet[address]?.v || "";
 
             if (typeof value === "string") cell.t = "s";
-            // string
             else if (typeof value === "number") cell.t = "n";
-            // number
             else if (value === true || value === false) cell.t = "b";
-            // boolean
             else if (value instanceof Date) cell.t = "d";
             else throw new Error("cannot store value");
 
@@ -472,7 +469,6 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
 
     const updateViewStateColumnWidths = React.useCallback(
         (newColumnWidths: {[key: number]: number}) => {
-            console.log("updating view state column widths");
             if (!activeFilePath || !currentSheet) {
                 return;
             }
@@ -503,7 +499,6 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
 
     const updateViewStateRowHeights = React.useCallback(
         (newRowHeights: {[key: number]: number}) => {
-            console.log("updating view state row heights");
             if (!activeFilePath || !currentSheet) {
                 return;
             }
@@ -931,12 +926,12 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                 return;
             }
 
-            if (e.key === "Delete") {
+            if (e.key === "Delete" || e.key === "Backspace") {
                 e.preventDefault();
-                const startRow = selection.start.row;
-                const startColumn = selection.start.column;
-                const endRow = selection.end.row;
-                const endColumn = selection.end.column;
+                const startRow = Math.min(selection.start.row, selection.end.row);
+                const startColumn = Math.min(selection.start.column, selection.end.column);
+                const endRow = Math.max(selection.start.row, selection.end.row);
+                const endColumn = Math.max(selection.start.column, selection.end.column);
 
                 for (let r = startRow; r <= endRow; r++) {
                     for (let c = startColumn; c <= endColumn; c++) {
@@ -956,10 +951,10 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             if (e.key === "c" && e.ctrlKey) {
                 e.preventDefault();
 
-                const startRow = selection.start.row;
-                const startColumn = selection.start.column;
-                const endRow = Math.min(selection.end.row, maxCellRange.row);
-                const endColumn = Math.min(selection.end.column, maxCellRange.column);
+                const startRow = Math.min(selection.start.row, selection.end.row);
+                const startColumn = Math.min(selection.start.column, selection.end.column);
+                const endRow = Math.min(Math.max(selection.start.row, selection.end.row), maxCellRange.row);
+                const endColumn = Math.min(Math.max(selection.start.column, selection.end.column), maxCellRange.column);
 
                 const rows: string[] = [];
                 for (let r = startRow; r <= endRow; r++) {
@@ -1033,6 +1028,31 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                 };
                 updateViewStateSelection(newSelection);
                 setSelection(newSelection);
+                return;
+            }
+
+            if (e.key === "d" && e.ctrlKey) {
+                e.preventDefault();
+                ipcRenderer
+                    .invoke(IpcMessages.WRITE_TO_CLIPBOARD, "")
+                    .then((result: boolean) => {
+                        if (result) {
+                            setCopyingSelection(null);
+                            return;
+                        }
+                        setCopyingSelection(null);
+                        notificationsService.publishNotification({
+                            type: NotificationType.ERROR,
+                            message: "Failed to clear clipboard",
+                        });
+                    })
+                    .catch(() => {
+                        setCopyingSelection(null);
+                        notificationsService.publishNotification({
+                            type: NotificationType.ERROR,
+                            message: "Failed to clear clipboard",
+                        });
+                    });
                 return;
             }
 
@@ -1341,11 +1361,7 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                                                         const absoluteColumn = column + startCell.column;
                                                         return (
                                                             <td
-                                                                key={makeCellKey(
-                                                                    absoluteColumn,
-                                                                    absoluteRow,
-                                                                    getCellValue(absoluteRow, absoluteColumn)
-                                                                )}
+                                                                key={makeCellKey(absoluteColumn, absoluteRow)}
                                                                 className={`SpreadSheetTable__cell${makeCellClassesBasedOnSelection(
                                                                     selection,
                                                                     absoluteRow,
