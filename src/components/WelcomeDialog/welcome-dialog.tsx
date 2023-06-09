@@ -1,5 +1,5 @@
 import {useFileChanges} from "@hooks/useFileChanges";
-import {Button, Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
+import {Button, Dialog, DialogActions, DialogContent, DialogTitle, useTheme} from "@mui/material";
 import {useEnvironmentService} from "@services/environment-service";
 
 import React from "react";
@@ -16,11 +16,14 @@ import {ChangesBrowserView, View} from "@shared-types/ui";
 import path from "path";
 
 import {animateMouseClick} from "./animations";
+import "./welcome-dialog.css";
 
 const FILE_ORIGINS = [FileChangeOrigin.USER, FileChangeOrigin.BOTH];
 
 export const WelcomeDialog: React.FC = () => {
     const [tourOpen, setTourOpen] = React.useState<boolean>(false);
+
+    const theme = useTheme();
 
     const open = useAppSelector(state => state.ui.firstTimeUser);
     const fmuDirectoryPath = useAppSelector(state => state.files.fmuDirectoryPath);
@@ -255,7 +258,15 @@ export const WelcomeDialog: React.FC = () => {
 
     return (
         <>
-            <Dialog open={open} onClose={handleCancel}>
+            <Dialog
+                open={open}
+                onClose={handleCancel}
+                PaperProps={{
+                    style: {
+                        backgroundColor: theme.palette.background.default,
+                    },
+                }}
+            >
                 <DialogTitle>Welcome to FMU editor</DialogTitle>
                 <DialogContent>
                     This seems to be your first time using FMU editor. If you like, you can take a tour of the
@@ -274,6 +285,7 @@ export const WelcomeDialog: React.FC = () => {
                 steps={makeTourSteps()}
                 isOpen={tourOpen}
                 onRequestClose={handleCancel}
+                className="TourHelper"
             />
         </>
     );
