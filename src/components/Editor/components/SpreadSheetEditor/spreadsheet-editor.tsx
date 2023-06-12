@@ -1,5 +1,5 @@
 import {editor} from "@editors/editor";
-import {SpreadSheetEditor as SpreadSheetEditorType} from "@editors/spreadsheet";
+import {CellAddressAndValues, SpreadSheetEditor as SpreadSheetEditorType} from "@editors/spreadsheet";
 import {EditorType, GlobalSettings} from "@global/global-settings";
 import {useElementSize} from "@hooks/useElementSize";
 import {SpreadSheetEditorViewState} from "@root/src/shared-types/files";
@@ -43,6 +43,8 @@ enum ScrollDirection {
     Right,
     None,
 }
+
+type CellAddressAndValue = {row: number; column: number; value: string};
 
 type ScrollDirections = {
     horizontal: ScrollDirection.Left | ScrollDirection.Right | ScrollDirection.None;
@@ -405,8 +407,8 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
         [currentSheet]
     );
 
-    const changeCellValue = React.useCallback(
-        (row: number, column: number, value: any) => {
+    const setCellValue = React.useCallback(
+        (row: number, column: number, value: any): any => {
             const cell = {t: "?", v: value};
             const address = utils.encode_cell({c: column, r: row});
 
@@ -435,16 +437,45 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                 row: Math.max(row, maxCellRange.row),
             });
 
-            editor.getOriginalEditor<SpreadSheetEditorType>(activeFilePath).addAction(
-                activeFilePath,
-                currentSheet.name,
-                {
+            return oldValue;
+        },
+        [currentSheet, maxCellRange]
+    );
+
+    const changeCellValue = React.useCallback(
+        (row: number, column: number, value: any) => {
+            const oldValue = setCellValue(row, column, value);
+
+            editor
+                .getOriginalEditor<SpreadSheetEditorType>(activeFilePath)
+                .addAction(activeFilePath, currentSheet.name, [
+                    {
+                        r: row,
+                        c: column,
+                        v: value,
+                        ov: oldValue,
+                    },
+                ]);
+        },
+        [currentSheet, maxCellRange]
+    );
+
+    const changeCellsValues = React.useCallback(
+        (addressesAndValues: CellAddressAndValue[]) => {
+            const changedCells: CellAddressAndValues[] = [];
+            addressesAndValues.forEach(({row, column, value}) => {
+                const oldValue = setCellValue(row, column, value);
+                changedCells.push({
                     r: row,
                     c: column,
-                },
-                oldValue,
-                value
-            );
+                    v: value,
+                    ov: oldValue,
+                });
+            });
+
+            editor
+                .getOriginalEditor<SpreadSheetEditorType>(activeFilePath)
+                .addAction(activeFilePath, currentSheet.name, changedCells);
         },
         [currentSheet, maxCellRange]
     );
@@ -773,14 +804,12 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             if (cell.classList.contains("RowHeaderCell")) {
                 const rowIndex = parseInt(cell.dataset.rowIndex ?? "0", 10);
                 setSelection({start: {row: rowIndex, column: 0}, end: {row: rowIndex, column: Infinity}});
-                setEditingCell({row: rowIndex, column: 0});
                 return;
             }
 
             if (cell.classList.contains("ColumnHeaderCell")) {
                 const colIndex = parseInt(cell.dataset.columnIndex ?? "0", 10);
                 setSelection({start: {row: 0, column: colIndex}, end: {row: Infinity, column: colIndex}});
-                setEditingCell({row: 0, column: colIndex});
                 return;
             }
 
@@ -963,11 +992,16 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                 const endRow = Math.max(selection.start.row, selection.end.row);
                 const endColumn = Math.max(selection.start.column, selection.end.column);
 
+                const changedCells: CellAddressAndValue[] = [];
+
                 for (let r = startRow; r <= endRow; r++) {
                     for (let c = startColumn; c <= endColumn; c++) {
-                        changeCellValue(r, c, "");
+                        changedCells.push({row: r, column: c, value: ""});
                     }
                 }
+
+                changeCellsValues(changedCells);
+
                 return;
             }
 
@@ -1021,19 +1055,25 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             if (e.key === "v" && e.ctrlKey) {
                 e.preventDefault();
 
-                const startRow = selection.start.row;
-                const startColumn = selection.start.column;
+                const startRow = Math.min(selection.start.row, selection.end.row);
+                const startColumn = Math.min(selection.start.column, selection.end.column);
 
                 ipcRenderer.invoke(IpcMessages.READ_FROM_CLIPBOARD).then(text => {
                     const lines = text.split("\n");
                     let maxColumn = 0;
+                    const changedCells: CellAddressAndValue[] = [];
                     for (let r = 0; r < lines.length; r++) {
                         const cells = lines[r].split("\t");
                         maxColumn = Math.max(maxColumn, cells.length);
                         for (let c = 0; c < cells.length; c++) {
-                            changeCellValue(startRow + r, startColumn + c, cells[c]);
+                            changedCells.push({
+                                row: startRow + r,
+                                column: startColumn + c,
+                                value: cells[c],
+                            });
                         }
                     }
+                    changeCellsValues(changedCells);
 
                     setSelection(prev => {
                         const newSelection = {
@@ -1126,16 +1166,21 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             return;
         }
 
+        const changedCells: CellAddressAndValue[] = [];
+
         for (let r = 0; r <= maxCellRange.row; r++) {
             for (let c = maxCellRange.column + 1; c >= index; c--) {
                 if (c > index) {
                     const prevValue = getCellValue(r, c - 1);
-                    changeCellValue(r, c, prevValue);
+                    changedCells.push({row: r, column: c, value: prevValue});
                 } else {
-                    changeCellValue(r, c, "");
+                    changedCells.push({row: r, column: c, value: ""});
                 }
             }
         }
+
+        changeCellsValues(changedCells);
+
         setMaxCellRange(prev => {
             return {row: prev.row, column: prev.column + 1};
         });
@@ -1146,12 +1191,17 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             return;
         }
 
+        const changedCells: CellAddressAndValue[] = [];
+
         for (let r = 0; r <= maxCellRange.row; r++) {
             for (let c = index; c <= maxCellRange.column; c++) {
                 const nextValue = getCellValue(r, c + 1);
-                changeCellValue(r, c, nextValue);
+                changedCells.push({row: r, column: c, value: nextValue});
             }
         }
+
+        changeCellsValues(changedCells);
+
         setMaxCellRange(prev => {
             return {row: prev.row, column: prev.column - 1};
         });
@@ -1162,16 +1212,21 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             return;
         }
 
+        const changedCells: CellAddressAndValue[] = [];
+
         for (let r = maxCellRange.row; r >= index; r--) {
             for (let c = 0; c <= maxCellRange.column; c++) {
                 if (r > index) {
                     const prevValue = getCellValue(r - 1, c);
-                    changeCellValue(r, c, prevValue);
+                    changedCells.push({row: r, column: c, value: prevValue});
                 } else {
-                    changeCellValue(r, c, "");
+                    changedCells.push({row: r, column: c, value: ""});
                 }
             }
         }
+
+        changeCellsValues(changedCells);
+
         setMaxCellRange(prev => {
             return {row: prev.row + 1, column: prev.column};
         });
@@ -1182,12 +1237,17 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             return;
         }
 
+        const changedCells: CellAddressAndValue[] = [];
+
         for (let r = index; r <= maxCellRange.row; r++) {
             for (let c = 0; c <= maxCellRange.column; c++) {
                 const nextValue = getCellValue(r + 1, c);
-                changeCellValue(r, c, nextValue);
+                changedCells.push({row: r, column: c, value: nextValue});
             }
         }
+
+        changeCellsValues(changedCells);
+
         setMaxCellRange(prev => {
             return {row: prev.row - 1, column: prev.column};
         });
