@@ -126,18 +126,9 @@ export const filesSlice = createSlice({
             );
             updateFilesInElectronStore(state);
         },
-        addFile: (
-            state: Draft<FilesState>,
-            action: PayloadAction<{
-                filePath: string;
-                fileContent: string;
-                permanentOpen: boolean;
-                mightBeBinary: boolean;
-            }>
-        ) => {
+        addFile: (state: Draft<FilesState>, action: PayloadAction<{filePath: string; permanentOpen: boolean}>) => {
             // Do not open file when already opened, but make it active
             const openedFile = state.files.find(el => el.filePath === action.payload.filePath);
-            state.activeFilePathMightBeBinary = action.payload.mightBeBinary;
             editor.openFile(action.payload.filePath);
             state.activeFilePath = action.payload.filePath;
             electronStore.set("files.activeFilePath", action.payload.filePath);
@@ -163,7 +154,6 @@ export const filesSlice = createSlice({
                 filePath: action.payload.filePath,
                 title: "",
                 permanentOpen: action.payload.permanentOpen,
-                mightBeBinary: action.payload.mightBeBinary,
             });
 
             updateFilesInElectronStore(state);

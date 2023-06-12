@@ -16,7 +16,7 @@ import {Preview} from "@components/Preview";
 import {ResizablePanels} from "@components/ResizablePanels";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {closeAllFiles, setActiveFilePath} from "@redux/reducers/files";
+import {closeAllFiles, closeFile, setActiveFilePath} from "@redux/reducers/files";
 import {setActiveItemPath, setPreviewOpen, setView} from "@redux/reducers/ui";
 import {openFile} from "@redux/thunks";
 
@@ -33,9 +33,9 @@ import "./editor.css";
 
 export const Editor: React.FC = () => {
     const setDialog = React.useContext(DialogContext);
+
     const [noModels, setNoModels] = React.useState<boolean>(false);
     const [userFilePath, setUserFilePath] = React.useState<string | null>(null);
-    const [lastActiveFilePath, setLastActiveFilePath] = React.useState<string | null>(null);
     const [binaryIsOkay, setBinaryIsOkay] = React.useState<boolean>(false);
     const [fileExists, setFileExists] = React.useState<boolean>(true);
     const [dragOver, setDragOver] = React.useState<boolean>(false);
@@ -46,7 +46,6 @@ export const Editor: React.FC = () => {
 
     const files = useAppSelector(state => state.files.files);
     const activeFilePath = useAppSelector(state => state.files.activeFilePath);
-    const activeFilePathMightBeBinary = useAppSelector(state => state.files.activeFilePathMightBeBinary);
     const workingDirectoryPath = useAppSelector(state => state.files.workingDirectoryPath);
     const previewVisible = useAppSelector(state => state.ui.previewOpen);
 
@@ -62,26 +61,25 @@ export const Editor: React.FC = () => {
         [dispatch]
     );
 
+    const handleOpenBinary = React.useCallback(() => {
+        const openBinaryDialog = {
+            title: "Unreadable file",
+            content: "This file appears to be a binary file, meaning it is not readable or editable as text. Open anyway?",
+            confirmText: "Continue",
+            confirmFunc: () => setBinaryIsOkay(true),
+            closeText: "Cancel",
+            closeFunc: () => {
+                dispatch(closeFile(activeFilePath));
+            },
+        };
+        setDialog(openBinaryDialog);
+    }, [activeFilePath, dispatch, setBinaryIsOkay, setDialog]);
+
     React.useEffect(() => {
         const file = files.find(el => el.filePath === activeFilePath);
         if (files.length === 0 || file === undefined) {
             setNoModels(true);
             return;
-        }
-
-        if (activeFilePathMightBeBinary && !binaryIsOkay) {
-            const confirmDialog = {
-                title: "Potential unreadable",
-                content: "This file appears to be a binary file, meaning it is not readable by a text editor. Open anyway?",
-                confirmText: "Continue",
-                confirmFunc: () => setBinaryIsOkay(true),
-                closeText: "Cancel",
-                closeFunc: () => {
-                    setLastActiveFilePath(null);
-                    setNoModels(true);
-                },
-            };
-            setDialog(confirmDialog);
         }
 
         if (file) {
@@ -95,14 +93,16 @@ export const Editor: React.FC = () => {
             const fileExtension = path.extname(currentFile.absolutePath());
 
             if (GlobalSettings.editorTypeForFileExtension(fileExtension) === EditorType.Monaco) {
+                if (!binaryIsOkay && currentFile.mightBeBinary()) {
+                    handleOpenBinary();
+                }
                 setEditorType(EditorType.Monaco);
             } else if (GlobalSettings.editorTypeForFileExtension(fileExtension) === EditorType.SpreadSheet) {
                 setEditorType(EditorType.SpreadSheet);
             }
         }
-
         setNoModels(false);
-    }, [activeFilePath, setDialog, binaryIsOkay, activeFilePathMightBeBinary, files, lastActiveFilePath, workingDirectoryPath]);
+    }, [activeFilePath, binaryIsOkay, handleOpenBinary, files, workingDirectoryPath]);
 
     React.useEffect(() => {
         if (noModels) {

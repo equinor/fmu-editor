@@ -76,6 +76,5 @@ export type FilesState = {
     fileTreeStates: {[key: string]: string[]};
     files: File[];
     activeFilePath: string;
-    activeFilePathMightBeBinary: boolean;
     eventSource: EventSource;
 };
