@@ -7,14 +7,16 @@ import {WorkBook, read, utils, write} from "xlsx";
 
 import {IEditor, IEditorBasic} from "./editor-basic";
 
+export type CellAddressAndValues = {
+    c: number;
+    r: number;
+    v: string;
+    ov: string;
+};
+
 type UndoStack = {
     sheetName: string;
-    cellAddress: {
-        c: number;
-        r: number;
-    };
-    oldValue: string;
-    newValue: string;
+    changedCells: CellAddressAndValues[];
 }[];
 
 export type WorkBooks = {
@@ -121,19 +123,13 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
         return file.writeBuffer(buffer);
     }
 
-    public addAction(
-        absoluteFilePath: string,
-        sheetName: string,
-        cellAddress: {c: number; r: number},
-        oldValue: string,
-        newValue: string
-    ): void {
+    public addAction(absoluteFilePath: string, sheetName: string, changedCells: CellAddressAndValues[]): void {
         const workBook = this.workBooks[absoluteFilePath];
         if (!workBook) {
             return;
         }
 
-        workBook.undoStack.push({sheetName, cellAddress, oldValue, newValue});
+        workBook.undoStack.push({sheetName, changedCells});
     }
 
     public undoAction(absoluteFilePath: string): void {
@@ -147,15 +143,19 @@ export class SpreadSheetEditor implements Omit<IEditor<WorkBook>, keyof IEditorB
             return;
         }
 
-        const {sheetName, cellAddress, oldValue} = undoAction;
+        const {sheetName, changedCells} = undoAction;
         const workSheet = workBook.workBook.Sheets[sheetName];
         if (!workSheet) {
             return;
         }
 
-        const cell = {t: "?", v: oldValue};
-        const address = utils.encode_cell(cellAddress);
+        changedCells.forEach(changedCell => {
+            const {c, r, ov} = changedCell;
+            const cellAddress = {c, r};
+            const cell = {t: "?", v: ov};
+            const address = utils.encode_cell(cellAddress);
 
-        workSheet[address] = cell;
+            workSheet[address] = cell;
+        });
     }
 }
