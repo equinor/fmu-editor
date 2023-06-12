@@ -989,8 +989,8 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
                 e.preventDefault();
                 const startRow = Math.min(selection.start.row, selection.end.row);
                 const startColumn = Math.min(selection.start.column, selection.end.column);
-                const endRow = Math.max(selection.start.row, selection.end.row);
-                const endColumn = Math.max(selection.start.column, selection.end.column);
+                const endRow = Math.min(Math.max(selection.start.row, selection.end.row), maxCellRange.row);
+                const endColumn = Math.min(Math.max(selection.start.column, selection.end.column), maxCellRange.column);
 
                 const changedCells: CellAddressAndValue[] = [];
 
