@@ -36,7 +36,7 @@ export const Editor: React.FC = () => {
 
     const [noModels, setNoModels] = React.useState<boolean>(false);
     const [userFilePath, setUserFilePath] = React.useState<string | null>(null);
-    const [binaryIsOkay, setBinaryIsOkay] = React.useState<boolean>(false);
+    const [openBinaryFiles, setOpenBinaryFiles] = React.useState<boolean>(false);
     const [fileExists, setFileExists] = React.useState<boolean>(true);
     const [dragOver, setDragOver] = React.useState<boolean>(false);
     const [editorType, setEditorType] = React.useState<EditorType>(EditorType.Monaco);
@@ -64,17 +64,14 @@ export const Editor: React.FC = () => {
     const handleOpenBinary = React.useCallback(() => {
         const openBinaryDialog = {
             title: "Unreadable file",
-            content:
-                "This file appears to be a binary file, meaning it is not readable or editable as text. Open anyway?",
+            content: "This file appears to be a binary file, meaning it's not readable as text. Open anyway?",
             confirmText: "Continue",
-            confirmFunc: () => setBinaryIsOkay(true),
+            confirmFunc: () => setOpenBinaryFiles(true),
             closeText: "Cancel",
-            closeFunc: () => {
-                dispatch(closeFile(activeFilePath));
-            },
+            closeFunc: () => dispatch(closeFile(activeFilePath)),
         };
         setDialog(openBinaryDialog);
-    }, [activeFilePath, dispatch, setBinaryIsOkay, setDialog]);
+    }, [activeFilePath, dispatch, setOpenBinaryFiles, setDialog]);
 
     React.useEffect(() => {
         const file = files.find(el => el.filePath === activeFilePath);
@@ -94,7 +91,7 @@ export const Editor: React.FC = () => {
             const fileExtension = path.extname(currentFile.absolutePath());
 
             if (GlobalSettings.editorTypeForFileExtension(fileExtension) === EditorType.Monaco) {
-                if (!binaryIsOkay && currentFile.mightBeBinary()) {
+                if (!openBinaryFiles && currentFile.mightBeBinary()) {
                     handleOpenBinary();
                 }
                 setEditorType(EditorType.Monaco);
@@ -103,7 +100,7 @@ export const Editor: React.FC = () => {
             }
         }
         setNoModels(false);
-    }, [activeFilePath, binaryIsOkay, handleOpenBinary, files, workingDirectoryPath]);
+    }, [activeFilePath, handleOpenBinary, files, openBinaryFiles, workingDirectoryPath]);
 
     React.useEffect(() => {
         if (noModels) {
