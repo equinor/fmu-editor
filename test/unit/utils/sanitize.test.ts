@@ -2,8 +2,8 @@ import {sanitizeFileName} from "@utils/sanitize";
 
 test("invalid filenames are sanitized", () => {
     const filenames = [
-        ['&invalid.csv', 'invalid.csv'],
-        ["d!i\"#$%&/()=?`", "di"],
+        ["&invalid.csv", "invalid.csv"],
+        ['d!i"#$%&/()=?`', "di"],
         ["*abcåå123.bak.tmp.swp.docx.zip@@\n\t", "abc123.bak.tmp.swp.docx.zip"],
     ];
     for (let i = 0; i < filenames.length; i++) {

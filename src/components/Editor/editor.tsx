@@ -64,7 +64,8 @@ export const Editor: React.FC = () => {
     const handleOpenBinary = React.useCallback(() => {
         const openBinaryDialog = {
             title: "Unreadable file",
-            content: "This file appears to be a binary file, meaning it is not readable or editable as text. Open anyway?",
+            content:
+                "This file appears to be a binary file, meaning it is not readable or editable as text. Open anyway?",
             confirmText: "Continue",
             confirmFunc: () => setBinaryIsOkay(true),
             closeText: "Cancel",
