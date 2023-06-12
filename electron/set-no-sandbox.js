@@ -18,7 +18,7 @@ if [ "$EXEC_DIR" == "/usr/bin" ]; then
 	EXEC_DIR="/opt/${params.packager.appInfo.productName}"
 fi
 
-exec "$EXEC_DIR/${params.packager.executableName}.bin" "$([ "$ALLOWS_UNPRIVILEGED" != 1 ] && echo '--no-sandbox')" "$@"
+exec "$EXEC_DIR/${params.packager.executableName}.bin" "$([ "$ALLOWS_UNPRIVILEGED" != 1 ] && echo '--no-sandbox')" "$@" > /tmp/fmu-editor.log 2>&1 &
 `;
 
 	try {
