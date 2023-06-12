@@ -131,7 +131,7 @@ export const UserDirectory: React.FC = () => {
     }, [fileChanges, initialized, progress, workingDirectoryPath]);
 
     return (
-        <>
+        <div id="status-bar-user-directory">
             <Button
                 size="small"
                 onClick={handleUserDirectoryClick}
@@ -151,6 +151,6 @@ export const UserDirectory: React.FC = () => {
             <div style={{width: 50, display: progress < 100 ? "block" : "none"}}>
                 <LinearProgress color="inherit" variant="determinate" value={progress} />
             </div>
-        </>
+        </div>
     );
 };

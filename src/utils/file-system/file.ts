@@ -9,14 +9,17 @@ export interface IFile extends IFileBasic {
     hash(): string | null;
     readString(): string | null;
     readJson(): any | null;
+    readBuffer(): Buffer | null;
     getModifications(): Modification[];
     writeString(str: string): boolean;
     writeJson(json: any): boolean;
+    writeBuffer(buffer: Buffer): boolean;
     copyTo(destination: string): boolean;
     push(): boolean;
     pull(username: string): boolean;
     isDirectory(): boolean;
     compare(other: File): boolean;
+    extension(): string;
 }
 
 export enum ModificationOwner {
@@ -153,6 +156,26 @@ export class File extends FileBasic implements IFile {
         }
     }
 
+    public readBuffer(): Buffer | null {
+        try {
+            const content = fs.readFileSync(this.absolutePath());
+            return content;
+        } catch (e) {
+            this._error = e;
+            return null;
+        }
+    }
+
+    public writeBuffer(buffer: Buffer): boolean {
+        try {
+            fs.writeFileSync(this.absolutePath(), buffer);
+            return true;
+        } catch (e) {
+            this._error = e;
+            return false;
+        }
+    }
+
     public push(): boolean {
         if (!this.isUserFile() || !this.exists()) {
             return false;
@@ -232,5 +255,9 @@ export class File extends FileBasic implements IFile {
 
     public compare(other: File): boolean {
         return this.hash() === other.hash();
+    }
+
+    public extension(): string {
+        return path.extname(this.absolutePath());
     }
 }

@@ -3,6 +3,7 @@ module.exports = {
         browser: true,
         es2021: true,
     },
+    root: true,
     extends: ["plugin:react/recommended", "airbnb", "prettier"],
     parser: "@typescript-eslint/parser",
     parserOptions: {
@@ -31,6 +32,7 @@ module.exports = {
         "no-unused-vars": "off",
         "@typescript-eslint/no-unused-vars": ["warn"],
         "import/no-extraneous-dependencies": "off",
+        "prefer-template": "off",
         "prefer-destructuring": "off",
         "no-param-reassign": "off",
         "no-use-before-define": "off",

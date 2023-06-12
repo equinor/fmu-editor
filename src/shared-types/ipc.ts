@@ -11,6 +11,9 @@ export enum IpcMessages {
     LOGGED_OUT = "logged-out",
     FILE_OPENED = "file-opened",
     PUSH_NOTIFICATION = "push-notification",
+    WRITE_TO_CLIPBOARD = "write-to-clipboard",
+    READ_FROM_CLIPBOARD = "read-from-clipboard",
+    INSPECT_ELEMENT = "inspect-element",
 }
 
 export enum IpcDebugMessages {

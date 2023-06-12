@@ -1,3 +1,4 @@
+import {editor} from "@editors/editor";
 import {useFileChanges} from "@hooks/useFileChanges";
 import {Close} from "@mui/icons-material";
 import {useTheme} from "@mui/material";
@@ -7,8 +8,6 @@ import React from "react";
 import {VscCircleFilled} from "react-icons/vsc";
 
 import {File} from "@utils/file-system/file";
-import {generateHashCode} from "@utils/hash";
-import {getEditorValue} from "@utils/monaco";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
 import {closeFile, setPermanentOpen} from "@redux/reducers/files";
@@ -31,6 +30,7 @@ export const FileTab: React.FC<FileTabProps> = props => {
     const [active, setActive] = React.useState<boolean>(false);
     const [modified, setModified] = React.useState<boolean>(false);
     const [exists, setExists] = React.useState<boolean>(true);
+    const [error, setError] = React.useState<boolean>(false);
     const [uncommitted, setUncommitted] = React.useState<boolean>(false);
 
     const interval = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -51,12 +51,15 @@ export const FileTab: React.FC<FileTabProps> = props => {
                 return;
             }
             setExists(true);
-            setModified(
-                generateHashCode(getEditorValue(file.filePath) || "") !== file?.hash || !file?.associatedWithFile
-            );
+            const hashCode = editor.getHashCode(props.filePath);
+            if (hashCode === false) {
+                setError(true);
+                return;
+            }
+            setModified(hashCode !== file?.hash || !file?.associatedWithFile);
         };
         checkFile();
-        interval.current = setInterval(checkFile, 3000);
+        interval.current = setInterval(checkFile, 5000);
 
         return () => {
             if (interval.current) {
@@ -104,12 +107,17 @@ export const FileTab: React.FC<FileTabProps> = props => {
 
     return (
         <div
-            className={`FileTab${active ? " FileTab--active" : ""}${exists ? "" : " FileTab--deleted"}`}
+            className={`FileTab${active ? " FileTab--active" : ""}${exists || error ? "" : " FileTab--deleted"}`}
             onClick={() => handleClick()}
             onDoubleClick={() => handleDoubleClick()}
             title={props.filePath}
         >
             {file.permanentOpen ? filename : <i>{filename}</i>}
+            {error && (
+                <span title="Error">
+                    <VscCircleFilled fontSize="inherit" style={{color: theme.palette.error.light}} />
+                </span>
+            )}
             {uncommitted && (
                 <span title="Uncommitted changes">
                     <VscCircleFilled fontSize="inherit" style={{color: theme.palette.info.light}} />

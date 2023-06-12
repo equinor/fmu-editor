@@ -1,3 +1,5 @@
+import {monacoMainEditorInstances} from "@editors/monaco";
+import {EditorType, GlobalSettings} from "@global/global-settings";
 import {Error as ErrorIcon} from "@mui/icons-material";
 import {Badge, Grid} from "@mui/material";
 
@@ -8,12 +10,12 @@ import {Surface} from "@components/Surface";
 
 import {useAppSelector} from "@redux/hooks";
 
+import path from "path";
+
 import {FileItem} from "./components/file-item";
 import "./issues-list.css";
 
 export type IssuesListProps = {
-    monacoEditorRef: React.RefObject<monaco.editor.IStandaloneCodeEditor | null>;
-    monacoRef: React.RefObject<typeof monaco | null>;
     visible: boolean;
 };
 
@@ -37,18 +39,27 @@ export const IssuesList: React.VFC<IssuesListProps> = props => {
     const [issues, setIssues] = React.useState<FileIssues[]>([]);
 
     const activeFilePath = useAppSelector(state => state.files.activeFilePath);
+    const monacoInstance = monacoMainEditorInstances.getMonacoInstance();
+    const monacoEditorInstance = monacoMainEditorInstances.getMonacoEditorInstance();
 
     React.useEffect(() => {
-        if (!props.monacoRef.current) {
+        if (GlobalSettings.editorTypeForFileExtension(path.extname(activeFilePath)) !== EditorType.Monaco) {
+            setIssues([]);
+            return;
+        }
+
+        if (!monacoInstance) {
+            setIssues([]);
             return;
         }
 
         const handleMarkersChange = () => {
-            if (!props.monacoRef.current || !props.monacoEditorRef.current) {
+            if (!monacoInstance || !monacoEditorInstance) {
+                setIssues([]);
                 return;
             }
             const newIssues = [];
-            const markers = props.monacoRef.current.editor
+            const markers = monacoInstance.editor
                 .getModelMarkers({})
                 .filter(marker => marker.resource.path === activeFilePath)
                 .sort(compareMarkers);
@@ -64,27 +75,24 @@ export const IssuesList: React.VFC<IssuesListProps> = props => {
             setIssues(newIssues);
         };
 
-        props.monacoRef.current.editor.onDidChangeMarkers(handleMarkersChange);
-    }, [props.monacoRef, props.monacoEditorRef, activeFilePath]);
+        monacoInstance.editor.onDidChangeMarkers(handleMarkersChange);
+    }, [monacoInstance, monacoEditorInstance, activeFilePath]);
 
     const selectMarker = React.useCallback(
         (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, marker: monaco.editor.IMarker) => {
-            if (props.monacoEditorRef.current) {
-                props.monacoEditorRef.current.setSelection(
+            if (monacoEditorInstance) {
+                monacoEditorInstance.setSelection(
                     new monaco.Range(marker.startLineNumber, marker.startColumn, marker.endLineNumber, marker.endColumn)
                 );
 
-                props.monacoEditorRef.current.revealLinesInCenterIfOutsideViewport(
-                    marker.startLineNumber,
-                    marker.endLineNumber
-                );
+                monacoEditorInstance.revealLinesInCenterIfOutsideViewport(marker.startLineNumber, marker.endLineNumber);
             }
         },
-        [props.monacoEditorRef]
+        [monacoEditorInstance]
     );
 
     return (
-        <div className="Issues">
+        <div className="Issues" id="issues">
             <Surface elevation="raised" className="IssuesTitle">
                 <Grid container columnSpacing={2} spacing={5} direction="row" alignItems="center">
                     <Grid item>

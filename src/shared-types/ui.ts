@@ -46,4 +46,5 @@ export type UiState = {
         createFolder: boolean;
         createFile: boolean;
     };
+    firstTimeUser: boolean;
 };

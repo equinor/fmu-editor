@@ -53,6 +53,65 @@ const ICodeEditorViewState = {
     },
 };
 
+const SpreadSheetEditorViewState = {
+    type: "object",
+    properties: {
+        visibleWorkSheetName: {
+            type: "string",
+        },
+        viewStates: {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    scrollLeft: {
+                        type: "number",
+                    },
+                    scrollTop: {
+                        type: "number",
+                    },
+                    selection: {
+                        type: "object",
+                        properties: {
+                            start: {
+                                type: "object",
+                                properties: {
+                                    row: {
+                                        type: "number",
+                                    },
+                                    column: {
+                                        type: "number",
+                                    },
+                                },
+                            },
+                            end: {
+                                type: "object",
+                                properties: {
+                                    row: {
+                                        type: "number",
+                                    },
+                                    column: {
+                                        type: "number",
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    workSheetName: {
+                        type: "string",
+                    },
+                    columnWidths: {
+                        type: "object",
+                    },
+                    rowHeights: {
+                        type: "object",
+                    },
+                },
+            },
+        },
+    },
+};
+
 const schema = {
     ui: {
         type: "object",
@@ -79,6 +138,9 @@ const schema = {
                     },
                 },
             },
+            firstTimeUser: {
+                type: "boolean",
+            },
         },
     },
     files: {
@@ -96,7 +158,7 @@ const schema = {
                             type: "string",
                         },
                         editorViewState: {
-                            oneOf: [ICodeEditorViewState, {type: "string"}],
+                            oneOf: [ICodeEditorViewState, {type: "string"}, SpreadSheetEditorViewState],
                         },
                     },
                 },

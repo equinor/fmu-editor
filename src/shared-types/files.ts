@@ -1,5 +1,7 @@
 import {SelectionDirection, editor} from "monaco-editor/esm/vs/editor/editor.api";
 
+import {SpreadSheetSelection} from "./spreadsheet-selection";
+
 export type CodeEditorViewState = {
     cursorState: editor.ICursorState[];
     viewState: {
@@ -23,6 +25,22 @@ export type CodeEditorViewState = {
     contributionsState: {
         [id: string]: any;
     };
+};
+
+export type SpreadSheetEditorViewState = {
+    visibleWorkSheetName: string;
+    viewStates: {
+        scrollLeft: number;
+        scrollTop: number;
+        selection: SpreadSheetSelection;
+        columnWidths: {
+            [key: number]: number;
+        };
+        rowHeights: {
+            [key: number]: number;
+        };
+        workSheetName: string;
+    }[];
 };
 
 export type DiffEditorViewState = {

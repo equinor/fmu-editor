@@ -26,7 +26,12 @@ export const User: React.FC = () => {
     };
 
     return (
-        <Button size="small" onClick={handleUsernameClick} title="Current user. Click for more information.">
+        <Button
+            id="status-bar-user"
+            size="small"
+            onClick={handleUsernameClick}
+            title="Current user. Click for more information."
+        >
             <VscAccount />
             <span>{environment.username}</span>
         </Button>

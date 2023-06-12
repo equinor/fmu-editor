@@ -91,6 +91,10 @@ export const uiSlice = createSlice({
         setActiveItemPath: (state: Draft<UiState>, action: PayloadAction<string>) => {
             state.explorer.activeItemPath = action.payload;
         },
+        setFirstTimeUser: (state: Draft<UiState>, action: PayloadAction<boolean>) => {
+            state.firstTimeUser = action.payload;
+            electronStore.set("ui.firstTimeUser", action.payload);
+        },
     },
 });
 
@@ -111,5 +115,6 @@ export const {
     setCreateFile,
     setCreateFolder,
     setActiveItemPath,
+    setFirstTimeUser,
 } = uiSlice.actions;
 export default uiSlice.reducer;

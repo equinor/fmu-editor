@@ -1,10 +1,10 @@
+import {editor} from "@editors/editor";
 import {environmentService} from "@services/environment-service";
 
 import {ipcRenderer} from "electron";
 
 import electronStore from "@utils/electron-store";
 import {File as FileInterface} from "@utils/file-system/file";
-import {generateHashCode} from "@utils/hash";
 
 import {EventSource, File, FilesState} from "@shared-types/files";
 import {ChangesBrowserView, Themes, UiState, View} from "@shared-types/ui";
@@ -38,6 +38,7 @@ const initialUiState: UiState = {
         createFolder: false,
         createFile: false,
     },
+    firstTimeUser: electronStore.get("ui.firstTimeUser") ?? true,
 };
 
 const prepareInitialFileTreeStates = () => {
@@ -64,11 +65,11 @@ const initialFilesState: FilesState = {
                 path.relative(workingDirectoryPath, file.filePath),
                 workingDirectoryPath
             ).getUserVersion(environmentService.getUsername());
-            const fileContent = userFile.readString();
+            const hash = editor.getHashCode(file.filePath);
             return {
                 filePath: file.filePath,
                 associatedWithFile: userFile.exists(),
-                hash: fileContent ? generateHashCode(fileContent) : "",
+                hash: hash || "",
                 title: "",
                 permanentOpen: file.permanentOpen,
             };
@@ -79,6 +80,10 @@ ipcRenderer.send("set-recent-files", electronStore.get("files.recentFiles") || [
 
 if (initialFilesState.files.length === 0) {
     initialFilesState.activeFilePath = "";
+}
+
+if (initialFilesState.activeFilePath && initialFilesState.files.length > 0) {
+    editor.openFile(electronStore.get("files.activeFilePath"));
 }
 
 export default {

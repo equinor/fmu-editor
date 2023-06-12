@@ -5,6 +5,7 @@ import React from "react";
 import {useMainProcessDataProvider} from "@components/MainProcessDataProvider/main-process-data-provider";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
+import {setFirstTimeUser} from "@redux/reducers/ui";
 import {saveFile} from "@redux/thunks";
 
 import {NotificationType} from "@shared-types/notifications";
@@ -12,7 +13,6 @@ import {NotificationType} from "@shared-types/notifications";
 import {notificationsService} from "./notifications-service";
 
 import electronStore from "../utils/electron-store";
-import {getEditorValue} from "../utils/monaco";
 
 export const IpcService: React.FC = props => {
     const dispatch = useAppDispatch();
@@ -31,7 +31,11 @@ export const IpcService: React.FC = props => {
         };
 
         addListener("save-file", () => {
-            saveFile(activeFilePath, getEditorValue(activeFilePath) || "", workingDirectoryPath, dispatch);
+            saveFile(activeFilePath, workingDirectoryPath, dispatch);
+        });
+
+        addListener("start-tour", () => {
+            dispatch(setFirstTimeUser(true));
         });
 
         addListener("error", (_, errorMessage) => {

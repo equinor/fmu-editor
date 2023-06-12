@@ -1,33 +1,13 @@
+import {LanguageOptions, LanguageServiceDefaults} from "@shared-types/language-options";
 import {Size} from "@shared-types/size";
 
 import {Emitter, languages} from "monaco-editor";
 
-import {LanguageServiceDefaults, languageId} from "./constants";
+import {languageId} from "./constants";
 import {setupMode} from "./distMode";
 import {monarchConfiguration, monarchLanguage} from "./language";
 
-export interface DistOptions {
-    /**
-     * If set, enable autocompletion.
-     *
-     * @default true
-     */
-    readonly completion?: boolean;
-
-    /**
-     * If set, enable hover.
-     *
-     * @default true
-     */
-    readonly hover?: boolean;
-
-    /**
-     * If set, the configuration file will be validated.
-     *
-     * @default false
-     */
-    readonly validate?: boolean;
-
+export interface DistOptions extends LanguageOptions {
     /**
      * The size of the distribution plot on hover.
      *

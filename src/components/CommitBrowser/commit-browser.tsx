@@ -79,7 +79,7 @@ export const CommitBrowser: React.FC = () => {
     };
 
     return (
-        <Surface elevation="none" className="CommitBrowser">
+        <Surface elevation="none" className="CommitBrowser" id="commit-browser">
             <div className="CommitBrowserContent">{makeContent()}</div>
         </Surface>
     );
