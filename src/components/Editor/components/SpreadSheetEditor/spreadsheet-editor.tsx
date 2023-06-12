@@ -954,6 +954,9 @@ const SpreadSheetEditorComponent: React.VFC<SpreadSheetEditorProps> = props => {
             }
 
             if (e.key === "Delete" || e.key === "Backspace") {
+                if (editingCell !== null) {
+                    return;
+                }
                 e.preventDefault();
                 const startRow = Math.min(selection.start.row, selection.end.row);
                 const startColumn = Math.min(selection.start.column, selection.end.column);
