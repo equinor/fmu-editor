@@ -8,6 +8,7 @@ import {FileBasic, IFileBasic} from "./basic";
 export interface IFile extends IFileBasic {
     hash(): string | null;
     readString(): string | null;
+    readBuffer(num?: number): Buffer | null;
     readJson(): any | null;
     readBuffer(): Buffer | null;
     getModifications(): Modification[];
@@ -18,6 +19,7 @@ export interface IFile extends IFileBasic {
     push(): boolean;
     pull(username: string): boolean;
     isDirectory(): boolean;
+    mightBeBinary(): boolean;
     compare(other: File): boolean;
     extension(): string;
 }
@@ -141,8 +143,15 @@ export class File extends FileBasic implements IFile {
         }
     }
 
-    public readBuffer(): Buffer | null {
+    public readBuffer(num?: number): Buffer | null {
         try {
+            if (num !== undefined) {
+                const buffer = Buffer.alloc(num);
+                const fd = fs.openSync(this.absolutePath(), "r");
+                fs.readSync(fd, buffer, 0, num, 0);
+                fs.closeSync(fd);
+                return buffer;
+            }
             const content = fs.readFileSync(this.absolutePath());
             return content;
         } catch (e) {
@@ -201,6 +210,37 @@ export class File extends FileBasic implements IFile {
 
     // eslint-disable-next-line class-methods-use-this
     public isDirectory(): boolean {
+        return false;
+    }
+
+    public mightBeBinary(): boolean {
+        const readSize = Math.min(512, fs.statSync(this.absolutePath()).size);
+        const buffer = this.readBuffer(readSize);
+        let hasZeroByte = false;
+        let couldBeUTF16LE = true;
+        let couldBeUTF16BE = true;
+        for (let i = 0; i < readSize; i++) {
+            const isEndian = i % 2 === 1;
+            const isZeroByte = buffer.readUInt8(i) === 0;
+            if (isZeroByte) {
+                hasZeroByte = true;
+            }
+            // UTF-16 LE: expect e.g. 0xAA 0x00
+            if (couldBeUTF16LE && ((isEndian && !isZeroByte) || (!isEndian && isZeroByte))) {
+                couldBeUTF16LE = false;
+            }
+            // UTF-16 BE: expect e.g. 0x00 0xAA
+            if (couldBeUTF16BE && ((isEndian && isZeroByte) || (!isEndian && !isZeroByte))) {
+                couldBeUTF16BE = false;
+            }
+            // Return if this is neither UTF16-LE nor UTF16-BE and thus treat as binary
+            if (isZeroByte && !couldBeUTF16LE && !couldBeUTF16BE) {
+                break;
+            }
+        }
+        if (hasZeroByte && !couldBeUTF16LE && !couldBeUTF16BE) {
+            return true;
+        }
         return false;
     }
 

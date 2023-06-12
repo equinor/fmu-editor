@@ -9,13 +9,14 @@ import {VscCloseAll, VscError, VscPreview, VscSourceControl} from "react-icons/v
 import {FileBasic} from "@utils/file-system/basic";
 import {File} from "@utils/file-system/file";
 
+import {DialogContext} from "@components/DialogProvider";
 import {FileTabs} from "@components/FileTabs";
 import {IssuesList} from "@components/IssuesList";
 import {Preview} from "@components/Preview";
 import {ResizablePanels} from "@components/ResizablePanels";
 
 import {useAppDispatch, useAppSelector} from "@redux/hooks";
-import {closeAllFiles, setActiveFilePath} from "@redux/reducers/files";
+import {closeAllFiles, closeFile, setActiveFilePath} from "@redux/reducers/files";
 import {setActiveItemPath, setPreviewOpen, setView} from "@redux/reducers/ui";
 import {openFile} from "@redux/thunks";
 
@@ -31,8 +32,11 @@ import {MonacoEditor} from "./components/monaco-editor";
 import "./editor.css";
 
 export const Editor: React.FC = () => {
+    const setDialog = React.useContext(DialogContext);
+
     const [noModels, setNoModels] = React.useState<boolean>(false);
     const [userFilePath, setUserFilePath] = React.useState<string | null>(null);
+    const [openBinaryFiles, setOpenBinaryFiles] = React.useState<boolean>(false);
     const [fileExists, setFileExists] = React.useState<boolean>(true);
     const [dragOver, setDragOver] = React.useState<boolean>(false);
     const [editorType, setEditorType] = React.useState<EditorType>(EditorType.Monaco);
@@ -57,6 +61,18 @@ export const Editor: React.FC = () => {
         [dispatch]
     );
 
+    const handleOpenBinary = React.useCallback(() => {
+        const openBinaryDialog = {
+            title: "Unreadable file",
+            content: "This file appears to be a binary file, meaning it's not readable as text. Open anyway?",
+            confirmText: "Continue",
+            confirmFunc: () => setOpenBinaryFiles(true),
+            closeText: "Cancel",
+            closeFunc: () => dispatch(closeFile(activeFilePath)),
+        };
+        setDialog(openBinaryDialog);
+    }, [activeFilePath, dispatch, setOpenBinaryFiles, setDialog]);
+
     React.useEffect(() => {
         const file = files.find(el => el.filePath === activeFilePath);
         if (files.length === 0 || file === undefined) {
@@ -75,14 +91,16 @@ export const Editor: React.FC = () => {
             const fileExtension = path.extname(currentFile.absolutePath());
 
             if (GlobalSettings.editorTypeForFileExtension(fileExtension) === EditorType.Monaco) {
+                if (!openBinaryFiles && currentFile.mightBeBinary()) {
+                    handleOpenBinary();
+                }
                 setEditorType(EditorType.Monaco);
             } else if (GlobalSettings.editorTypeForFileExtension(fileExtension) === EditorType.SpreadSheet) {
                 setEditorType(EditorType.SpreadSheet);
             }
         }
-
         setNoModels(false);
-    }, [activeFilePath, files, workingDirectoryPath]);
+    }, [activeFilePath, handleOpenBinary, files, openBinaryFiles, workingDirectoryPath]);
 
     React.useEffect(() => {
         if (noModels) {

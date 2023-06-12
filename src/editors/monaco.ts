@@ -27,17 +27,16 @@ export class MonacoEditor implements Omit<IEditor<monaco.editor.ITextModel>, key
             }
             return generateHashCode(value);
         } catch (e) {
-            console.error(e);
             return false;
         }
     }
 
     // eslint-disable-next-line class-methods-use-this
     public openFile(absoluteFilePath: string): void {
-        const currentFile = new File(absoluteFilePath, "");
         if (monaco.editor.getModel(monaco.Uri.file(absoluteFilePath))) {
             return;
         }
+        const currentFile = new File(absoluteFilePath, "");
         monaco.editor.createModel(
             currentFile.readString(),
             GlobalSettings.languageForFileExtension(path.extname(absoluteFilePath)),
