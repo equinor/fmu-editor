@@ -31,6 +31,8 @@ const extensionsLanguageMap = {
     },
     ".ert": {language: "ert", editorType: EditorType.Monaco},
     ".dist": {language: "dist", editorType: EditorType.Monaco},
+    ".md": {language: "markdown", editorType: EditorType.Monaco},
+    ".pl": {language: "perl", editorType: EditorType.Monaco},
     ".py": {language: "python", editorType: EditorType.Monaco},
     ".json": {language: "json", editorType: EditorType.Monaco},
     ".sh": {language: "shell", editorType: EditorType.Monaco},
@@ -42,7 +44,7 @@ const extensionsLanguageMap = {
 
 export class GlobalSettings {
     static supportedFileExtensions(): string[] {
-        return [".csv", ".dist", ".ert", ".json", ".sh", ".py", ".txt", ".xlsx", ".xls", ".xml", ".yaml", ".yml"];
+        return Object.keys(extensionsLanguageMap);
     }
 
     static languageForFileExtension(extension: string): string {
